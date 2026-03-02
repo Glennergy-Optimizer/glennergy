@@ -1,0 +1,6 @@
+[Unit]
+Description=Glennergy Algoritm
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/Glennergy-Algoritm

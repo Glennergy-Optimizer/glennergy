@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#include "../../Cache/InputCache.h"
+#include "../Cache/InputCache.h"
 #include "testreader.h"
 
 

@@ -48,7 +48,8 @@ typedef struct {
     Meteo_t meteo[MAX];
     size_t meteo_count;
 
-    Spot_t spotpris; // Spot_t spotpris[AREA_MAX][SAMPLES]
+    Spot_t spotpris;
+    bool is_old; // Spot_t spotpris[AREA_MAX][SAMPLES]
 } InputCache_t;
 
 int inputcache_Init(InputCache_t *cache, const char* file_path); //can do more?

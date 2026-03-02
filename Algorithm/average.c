@@ -6,7 +6,7 @@
 // #include <string.h>
 // #include <sys/stat.h>
 #include "average.h"
-#include "../../Cache/InputCache.h"
+#include "../Cache/InputCache.h"
 
 const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"}; // usch
 

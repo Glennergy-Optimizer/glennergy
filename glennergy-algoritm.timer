@@ -1,0 +1,10 @@
+[Unit]
+Description=Glennergy Algoritm Timer
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=15min
+Unit=glennergy-algoritm.service
+
+[Install]
+WantedBy=timers.target

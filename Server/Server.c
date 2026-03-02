@@ -73,7 +73,7 @@ int Server_Run(Server *_Server)
 
     SignalHandler_Initialize();
     Crontab_Add();
-    int status_pid, status_cache;
+    int status_pid, status_cache, status_algoritm;
     pid_t pid = fork();
 
     if (pid < 0)
@@ -121,11 +121,25 @@ int Server_Run(Server *_Server)
         LOG_ERROR("Failed to execute Glennergy-InputCache");
         exit(EXIT_SUCCESS);
     }
+
+    pid_t pid_algoritm = fork();
+
+    if (pid_algoritm < 0)
+    {
+        exit(EXIT_FAILURE);
+    }
+    else if (pid_algoritm == 0)
+    {
+        execlp("Glennergy-Algoritm", "Glennergy-Algoritm", NULL);
+        LOG_ERROR("Failed to execute Glennergy-InputCache");
+        exit(EXIT_SUCCESS);
+    }
     else
     {
-        test_reader();
+        // test_reader();
         wait(&status_pid);
         wait(&status_cache);
+        wait(&status_algoritm);
     }
     Crontab_Remove();
     return 0;

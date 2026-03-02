@@ -16,9 +16,10 @@
 
 const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"};
 
-int inputcache_Init(InputCache_t *cache, const char* file_path)
+int inputcache_Init(InputCache_t *cache, const char *file_path)
 {
-    if (!cache || !file_path) {
+    if (!cache || !file_path)
+    {
         LOG_ERROR("Invalid parameters for InputCache_Init");
         return -1;
     }
@@ -37,20 +38,25 @@ int inputcache_Init(InputCache_t *cache, const char* file_path)
 int inputcache_CreateSocket(void)
 {
     int sock_fd = socket_CreateSocket();
-    if (sock_fd < 0) {
+    if (sock_fd < 0)
+    {
         LOG_ERROR("Failed to create socket");
         return -1;
     }
 
     unlink(CACHE_SOCKET_PATH);
 
-    if (socket_Bind(sock_fd, CACHE_SOCKET_PATH) < 0) {
+    if (socket_Bind(sock_fd, CACHE_SOCKET_PATH) < 0)
+    {
         LOG_ERROR("Failed to bind socket to %s", CACHE_SOCKET_PATH);
         close(sock_fd);
         return -1;
     }
 
-    if (socket_Listen(sock_fd, MAX_BACKLOG) < 0) {
+    chmod(CACHE_SOCKET_PATH, 0666);
+
+    if (socket_Listen(sock_fd, MAX_BACKLOG) < 0)
+    {
         LOG_ERROR("Failed to listen on socket");
         close(sock_fd);
         return -1;
@@ -62,16 +68,19 @@ int inputcache_CreateSocket(void)
 
 int inputcache_OpenFIFOs(int *meteo_fd, int *spotpris_fd)
 {
-    if (!meteo_fd || !spotpris_fd) {
+    if (!meteo_fd || !spotpris_fd)
+    {
         LOG_ERROR("Invalid fd pointers");
         return -1;
     }
 
     // Create FIFOs if they don't exist
-    if (mkfifo(FIFO_METEO_READ, 0666) < 0 && errno != EEXIST) {
+    if (mkfifo(FIFO_METEO_READ, 0666) < 0 && errno != EEXIST)
+    {
         LOG_WARNING("mkfifo %s: %s", FIFO_METEO_READ, strerror(errno));
     }
-    if (mkfifo(FIFO_SPOTPRIS_READ, 0666) < 0 && errno != EEXIST) {
+    if (mkfifo(FIFO_SPOTPRIS_READ, 0666) < 0 && errno != EEXIST)
+    {
         LOG_WARNING("mkfifo %s: %s", FIFO_SPOTPRIS_READ, strerror(errno));
     }
 
@@ -79,14 +88,16 @@ int inputcache_OpenFIFOs(int *meteo_fd, int *spotpris_fd)
 
     // Open meteo FIFO
     *meteo_fd = open(FIFO_METEO_READ, O_RDWR);
-    if (*meteo_fd < 0) {
+    if (*meteo_fd < 0)
+    {
         LOG_ERROR("Failed to open FIFO: %s - %s", FIFO_METEO_READ, strerror(errno));
         return -1;
     }
 
     // Open spotpris FIFO
     *spotpris_fd = open(FIFO_SPOTPRIS_READ, O_RDWR);
-    if (*spotpris_fd < 0) {
+    if (*spotpris_fd < 0)
+    {
         LOG_ERROR("Failed to open FIFO: %s - %s", FIFO_SPOTPRIS_READ, strerror(errno));
         close(*meteo_fd);
         return -1;
@@ -101,8 +112,11 @@ void inputcache_HandleRequest(InputCache_t *cache, int client_fd)
     CacheRequest req;
     CacheResponse resp;
 
+    if (cache == NULL)
+        return -1;
+
     ssize_t bytesread = recv(client_fd, &req, sizeof(req), 0);
-    if (bytesread != sizeof(req)) 
+    if (bytesread != sizeof(req))
     {
         LOG_ERROR("Invalid request size: %zd", bytesread);
         close(client_fd);
@@ -110,52 +124,52 @@ void inputcache_HandleRequest(InputCache_t *cache, int client_fd)
     }
     LOG_INFO("Received request with command: %d", req.command);
 
-    switch(req.command)
+    switch (req.command)
     {
-        case CMD_GET_ALL:
-            LOG_INFO("Handling CMD_GET_ALL request");
-            resp.status = 0;
-            resp.data_size = sizeof(InputCache_t);
+    case CMD_GET_ALL:
+        LOG_INFO("Handling CMD_GET_ALL request");
+        resp.status = 0;
+        resp.data_size = sizeof(InputCache_t);
 
-            send(client_fd, &resp, sizeof(resp), 0);
-            send(client_fd, cache, sizeof(InputCache_t), 0);
-            LOG_INFO("Sent complete InputCache data to client");
-            break;
-        
-        case CMD_GET_METEO:
-            LOG_INFO("Handling CMD_GET_METEO request");
-            resp.status = 0;
-            resp.data_size = sizeof(Meteo_t) * cache->meteo_count;
+        send(client_fd, &resp, sizeof(resp), 0);
+        send(client_fd, cache, sizeof(InputCache_t), 0);
+        LOG_INFO("Sent complete InputCache data to client");
+        break;
 
-            send(client_fd, &resp, sizeof(resp), 0);
-            send(client_fd, cache->meteo, sizeof(Meteo_t) * cache->meteo_count, 0);
-            LOG_INFO("Sent %zu Meteo entries to client", cache->meteo_count);
-            break;
+    case CMD_GET_METEO:
+        LOG_INFO("Handling CMD_GET_METEO request");
+        resp.status = 0;
+        resp.data_size = sizeof(Meteo_t) * cache->meteo_count;
 
-        case CMD_GET_SPOTPRIS:
-            LOG_INFO("Handling CMD_GET_SPOTPRIS request");
-            resp.status = 0;
-            resp.data_size = sizeof(Spot_t);
-            
-            send(client_fd, &resp, sizeof(resp), 0);
-            send(client_fd, &cache->spotpris, sizeof(Spot_t), 0);
-            LOG_INFO("Sent Spotpris data to client");
-            break;
+        send(client_fd, &resp, sizeof(resp), 0);
+        send(client_fd, cache->meteo, sizeof(Meteo_t) * cache->meteo_count, 0);
+        LOG_INFO("Sent %zu Meteo entries to client", cache->meteo_count);
+        break;
 
-        case CMD_PING:
-            LOG_INFO("Handling CMD_PING request");
-            resp.status = 0;
-            resp.data_size = 0;
-            send(client_fd, &resp, sizeof(resp), 0);
-            LOG_INFO("Sent PING response to client");
-            break;
+    case CMD_GET_SPOTPRIS:
+        LOG_INFO("Handling CMD_GET_SPOTPRIS request");
+        resp.status = 0;
+        resp.data_size = sizeof(Spot_t);
 
-        default:
-            LOG_WARNING("Received unknown command: %d", req.command);
-            resp.status = 1;
-            resp.data_size = 0;
-            send(client_fd, &resp, sizeof(resp), 0);
-            break;
+        send(client_fd, &resp, sizeof(resp), 0);
+        send(client_fd, &cache->spotpris, sizeof(Spot_t), 0);
+        LOG_INFO("Sent Spotpris data to client");
+        break;
+
+    case CMD_PING:
+        LOG_INFO("Handling CMD_PING request");
+        resp.status = 0;
+        resp.data_size = 0;
+        send(client_fd, &resp, sizeof(resp), 0);
+        LOG_INFO("Sent PING response to client");
+        break;
+
+    default:
+        LOG_WARNING("Received unknown command: %d", req.command);
+        resp.status = 1;
+        resp.data_size = 0;
+        send(client_fd, &resp, sizeof(resp), 0);
+        break;
     }
 
     close(client_fd);
@@ -205,31 +219,33 @@ static int inputcache_SaveMeteo(const MeteoData *_Data)
 }
 
 void inputcache_HandleMeteoData(InputCache_t *cache, int meteo_fd)
-{            
-        MeteoData meteo_test;
-        ssize_t bytesReadMeteo = Pipes_ReadBinary(meteo_fd, &meteo_test, sizeof(MeteoData));
+{
+    MeteoData meteo_test;
+    ssize_t bytesReadMeteo = Pipes_ReadBinary(meteo_fd, &meteo_test, sizeof(MeteoData));
 
-        if (bytesReadMeteo == sizeof(MeteoData))
+    if (bytesReadMeteo == sizeof(MeteoData))
+    {
+        LOG_INFO("Got new data meteo %zd, count %zu", bytesReadMeteo, meteo_test.pCount);
+
+        cache->meteo_count = meteo_test.pCount;
+        for (size_t i = 0; i < cache->meteo_count; i++)
         {
-            LOG_INFO("Got new data meteo %zd, count %zu", bytesReadMeteo, meteo_test.pCount);
+            cache->meteo[i].id = meteo_test.pInfo[i].id;
+            strncpy(cache->meteo[i].city, meteo_test.pInfo[i].property_name, NAME_MAX - 1);
+            cache->meteo[i].lat = meteo_test.pInfo[i].lat;
+            cache->meteo[i].lon = meteo_test.pInfo[i].lon;
+            snprintf(cache->meteo[i].electricity_area, sizeof(cache->meteo[i].electricity_area), "%s", meteo_test.pInfo[i].electricity_area);
 
-            cache->meteo_count = meteo_test.pCount;
-            for (size_t i = 0; i < cache->meteo_count; i++)
-            {
-                cache->meteo[i].id = meteo_test.pInfo[i].id;
-                strncpy(cache->meteo[i].city, meteo_test.pInfo[i].property_name, NAME_MAX - 1);
-                cache->meteo[i].lat = meteo_test.pInfo[i].lat;
-                cache->meteo[i].lon = meteo_test.pInfo[i].lon;
-                snprintf(cache->meteo[i].electricity_area, sizeof(cache->meteo[i].electricity_area), "%s", meteo_test.pInfo[i].electricity_area);
-            
-                memcpy(cache->meteo[i].sample, meteo_test.pInfo[i].sample, sizeof(Samples) * KVARTAR_TOTALT);
-                
-            }
-            LOG_INFO("meteo after copy: %zu meteodata entries", cache->meteo_count);
-            inputcache_SaveMeteo(&meteo_test);
-        } else {
-            LOG_ERROR("failed to read meteo data, got %zd bytes", bytesReadMeteo); //fixed size so should never trigger can still be wrong
+            memcpy(cache->meteo[i].sample, meteo_test.pInfo[i].sample, sizeof(Samples) * KVARTAR_TOTALT);
         }
+        LOG_INFO("meteo after copy: %zu meteodata entries", cache->meteo_count);
+        inputcache_SaveMeteo(&meteo_test);
+        cache->is_old = 0;
+    }
+    else
+    {
+        LOG_ERROR("failed to read meteo data, got %zd bytes", bytesReadMeteo); // fixed size so should never trigger can still be wrong
+    }
 }
 
 int inputcache_SaveSpotpris(const AllaSpotpriser *spotpris)
@@ -262,10 +278,10 @@ int inputcache_SaveSpotpris(const AllaSpotpriser *spotpris)
         {
             json_t *obj = json_object();
             json_object_set_new(obj, "time_start", json_string(spotpris->areas[i].kvartar[j].time_start));
-            //json_object_set_new(obj, "time_end", json_string(spotpris->areas[i].kvartar[j].time_end));
+            // json_object_set_new(obj, "time_end", json_string(spotpris->areas[i].kvartar[j].time_end));
             json_object_set_new(obj, "SEK_per_kWh", json_real(spotpris->areas[i].kvartar[j].sek_per_kwh));
-            //json_object_set_new(obj, "EUR_per_kWh", json_real(spotpris->areas[i].kvartar[j].eur_per_kwh));
-            //json_object_set_new(obj, "EXR", json_real(spotpris->areas[i].kvartar[j].exchange_rate));
+            // json_object_set_new(obj, "EUR_per_kWh", json_real(spotpris->areas[i].kvartar[j].eur_per_kwh));
+            // json_object_set_new(obj, "EXR", json_real(spotpris->areas[i].kvartar[j].exchange_rate));
             json_array_append_new(root, obj);
         }
 
@@ -279,47 +295,49 @@ int inputcache_SaveSpotpris(const AllaSpotpriser *spotpris)
         json_decref(root);
     }
 
-     LOG_INFO("Saving spotpris data for %zu areas to file\n", AREA_COUNT);
+    LOG_INFO("Saving spotpris data for %zu areas to file\n", AREA_COUNT);
     return 0;
 }
 
 void inputcache_HandleSpotprisData(InputCache_t *cache, int spotpris_fd)
 {
-        AllaSpotpriser spotpris_test;
-        
-        ssize_t bytesReadSpotpris = Pipes_ReadBinary(spotpris_fd, &spotpris_test, sizeof(AllaSpotpriser));
+    AllaSpotpriser spotpris_test;
 
-        
-        if (bytesReadSpotpris == sizeof(AllaSpotpriser))
+    ssize_t bytesReadSpotpris = Pipes_ReadBinary(spotpris_fd, &spotpris_test, sizeof(AllaSpotpriser));
+
+    if (bytesReadSpotpris == sizeof(AllaSpotpriser))
+    {
+        LOG_INFO("Got new data spotpris %zd", bytesReadSpotpris);
+
+        for (int area = 0; area < AREA_COUNT; area++)
         {
-            LOG_INFO("Got new data spotpris %zd", bytesReadSpotpris);
+            cache->spotpris.count[area] = spotpris_test.areas[area].count;
 
-            for (int area = 0; area < AREA_COUNT; area++)
+            for (size_t entry = 0; entry < spotpris_test.areas[area].count; entry++)
             {
-                cache->spotpris.count[area] = spotpris_test.areas[area].count;
-                
-                for (size_t entry = 0; entry < spotpris_test.areas[area].count; entry++)
-                {
-                    strncpy(cache->spotpris.data[area][entry].time_start, spotpris_test.areas[area].kvartar[entry].time_start, 31);
-                    cache->spotpris.data[area][entry].time_start[31] = '\0';
+                strncpy(cache->spotpris.data[area][entry].time_start, spotpris_test.areas[area].kvartar[entry].time_start, 31);
+                cache->spotpris.data[area][entry].time_start[31] = '\0';
 
-                    cache->spotpris.data[area][entry].sek_per_kwh = spotpris_test.areas[area].kvartar[entry].sek_per_kwh;
-                }
-                
-                LOG_INFO("Area %s: %zu price entries copied", area_names[area], cache->spotpris.count[area]);
+                cache->spotpris.data[area][entry].sek_per_kwh = spotpris_test.areas[area].kvartar[entry].sek_per_kwh;
             }
-            
-            inputcache_SaveSpotpris(&spotpris_test);
-            LOG_INFO("Spotpris data updated and saved");
-        } else {
-            LOG_ERROR("Failed to read spotpris data, got %zd bytes", bytesReadSpotpris); //fixed size so can still be wrong
+
+            LOG_INFO("Area %s: %zu price entries copied", area_names[area], cache->spotpris.count[area]);
         }
+
+        inputcache_SaveSpotpris(&spotpris_test);
+        LOG_INFO("Spotpris data updated and saved");
+    }
+    else
+    {
+        LOG_ERROR("Failed to read spotpris data, got %zd bytes", bytesReadSpotpris); // fixed size so can still be wrong
+    }
 }
 
 void inputcache_Cleanup(InputCache_t *cache)
 {
     LOG_INFO("Cleanup InputCache...");
-    if (cache) {
+    if (cache)
+    {
         free(cache);
     }
 }
