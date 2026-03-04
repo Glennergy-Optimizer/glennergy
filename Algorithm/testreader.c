@@ -15,7 +15,49 @@
 
 #define FIFO_ALGORITHM_READ "/tmp/fifo_algoritm"
 
-//gcc -Wall -Wextra -std=c11 -g testreader.c ../Sockets.c ../../Server/Log/Logger.c -I../../ -o testreader
+int algorithm_WaitForNotification(void)
+{
+    static int notify_fd = -1;
+    NotifyMessage msg;
+    
+    // Open on first call
+    if (notify_fd < 0) {
+        notify_fd = open(NOTIFY_FIFO_PATH, O_RDONLY);
+        if (notify_fd < 0) {
+            LOG_ERROR("Failed to open notification pipe: %s", strerror(errno));
+            return -1;
+        }
+        LOG_INFO("Notification pipe opened, waiting for events...");
+    }
+    
+    ssize_t bytes_read = read(notify_fd, &msg, sizeof(NotifyMessage));
+    
+    if (bytes_read == sizeof(NotifyMessage)) {
+        if (msg.type == NOTIFY_SHUTDOWN) {
+            LOG_INFO("Shutdown notification received");
+            close(notify_fd);
+            notify_fd = -1;
+            return -2;  // Special return code for shutdown
+        }
+        LOG_DEBUG("Received notification (type=%d, count=%u)", msg.type, msg.data_count);
+        return 0;  // Success - data ready
+
+    } else if (bytes_read == 0) {
+        LOG_WARNING("Notification pipe closed (InputCache shutdown?)");
+        close(notify_fd);
+        notify_fd = -1;
+        return -1;  // EOF
+    } else if (bytes_read > 0) {
+        LOG_ERROR("Partial message received (%zd bytes, expected %zu)", bytes_read, sizeof(NotifyMessage));
+        return -1;
+    } else {
+        LOG_ERROR("Read error: %s", strerror(errno));
+        close(notify_fd);
+        notify_fd = -1;
+        return -1;
+    }
+}
+
 int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
 {
     if (!data_out || expected_size == 0) {
@@ -98,11 +140,18 @@ int test_reader()
 
     while(!SignalHandler_Stop())
     {
-        memset(cache, 0, sizeof(InputCache_t));
+        int notify_result = algorithm_WaitForNotification();
+        if (notify_result == -2) {
+            LOG_INFO("Received shutdown notification, exiting...");
+            break;
+        } else if (notify_result < 0) {
+            LOG_ERROR("Error waiting for notification");
+            sleep(10); // Wait before retrying
+            continue;
+        }
 
         if (cache_request(CMD_GET_ALL, cache, sizeof(InputCache_t)) < 0) {
             LOG_WARNING("cache_request failed");
-            sleep(10); // Wait before retrying
             continue;
         }
 
@@ -144,9 +193,6 @@ int test_reader()
         } else {
             LOG_INFO("Results sent to cache successfully");
         }
-
-        LOG_INFO("Sleeping for 10 seconds before next read...");
-        sleep(10);
         
     }   //while
     LOG_INFO("Cleaning up and exiting...");

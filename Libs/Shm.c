@@ -195,7 +195,7 @@ int shm_UpdateResults(SharedData_t *shm, const AlgorithmResults_t *result)
         }
     }
 
-    if (idx >= MAX_RESULTS) {
+    if (idx > MAX_RESULTS) {
         LOG_ERROR("Maximum homes exceeded (%d)", MAX_RESULTS);
         return -1;
     }

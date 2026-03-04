@@ -50,19 +50,27 @@ typedef struct {
 
     Spot_t spotpris; // Spot_t spotpris[AREA_MAX][SAMPLES]
 
+    bool updated_meteo;
+    bool updated_spotpris;
+
     SharedData_t *shm;
 } InputCache_t;
 
-int inputcache_Init(InputCache_t *cache, const char* file_path); //can do more?
-int inputcache_CreateSocket(void);
-int inputcache_OpenFIFOs(int *meteo_fd, int *spotpris_fd);
+typedef struct {
+    InputCache_t *cache;
 
-int inputcache_InitShm(InputCache_t *cache);    //add to Init?
-void inputcache_CleanupShm(InputCache_t *cache); //same cleanup?
+    int meteo_fd;
+    int spotpris_fd;
+    int socket_fd;
+} InputCacheContext_t;
+
+int inputcache_InitAll(InputCacheContext_t *ctx, const char* file_path);
 
 void inputcache_HandleRequest(InputCache_t *cache, int client_fd);
 void inputcache_HandleMeteoData(InputCache_t *cache, int meteo_fd);
 void inputcache_HandleSpotprisData(InputCache_t *cache, int spotpris_fd);
 
-void inputcache_Cleanup(InputCache_t *cache); //also can do more?
+void inputcache_SendNotification(NotifyMessageType type, uint16_t count);
+
+void inputcache_CleanupAll(InputCacheContext_t *ctx);
 #endif

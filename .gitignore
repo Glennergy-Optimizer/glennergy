@@ -75,3 +75,6 @@ glennergy_install.sh
 glennergy_install.sh
 glennergy_uninstall.sh
 Algorithm/Glennergy-Algorithm
+notsureglennergy-manage.sh
+notsureinstall_complete.sh
+.gitignore

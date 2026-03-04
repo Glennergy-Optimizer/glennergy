@@ -29,3 +29,23 @@ https://www.havochvatten.se/data-kartor-och-rapporter/kartor-och-gis/visa-koordi
 15	Kalmar	    34400	56.670	16.360  SE4
 16	Skelleftea	31100	64.760	20.990  SE1
 17	Visby	    22000	57.640	18.300  SE3
+
+
+1. Build everything
+sudo ./glennergy_install.sh
+sudo ./systemd_install.sh
+
+2. Restart the services
+sudo systemctl restart glennergy-server
+
+3. Watch logs
+sudo journalctl -u glennergy-server -f                                              kör i terminal 1
+tail -f *.log | awk '/^==>/{print "\033[1;34m" $0 "\033[0m"; next} {print}'         kör i terminal 2 /var/log/glennergy
+
+                                                    sudo truncate -s 0 *.log        reset logs
+4. In another terminal, trigger test
+sudo systemctl start glennergy-meteo.service
+sudo systemctl start glennergy-spotpris.service
+
+5. shutdown
+sudo systemctl stop glennergy-server glennergy-meteo.timer glennergy-spotpris.timer"

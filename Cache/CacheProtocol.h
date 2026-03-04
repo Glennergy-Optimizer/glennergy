@@ -7,8 +7,21 @@
 #include <stddef.h>
 
 #define CACHE_SOCKET_PATH "/tmp/glennergy_cache.sock"
+#define NOTIFY_FIFO_PATH "/tmp/fifo_notify_algorithm"
 
 #define MAX_RESULTS 5
+
+typedef enum {
+    NOTIFY_DATA_READY = 1,
+    NOTIFY_SHUTDOWN = 9
+} NotifyMessageType;
+
+typedef struct {
+    uint8_t type;           // NotifyMessageType
+    uint8_t priority;       // Reserved for future use
+    uint16_t data_count;    // For logging/debugging
+    uint32_t timestamp;     // Unix timestamp
+} __attribute__((packed)) NotifyMessage;
 
 typedef enum {
     CMD_GET_ALL = 1,

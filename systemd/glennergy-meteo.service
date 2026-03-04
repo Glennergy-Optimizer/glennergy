@@ -1,0 +1,26 @@
+[Unit]
+Description=Glennergy Meteo Data Fetcher
+After=network-online.target glennergy-server.service
+Wants=network-online.target
+Requires=glennergy-server.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/Glennergy-Meteo
+
+User=glennergy
+Group=glennergy
+
+TimeoutStartSec=300
+
+# Allow writing to cache and FIFOs
+ReadWritePaths=/var/cache/glennergy /tmp
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=glennergy-meteo
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=false

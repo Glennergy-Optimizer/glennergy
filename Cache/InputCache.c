@@ -16,6 +16,7 @@
 #include <errno.h>
 
 const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"};
+static int notify_fd = -1;
 
 int inputcache_Init(InputCache_t *cache, const char* file_path)
 {
@@ -77,7 +78,6 @@ int inputcache_OpenFIFOs(int *meteo_fd, int *spotpris_fd)
         return -1;
     }
 
-    // Create FIFOs if they don't exist
     if (mkfifo(FIFO_METEO_READ, 0660) < 0 && errno != EEXIST) {
         LOG_WARNING("mkfifo %s: %s", FIFO_METEO_READ, strerror(errno));
     }
@@ -87,14 +87,12 @@ int inputcache_OpenFIFOs(int *meteo_fd, int *spotpris_fd)
 
     LOG_INFO("Opening FIFOs ...");
 
-    // Open meteo FIFO
     *meteo_fd = open(FIFO_METEO_READ, O_RDWR);
     if (*meteo_fd < 0) {
         LOG_ERROR("Failed to open FIFO: %s - %s", FIFO_METEO_READ, strerror(errno));
         return -1;
     }
 
-    // Open spotpris FIFO
     *spotpris_fd = open(FIFO_SPOTPRIS_READ, O_RDWR);
     if (*spotpris_fd < 0) {
         LOG_ERROR("Failed to open FIFO: %s - %s", FIFO_SPOTPRIS_READ, strerror(errno));
@@ -126,6 +124,68 @@ int inputcache_InitShm(InputCache_t *cache)
     }
 
     LOG_INFO("Shared memory initialized successfully");
+    return 0;
+}
+
+int inputcache_InitNotifyPipe(void)
+{
+    if (access(NOTIFY_FIFO_PATH, F_OK) != 0) {
+        mkfifo(NOTIFY_FIFO_PATH, 0660);
+    }
+    
+    notify_fd = open(NOTIFY_FIFO_PATH, O_WRONLY | O_NONBLOCK);
+    if (notify_fd < 0 && errno == ENXIO) {
+        LOG_INFO("Notification pipe ready, waiting for Algorithm...");
+        notify_fd = -1;
+        return 0;
+    }
+    
+    if (notify_fd >= 0) {
+        LOG_INFO("Notification pipe connected");
+    }
+    return 0;
+}
+
+int inputcache_InitAll(InputCacheContext_t *ctx, const char* config_path)
+{
+    ctx->cache = malloc(sizeof(InputCache_t));
+    if (!ctx->cache) {
+        LOG_ERROR("malloc() failed");
+        return -1;
+    }
+    memset(ctx->cache, 0, sizeof(InputCache_t));
+    
+    if (inputcache_Init(ctx->cache, config_path) != 0) {
+        free(ctx->cache);
+        return -1;
+    }
+    
+    if (inputcache_OpenFIFOs(&ctx->meteo_fd, &ctx->spotpris_fd) != 0) {
+        free(ctx->cache);
+        return -1;
+    }
+    
+    ctx->socket_fd = inputcache_CreateSocket();
+    if (ctx->socket_fd < 0) {
+        close(ctx->meteo_fd);
+        close(ctx->spotpris_fd);
+        free(ctx->cache);
+        return -1;
+    }
+    
+    if (inputcache_InitShm(ctx->cache) != 0) {
+        close(ctx->socket_fd);
+        close(ctx->meteo_fd);
+        close(ctx->spotpris_fd);
+        free(ctx->cache);
+        return -1;
+    }
+    
+    if (inputcache_InitNotifyPipe() != 0) {
+        LOG_WARNING("Notification pipe init failed, will retry");
+    }
+    
+    LOG_INFO("InputCache fully initialized");
     return 0;
 }
 
@@ -314,6 +374,8 @@ void inputcache_HandleMeteoData(InputCache_t *cache, int meteo_fd)
             }
             LOG_INFO("meteo after copy: %zu meteodata entries", cache->meteo_count);
             inputcache_SaveMeteo(&meteo_test);
+
+            cache->updated_meteo = true;
         } else {
             LOG_ERROR("failed to read meteo data, got %zd bytes", bytesReadMeteo); //fixed size so should never trigger can still be wrong
         }
@@ -398,9 +460,33 @@ void inputcache_HandleSpotprisData(InputCache_t *cache, int spotpris_fd)
             
             inputcache_SaveSpotpris(&spotpris_test);
             LOG_INFO("Spotpris data updated and saved");
+
+            cache->updated_spotpris = true;
         } else {
             LOG_ERROR("Failed to read spotpris data, got %zd bytes", bytesReadSpotpris); //fixed size so can still be wrong
         }
+}
+
+void inputcache_SendNotification(NotifyMessageType type, uint16_t count)
+{
+    // Try to connect if needed
+    if (notify_fd < 0) {
+        notify_fd = open(NOTIFY_FIFO_PATH, O_WRONLY | O_NONBLOCK);
+        if (notify_fd < 0) return;  // Algorithm not ready yet
+    }
+    
+    NotifyMessage msg = {
+        .type = type,
+        .priority = 0,
+        .data_count = count,
+        .timestamp = (uint32_t)time(NULL)
+    };
+    
+    if (write(notify_fd, &msg, sizeof(msg)) != sizeof(msg)) {
+        // Pipe closed or error - will reconnect next time
+        close(notify_fd);
+        notify_fd = -1;
+    }
 }
 
 void inputcache_CleanupShm(InputCache_t *cache)
@@ -413,10 +499,33 @@ void inputcache_CleanupShm(InputCache_t *cache)
     LOG_INFO("Shared memory cleaned up");
 }
 
-void inputcache_Cleanup(InputCache_t *cache)
+void inputcache_CleanupAll(InputCacheContext_t *ctx)
 {
-    LOG_INFO("Cleanup InputCache...");
-    if (cache) {
-        free(cache);
+    if (!ctx) return;
+    
+    if (notify_fd >= 0) {
+        inputcache_SendNotification(NOTIFY_SHUTDOWN, 0);
+        close(notify_fd);
+        notify_fd = -1;
     }
+    
+    if (ctx->meteo_fd >= 0) {
+        close(ctx->meteo_fd);
+    }
+    if (ctx->spotpris_fd >= 0) {
+        close(ctx->spotpris_fd);
+    }
+    
+    if (ctx->socket_fd >= 0) {
+        close(ctx->socket_fd);
+        unlink(CACHE_SOCKET_PATH);
+    }
+    
+    if (ctx->cache) {
+        inputcache_CleanupShm(ctx->cache);
+        free(ctx->cache);
+        ctx->cache = NULL;
+    }
+    
+    LOG_INFO("InputCache cleanup complete");
 }

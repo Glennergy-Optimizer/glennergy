@@ -7,7 +7,7 @@
 #include "../Algorithm/testreader.h"
 
 int main(int argc, char* argv[]) {
-    log_Init(NULL);
+    log_Init("server.log");
 
     printf("Server is starting...\n");
     Server* server = NULL;
