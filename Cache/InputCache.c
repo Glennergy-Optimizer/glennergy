@@ -455,8 +455,8 @@ void inputcache_HandleSpotprisData(InputCache_t *cache, int spotpris_fd)
                 
                 for (size_t entry = 0; entry < spotpris_test.areas[area].count; entry++)
                 {
-                    strncpy(cache->spotpris.data[area][entry].time_start, spotpris_test.areas[area].kvartar[entry].time_start, 31);
-                    cache->spotpris.data[area][entry].time_start[31] = '\0';
+                    strncpy(cache->spotpris.data[area][entry].time_start, spotpris_test.areas[area].kvartar[entry].time_start, sizeof(cache->spotpris.data[area][entry].time_start) - 1);
+                    cache->spotpris.data[area][entry].time_start[sizeof(cache->spotpris.data[area][entry].time_start) - 1] = '\0';
 
                     cache->spotpris.data[area][entry].sek_per_kwh = spotpris_test.areas[area].kvartar[entry].sek_per_kwh;
                 }

@@ -7,7 +7,7 @@
 #include <ctype.h>
 
 
-int HTTPRequest_Initialize(HTTPRequest* http_request)
+int HTTPRequest_Initialize(HTTPRequest_t* http_request)
 {
     if(http_request == NULL)
         return -1;
@@ -53,7 +53,7 @@ static int parse_content_length(const char *buffer, size_t buffer_length)
     return 0;
 }
 
-int HTTPRequest_ParseHeaders(HTTPRequest *http_request, const char *buffer, size_t buffer_length)
+int HTTPRequest_ParseHeaders(HTTPRequest_t *http_request, const char *buffer, size_t buffer_length)
 {
     if (http_request == NULL || buffer == NULL)
         return -1;
@@ -100,7 +100,7 @@ int HTTPRequest_ParseHeaders(HTTPRequest *http_request, const char *buffer, size
 
 
 
-void HTTPRequest_Dispose(HTTPRequest* http_request)
+void HTTPRequest_Dispose(HTTPRequest_t* http_request)
 {
     if(http_request == NULL)
     return;

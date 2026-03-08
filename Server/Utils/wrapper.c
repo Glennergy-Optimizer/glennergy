@@ -20,7 +20,7 @@ int Connection_SetTimeout(int socket, int seconds)
     return 0;
 }
 
-int Connection_Recv(int socket, uint8_t *buffer, size_t length)
+ssize_t Connection_Recv(int socket, uint8_t *buffer, size_t length)
 {
     if (buffer == NULL || length == 0)
         return -1;
@@ -31,10 +31,10 @@ int Connection_Recv(int socket, uint8_t *buffer, size_t length)
     if (bytes_read == 0)
         return 0;
     
-    return (int)bytes_read;
+    return bytes_read;
 }
 
-int Connection_Send(int socket, const char *buffer, size_t length)
+ssize_t Connection_Send(int socket, const char *buffer, size_t length)
 {
     if (buffer == NULL || length == 0)
         return -1;
@@ -43,5 +43,5 @@ int Connection_Send(int socket, const char *buffer, size_t length)
     if (bytes_written < 0)
         return -1;
 
-    return (int)bytes_written;
+    return bytes_written;
 }

@@ -12,29 +12,29 @@
                         "\r\n"                                                \
                         "%s"
 
-int HTTPResponse_Initialize(HTTPResponse *http_response)
+int HTTPResponse_Initialize(HTTPResponse_t *resp)
 {
-    if (http_response == NULL)
+    if (resp == NULL)
         return -1;
 
-    http_response->status_code = 200;
-    http_response->response_length = 0;
-    http_response->response = NULL;
-    http_response->response_formatted = NULL;
+    resp->status_code = 200;
+    resp->resp_length = 0;
+    resp->body = NULL;
+    resp->resp_formatted = NULL;
 
     return 0;
 }
 
-int HTTPResponse_Format(HTTPResponse *http_response)
+int HTTPResponse_Format(HTTPResponse_t *resp)
 {
-    if (http_response == NULL)
+    if (resp == NULL)
         return -1;
 
-    if (http_response->response == NULL)
+    if (resp->body == NULL)
         return -2;
 
     const char *status_text;
-    switch (http_response->status_code)
+    switch (resp->status_code)
     {
     case 200:
         status_text = "OK";
@@ -59,32 +59,32 @@ int HTTPResponse_Format(HTTPResponse *http_response)
         break;
     }
 
-    char response[2048];
-    http_response->response_length = snprintf(response, sizeof(response), RESPONSE_HEADER,
-                                              http_response->status_code, status_text, strlen(http_response->response), http_response->response);
+    char response[16384]; // 16KB buffer for response
+    resp->resp_length = snprintf(response, sizeof(response), RESPONSE_HEADER,
+                                              resp->status_code, status_text, strlen(resp->body), resp->body);
 
-    http_response->response_formatted = strdup(response);
-
-    if (http_response->response_formatted == NULL)
+                                              
+    resp->resp_formatted = strdup(response);
+    if (resp->resp_formatted == NULL)
         return -1;
 
     return 0;
 }
 
-void HTTPResponse_Dispose(HTTPResponse *http_response)
+void HTTPResponse_Dispose(HTTPResponse_t *resp)
 {
-    if (http_response == NULL)
+    if (resp == NULL)
         return;
 
-    if (http_response->response != NULL)
+    if (resp->body != NULL)
     {
-        free(http_response->response);
-        http_response->response = NULL;
+        free(resp->body);
+        resp->body = NULL;
     }
 
-    if (http_response->response_formatted != NULL)
+    if (resp->resp_formatted != NULL)
     {
-        free(http_response->response_formatted);
-        http_response->response_formatted = NULL;
+        free(resp->resp_formatted);
+        resp->resp_formatted = NULL;
     }
 }

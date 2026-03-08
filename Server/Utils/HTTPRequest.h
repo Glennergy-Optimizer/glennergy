@@ -18,14 +18,14 @@ typedef struct
     char *path;
     int content_length;
     char *request_body;
-} HTTPRequest;
+} HTTPRequest_t;
 
 
-int HTTPRequest_Initialize(HTTPRequest* http_request);
+int HTTPRequest_Initialize(HTTPRequest_t* http_request);
 
-int HTTPRequest_ParseHeaders(HTTPRequest *http_request, const char *buffer, size_t buffer_length);
+int HTTPRequest_ParseHeaders(HTTPRequest_t *http_request, const char *buffer, size_t buffer_length);
 
-void HTTPRequest_Dispose(HTTPRequest* http_request);
+void HTTPRequest_Dispose(HTTPRequest_t* http_request);
 
 
 #endif

@@ -8,16 +8,16 @@
 
 typedef struct{
     int status_code;
-    char* response;              // JSON/body content (caller provides)
-    char* response_formatted;    // Full HTTP response (malloc'd by Format)
-    size_t response_length;      // Length of formatted response
-}HTTPResponse;
+    char* resp_formatted;    // Full HTTP response (malloc'd by Format)
+    char* body;              // JSON/body content (caller provides)
+    size_t resp_length;      // Length of formatted response
+}HTTPResponse_t;
 
 
-int HTTPResponse_Initialize(HTTPResponse* response);
+int HTTPResponse_Initialize(HTTPResponse_t* resp);
 
-int HTTPResponse_Format(HTTPResponse* response);
+int HTTPResponse_Format(HTTPResponse_t* resp);
 
-void HTTPResponse_Dispose(HTTPResponse* response);
+void HTTPResponse_Dispose(HTTPResponse_t* resp);
 
 #endif

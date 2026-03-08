@@ -49,3 +49,6 @@ sudo systemctl start glennergy-spotpris.service
 
 5. shutdown
 sudo systemctl stop glennergy-server glennergy-meteo.timer glennergy-spotpris.timer"
+
+6. test with curl result 13, 7, 1, 2, 3
+curl -s http://localhost:8080/api/results/13

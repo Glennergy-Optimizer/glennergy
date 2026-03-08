@@ -8,7 +8,7 @@ int ConnectionHandler_OnAccept(void *_Context, int _Socket);
 
 void ConnectionHandler_Work(void *_Context, uint64_t monTime);
 
-int ConnectionHandler_Initialize(ConnectionHandler **_ConnectionHandler, int _Port, Callback _Callback)
+int ConnectionHandler_Initialize(ConnectionHandler **_ConnectionHandler, int _Port, Callback _Callback, APIHandler_t *api_ctx)
 {
     ConnectionHandler *cHandler = (ConnectionHandler *)malloc(sizeof(ConnectionHandler));
 
@@ -20,7 +20,7 @@ int ConnectionHandler_Initialize(ConnectionHandler **_ConnectionHandler, int _Po
     TCPServer_Listen(cHandler->tcp_server);
 
     cHandler->client_add = _Callback;
-
+    cHandler->api_ctx = api_ctx;
 
     *_ConnectionHandler = cHandler;
 
@@ -37,7 +37,7 @@ int ConnectionHandler_OnAccept(void *_Context, int _Socket)
     LOG_INFO("New connection accepted");
     
     Connection* connection = NULL;
-    if (Connection_Initialize(&connection, _Socket) != 0)
+    if (Connection_Initialize(&connection, _Socket, cHandler->api_ctx) != 0)
     {
         LOG_ERROR("Failed to initialize connection");
         return -2;

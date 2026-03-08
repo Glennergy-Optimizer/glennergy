@@ -8,6 +8,7 @@
 #include "SignalHandler.h"
 #include "../Libs/Utils/utils.h"
 #include "../Libs/Threads.h"
+#include "Utils/APIHandler.h"
 
 int Server_Initialize(Server **_Server, char **_Argv, int _Argc)
 {
@@ -43,9 +44,11 @@ int Server_Run(Server *_Server)
 
         smw_init();
 
-        ConnectionHandler *cHandler = NULL;
+        APIHandler_t *api_handler = NULL;
+        APIHandler_Init(&api_handler);
 
-        ConnectionHandler_Initialize(&cHandler, _Server->config.port, Threads_AddQueueItem);
+        ConnectionHandler *cHandler = NULL;
+        ConnectionHandler_Initialize(&cHandler, _Server->config.port, Threads_AddQueueItem, api_handler);
 
         uint64_t monTime = 0;
         while (SignalHandler_Stop() == 0)
@@ -57,7 +60,7 @@ int Server_Run(Server *_Server)
 
         ConnectionHandler_Dispose(&cHandler);
         smw_dispose();
-
+        APIHandler_Dispose(&api_handler);
         Threads_Dispose(threads);
 
         log_CloseWrite();
