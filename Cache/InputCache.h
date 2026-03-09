@@ -36,7 +36,7 @@ typedef struct {
 } SpotEntry_t;
 
 typedef struct {
-    SpotEntry_t data[AREA_COUNT][128];
+    SpotEntry_t data[AREA_COUNT][96];
     size_t count[AREA_COUNT];
 } Spot_t;
 

@@ -274,7 +274,7 @@ int inputcache_SaveSpotpris(const AllaSpotpriser *spotpris)
 
         json_t *root = json_array();
 
-        for (size_t j = 0; j < 128; j++)
+        for (size_t j = 0; j < 96; j++)
         {
             json_t *obj = json_object();
             json_object_set_new(obj, "time_start", json_string(spotpris->areas[i].kvartar[j].time_start));
