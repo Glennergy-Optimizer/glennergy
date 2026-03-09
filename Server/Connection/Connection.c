@@ -20,7 +20,7 @@
                         "Access-Control-Allow-Methods: GET, OPTIONS\r\n" \
                         "Access-Control-Allow-Headers: Content-Type\r\n" \
                         "\r\n"                                           \
-                        "%s\r\n"
+                        "%s"    
 
 void Connection_Work(void *_Context, uint64_t monTime);
 
@@ -101,7 +101,9 @@ int Connection_Handle(Connection *_Connection)
     for (int i = 0; i < MAX_ID; i++)
     {
         if (client_id != memory->result[i].id)
+        {
             continue;
+        }
 
         printf("Got the stuff: %d\n", memory->result[i].id);
         for (int j = 0; j < 96; j++)
@@ -138,12 +140,18 @@ int Connection_Handle(Connection *_Connection)
 
     //snprintf(RESPONSE_HEADER, sizeof(RESPONSE_HEADER), "%s", json_data);
 
-    char response[8096];
-    snprintf(response, sizeof(response), RESPONSE_HEADER, strlen(json_data), json_data);
+    char response[8192];
+    //snprintf(response, sizeof(response), RESPONSE_HEADER, strlen(json_data), json_data);
+    int actualLength = snprintf(response, sizeof(response), RESPONSE_HEADER, strlen(json_data), json_data);
+    if (actualLength >= sizeof(response))
+    {
+        LOG_ERROR("Response truncated: actual length %d exceeds buffer size %zu", actualLength, sizeof(response));
+        return -1;
+    }
 
 
     printf("data \n", response);
-    send(_Connection->socket, response, strlen(response), MSG_NOSIGNAL);
+    send(_Connection->socket, response, actualLength, MSG_NOSIGNAL);
     LOG_DEBUG("Response sent");
 
     SHM_CloseSemaphore(&mutex);
