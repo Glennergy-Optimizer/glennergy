@@ -19,6 +19,7 @@
                         "Access-Control-Allow-Origin: *\r\n"             \
                         "Access-Control-Allow-Methods: GET, OPTIONS\r\n" \
                         "Access-Control-Allow-Headers: Content-Type\r\n" \
+                        "Connection: close\r\n"                    \
                         "\r\n"                                           \
                         "%s"    
 
@@ -62,7 +63,7 @@ int Connection_Handle(Connection *_Connection)
             {
                 LOG_INFO("Client timed out");
                 HTTPRequest_Dispose(&request);
-                // break;
+                return -1;
             }
         }
         else
@@ -78,9 +79,44 @@ int Connection_Handle(Connection *_Connection)
     
     HTTPRequest_ParseHeader(&request);
 
-    printf("Request: %s\n", request.url);
+    
+    printf("Request: %s\n", request.url ? request.url : "NULL");
+    // Browsers can automatically add a second get request with favicon.ico, which can cause issues if we try to parse it as an integer.
+    // If we have a request for favicon, just ignore it
+    if (request.url != NULL && strcmp(request.url, "/favicon.ico") == 0)
+    {
+        const char* resp = "HTTP/1.1 204 No Content\r\n"
+                            "Content-Length: 0\r\n"
+                           "Connection: close\r\n"
+                           "\r\n";
 
+        send(_Connection->socket, resp, strlen(resp), MSG_NOSIGNAL);
+        HTTPRequest_Dispose(&request);
+        return 0;
+    }
+
+    // Browsers also sometimes sends an empty "/" request so let's handle that too.
+    if (request.url == NULL || strcmp(request.url, "/") == 0)
+    {
+        const char* resp = "HTTP/1.1 204 No Content\r\n"
+                        "Content-Length: 0\r\n"
+                        "Connection: close\r\n"
+                        "\r\n";
+        send(_Connection->socket, resp, strlen(resp), MSG_NOSIGNAL);
+        HTTPRequest_Dispose(&request);
+        return 0;
+    }
+    // Now, if we have a get request we actually want to handle, i.e "/id=3", we continue handling it 
+
+    // original
     int client_id = strtol(request.url, request.url + 1, 10);
+    
+    // TODO ev annan lösning, som inte funkar
+    //char *endptr;
+    // Why change from strtol(request.url, request.url +1, 10) to strtol(request.url + 1, &endptr, 10) ? 
+    //Because the first character of the URL is a '/', so we need to skip it to get the actual ID. 
+    //The second argument is a pointer to a pointer that will be set to the character after the last character used in the conversion, which is useful for error checking and further processing if needed.
+    //int client_id = strtol(request.url + 1, &endptr, 10);
     printf("id: %d\n", client_id);
 
     int shm_fd;
@@ -148,8 +184,10 @@ int Connection_Handle(Connection *_Connection)
     }
 
 
-    printf("data \n", response);
+    printf("data %s\n", response);
     send(_Connection->socket, response, actualLength, MSG_NOSIGNAL);
+    // Todo -free ?
+    //free(json_data); // Don't forget to free the data after we sent the response
     LOG_DEBUG("Response sent");
 
     SHM_CloseSemaphore(&mutex);
