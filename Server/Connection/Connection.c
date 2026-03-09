@@ -62,7 +62,7 @@ int Connection_Handle(Connection *_Connection)
             {
                 LOG_INFO("Client timed out");
                 HTTPRequest_Dispose(&request);
-                // break;
+                return -1;
             }
         }
         else
@@ -100,12 +100,14 @@ int Connection_Handle(Connection *_Connection)
 
     for (int i = 0; i < MAX_ID; i++)
     {
-        //if (client_id != memory->result[i].id)
-          //  continue;
+        if (client_id != memory->result[i].id)
+            continue;
 
         printf("Got the stuff: %d\n", memory->result[i].id);
         for (int j = 0; j < 96; j++)
         {
+            
+
             int rec = memory->result[i].recommendation[j];
             const char *type = NULL;
 
@@ -136,7 +138,7 @@ int Connection_Handle(Connection *_Connection)
 
     //snprintf(RESPONSE_HEADER, sizeof(RESPONSE_HEADER), "%s", json_data);
 
-    char response[4096];
+    char response[8096];
     snprintf(response, sizeof(response), RESPONSE_HEADER, strlen(json_data), json_data);
 
 

@@ -16,8 +16,8 @@ typedef struct
 {
     char areaname[4]; // Prisklasser/områden: "SE1", "SE2", "SE3", "SE4"
     size_t count; // Kommer troligtvis vara 96 kvartar
-    SpotPriceEntry kvartar[96];
-    char raw_json_data[16384]; // Vid ett test av spotprisdatan var den 13600 
+    SpotPriceEntry kvartar[128];
+    char raw_json_data[30000]; // Vid ett test av spotprisdatan var den 13600 
 } DagligSpotpris;
 
 typedef struct 

@@ -45,6 +45,13 @@ static void GetTodayDate(char *buffer, size_t size) {
              tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
 }
 
+static void GetTomorrowDate(char *buffer, size_t size) {
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    snprintf(buffer, size, "%04d/%02d-%02d",
+             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday - 1);
+}
+
 static void GetTodayDateFile(char *buffer, size_t size)
 {
     time_t t = time(NULL);
