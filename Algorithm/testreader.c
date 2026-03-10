@@ -9,9 +9,9 @@
 #include <errno.h>
 #include <sys/select.h>
 #include "average.h"
+#include "solar.h"
+#include "optimizer.h"
 #include "../Server/SignalHandler.h"
-#include "../Cache/InputCache.h"
-#include "../Cache/CacheProtocol.h"
 #include "../Libs/Sockets.h"
 
 #define FIFO_ALGORITHM_READ "/tmp/fifo_algoritm"
@@ -28,7 +28,7 @@ int algorithm_WaitForNotification(void)
                 close(notify_fd);
                 notify_fd = -1;
             }
-            return -1;
+            return -2;
         }
 
         if (notify_fd < 0) {
@@ -162,25 +162,30 @@ int cache_SendResults(const ResultRequest *results)
 int test_reader()
 {
 
-    InputCache_t *cache = malloc(sizeof(InputCache_t));
+    CacheData_t *cache = malloc(sizeof(CacheData_t));
     if (!cache) {
-        LOG_ERROR("malloc() Failed to allocate memory for InputCache");
+        LOG_ERROR("malloc() Failed to allocate memory for CacheData");
         return -1;
     }
 
     while(!SignalHandler_Stop())
     {
-        int notify_result = algorithm_WaitForNotification();
-        if (notify_result == -2) {
-            LOG_INFO("Received shutdown notification, exiting...");
+    //     int notify_result = algorithm_WaitForNotification();
+    //     if (notify_result == -2) {
+    //         LOG_INFO("Received shutdown notification, exiting...");
+    //         break;
+    //    } 
+    //    // else if (notify_result < 0) {
+    //     //     LOG_ERROR("Error waiting for notification");
+    //     //     sleep(10); // Wait before retrying
+    //     //     continue;
+    //     // }
+        if (algorithm_WaitForNotification() < 0) {
+            LOG_INFO("Received shutdown signal, exiting...");
             break;
-        } else if (notify_result < 0) {
-            LOG_ERROR("Error waiting for notification");
-            sleep(10); // Wait before retrying
-            continue;
         }
 
-        if (cache_request(CMD_GET_ALL, cache, sizeof(InputCache_t)) < 0) {
+        if (cache_request(CMD_GET_ALL, cache, sizeof(CacheData_t)) < 0) {
             LOG_WARNING("cache_request failed");
             continue;
         }
@@ -190,7 +195,13 @@ int test_reader()
         SpotStats_t spotpris_stats;
 
         int result = average_SpotprisStats(&spotpris_stats, cache);
+        if (result < 0) {
+            LOG_WARNING("Failed to calculate spotpris stats");
+        }
         int window_result = average_WindowLow(cache, spotpris_stats.area[0].q25);
+        if (window_result < 0) {
+            LOG_WARNING("Failed to calculate window low");
+        }
 
         ResultRequest algo_results = {0};
         algo_results.count = cache->home_count;

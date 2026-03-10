@@ -19,6 +19,7 @@
 
 static double solar_CalculateSunEfficiency(int time_slot, double lat, double panel_tilt)
 {
+    (void)lat;
     // Hour of day (0-24)
     double hour = (time_slot / QUARTERS_PER_HOUR);
     
@@ -62,7 +63,7 @@ static double solar_PredictSlot( double ghi, double cloud_cover, double temp, do
     return (solar_kwh > 0) ? solar_kwh : 0.0;
 }
 
-int solar_PredictHome(InputCache_t *cache, int home_idx, double *solar_output)
+int solar_PredictHome(CacheData_t *cache, int home_idx, double *solar_output)
 {
     if (!cache || home_idx < 0 || home_idx >= (int)cache->home_count || !solar_output) {
         LOG_ERROR("Invalid parameters");

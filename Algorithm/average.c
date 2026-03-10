@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include "average.h"
 
-
 const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"}; //usch
 
 int compare_double(const void *a, const void *b)
@@ -13,7 +12,7 @@ int compare_double(const void *a, const void *b)
     return 0;                 // a == b
 }
 
-int average_SpotprisStats(SpotStats_t *spot, InputCache_t *cache)
+int average_SpotprisStats(SpotStats_t *spot, CacheData_t *cache)
 {
     if (!cache || !spot) {
         fprintf(stderr, "Invalid parameters\n");
@@ -64,7 +63,7 @@ int average_SpotprisStats(SpotStats_t *spot, InputCache_t *cache)
     return 0;
 }
 
-int average_WindowLow(InputCache_t *cache, double q25_threshold)
+int average_WindowLow(CacheData_t *cache, double q25_threshold)
 {
     if (!cache) {
         fprintf(stderr, "Invalid cache parameter\n");

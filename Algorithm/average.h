@@ -2,10 +2,7 @@
 #define AVERAGE_H
 
 #include <stddef.h>
-
-#include "../Cache/InputCache.h"
-#include "testreader.h"
-
+#include "../Cache/CacheProtocol.h"
 
 typedef struct {
     double min;
@@ -26,7 +23,7 @@ typedef struct {
 } SpotStats_t;
 
 
-int average_SpotprisStats(SpotStats_t *spot, InputCache_t *cache);
-int average_WindowLow(InputCache_t *cache, double q25_threshold);
+int average_SpotprisStats(SpotStats_t *spot, CacheData_t *cache);
+int average_WindowLow(CacheData_t *cache, double q25_threshold);
 
 #endif

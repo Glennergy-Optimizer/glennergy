@@ -37,6 +37,16 @@ $(BUILD)/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+modules-all: $(TARGET)
+	@echo "Building all submodules..."
+	@$(MAKE) -C API/Meteo
+	@$(MAKE) -C API/Spotpris
+	@$(MAKE) -C Cache
+	@$(MAKE) -C Algorithm
+	@echo "All modules built successfully!"
+
+modules: modules-all
+
 # ============================================
 # Debug build
 # ============================================
@@ -67,10 +77,26 @@ install:
 	# Install binary
 	install -m 755 $(TARGET) $(DESTDIR)$(INSTALLDIR)
 
+install-all: modules-all
+	@echo "Installing all modules..."
+	@$(MAKE) install
+	@$(MAKE) -C API/Meteo install
+	@$(MAKE) -C API/Spotpris install
+	@$(MAKE) -C Cache install
+	@$(MAKE) -C Algorithm install
+	@echo "All modules installed!"
 
 uninstall:
 	rm -rf $(DESTDIR)$(INSTALLDIR)/$(TARGET)
 
+uninstall-all:
+	@echo "Uninstalling all modules..."
+	@$(MAKE) uninstall
+	@$(MAKE) -C API/Meteo uninstall
+	@$(MAKE) -C API/Spotpris uninstall
+	@$(MAKE) -C Cache uninstall
+	@$(MAKE) -C Algorithm uninstall
+	@echo "All modules uninstalled!"
 
 # ---- Cleanup ----
 clean:
@@ -78,6 +104,15 @@ clean:
 	rm -rf $(BUILD) $(DEBUG_BUILD)
 	rm -f $(TARGET) $(DEBUG_TARGET)
 	@echo "Clean complete"
+
+clean-all:
+	@echo "Cleaning all modules..."
+	@$(MAKE) clean
+	@$(MAKE) -C API/Meteo clean
+	@$(MAKE) -C API/Spotpris clean
+	@$(MAKE) -C Cache clean
+	@$(MAKE) -C Algorithm clean
+	@echo "All modules cleaned!"
 
 # ============================================
 # Help

@@ -59,9 +59,9 @@ int main()
             continue;
     
         if (FD_ISSET(ctx.meteo_fd, &read_fds)) {
-            inputcache_HandleMeteoData(ctx.cache, ctx.meteo_fd);
+            inputcache_HandleMeteoData(&ctx, ctx.meteo_fd);
 
-            if (ctx.cache->updated_meteo && ctx.cache->updated_spotpris) {
+            if (ctx.updated_meteo && ctx.updated_spotpris) {
                 inputcache_SendNotification(NOTIFY_DATA_READY, (uint16_t)ctx.cache->meteo_count);
                 LOG_INFO("Meteo updated, notified Algorithm");
             } else {
@@ -70,9 +70,9 @@ int main()
         }
 
         if (FD_ISSET(ctx.spotpris_fd, &read_fds)) {
-            inputcache_HandleSpotprisData(ctx.cache, ctx.spotpris_fd);
+            inputcache_HandleSpotprisData(&ctx, ctx.spotpris_fd);
 
-            if (ctx.cache->updated_meteo && ctx.cache->updated_spotpris) {
+            if (ctx.updated_meteo && ctx.updated_spotpris) {
                 inputcache_SendNotification(NOTIFY_DATA_READY, (uint16_t)ctx.cache->meteo_count);
                 LOG_INFO("Spotpris updated, notified Algorithm");
             } else {
@@ -85,7 +85,7 @@ int main()
             if (client_fd < 0) {
                 LOG_ERROR("accept() failed: %s", strerror(errno));
             } else {
-                inputcache_HandleRequest(ctx.cache, client_fd);
+                inputcache_HandleRequest(&ctx, client_fd);
             }
         }
     }

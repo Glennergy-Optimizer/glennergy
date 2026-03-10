@@ -29,6 +29,9 @@ int Server_Run(Server *_Server)
 
     SignalHandler_Initialize();
 
+    LOG_INFO("cleaning up stale shared memory segments...");
+    shm_Destroy();
+
     int status_server, status_cache, status_algo;
     pid_t pid_server = fork();
 

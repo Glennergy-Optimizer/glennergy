@@ -1,9 +1,8 @@
 #ifndef SOLAR_H
 #define SOLAR_H
 
-#include "../Cache/InputCache.h"
-#include "../Libs/Homesystem.h"
+#include "../Cache/CacheProtocol.h"
 
-int solar_PredictHome(InputCache_t *cache, int home_idx, double *solar_output);
+int solar_PredictHome(CacheData_t *cache, int home_idx, double *solar_output);
 
 #endif

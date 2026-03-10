@@ -17,7 +17,7 @@ static int get_area_index(const char *area)
     return -1;
 }
 
-int optimize_HomeEnergy(InputCache_t *cache, int home_idx, double *solar_predictions, SpotStats_t *spot_stats, AlgorithmResults_t *result)
+int optimize_HomeEnergy(CacheData_t *cache, int home_idx, double *solar_predictions, SpotStats_t *spot_stats, AlgorithmResults_t *result)
 {
     if (!cache || !solar_predictions || !spot_stats || !result) {
         LOG_ERROR("Invalid parameters");

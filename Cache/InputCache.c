@@ -1,39 +1,46 @@
 #define MODULE_NAME "INPUTCACHE"
 #include "../Server/Log/Logger.h"
 #include "InputCache.h"
-#include "CacheProtocol.h"
+#include "../API/Meteo/Meteo.h"
+#include "../API/Spotpris/Spotpris.h"
 #include "../Libs/Utils/utils.h"
 #include "../Libs/Sockets.h"
 #include "../Libs/Pipes.h"
 #include "../Libs/Shm.h"
+#include "../Libs/Homesystem.h"
 #include <stdio.h>
 #include <jansson.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
-#include <stdbool.h>
 #include <errno.h>
+
+#define FIFO_METEO_READ "/tmp/fifo_meteo"
+#define FIFO_SPOTPRIS_READ "/tmp/fifo_spotpris"
+
+#define MAX_BACKLOG 5
+#define MAX 5
 
 const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"};
 static int notify_fd = -1;
 
-int inputcache_Init(InputCache_t *cache, const char* file_path)
+int inputcache_Init(InputCacheContext_t *ctx, const char* file_path)
 {
-    if (!cache || !file_path) {
+    if (!ctx || !file_path) {
         LOG_ERROR("Invalid parameters for InputCache_Init");
         return -1;
     }
 
     LOG_INFO("Loading homesystem file: %s", file_path);
-    int loaded = homesystem_LoadAllCount(cache->home, file_path, MAX);
+    int loaded = homesystem_LoadAllCount(ctx->cache->home, file_path, MAX);
     if (loaded < 0)
     {
         LOG_ERROR("Failed to load homesystem file: %s", file_path);
         return -1;
     }
-    cache->home_count = (size_t)loaded;
-    LOG_INFO("Loaded %zu homesystem entries", cache->home_count);
+    ctx->cache->home_count = (size_t)loaded;
+    LOG_INFO("Loaded %zu homesystem entries", ctx->cache->home_count);
     return 0;
 }
 
@@ -105,9 +112,9 @@ int inputcache_OpenFIFOs(int *meteo_fd, int *spotpris_fd)
     return 0;
 }
 
-int inputcache_InitShm(InputCache_t *cache)
+int inputcache_InitShm(InputCacheContext_t *ctx)
 {
-    if (!cache) {
+    if (!ctx) {
         LOG_ERROR("Invalid cache pointer for shm init");
         return -1;
     }
@@ -117,8 +124,8 @@ int inputcache_InitShm(InputCache_t *cache)
         return -1;
     }
 
-    cache->shm = shm_Attach();
-    if (!cache->shm) {
+    ctx->shm = shm_Attach();
+    if (!ctx->shm) {
         LOG_ERROR("Failed to attach to shared memory");
         shm_Destroy();
         return -1;
@@ -153,15 +160,18 @@ int inputcache_InitAll(InputCacheContext_t *ctx, const char* config_path)
     ctx->spotpris_fd = -1;
     ctx->socket_fd = -1;
     ctx->cache = NULL;
+    ctx->updated_meteo = false;
+    ctx->updated_spotpris = false;
+    ctx->shm = NULL;
     
-    ctx->cache = malloc(sizeof(InputCache_t));
+    ctx->cache = malloc(sizeof(CacheData_t));
     if (!ctx->cache) {
         LOG_ERROR("malloc() failed");
         return -1;
     }
-    memset(ctx->cache, 0, sizeof(InputCache_t));
+    memset(ctx->cache, 0, sizeof(CacheData_t));
     
-    if (inputcache_Init(ctx->cache, config_path) != 0) {
+    if (inputcache_Init(ctx, config_path) != 0) {
         free(ctx->cache);
         return -1;
     }
@@ -179,7 +189,7 @@ int inputcache_InitAll(InputCacheContext_t *ctx, const char* config_path)
         return -1;
     }
     
-    if (inputcache_InitShm(ctx->cache) != 0) {
+    if (inputcache_InitShm(ctx) != 0) {
         close(ctx->socket_fd);
         close(ctx->meteo_fd);
         close(ctx->spotpris_fd);
@@ -195,7 +205,7 @@ int inputcache_InitAll(InputCacheContext_t *ctx, const char* config_path)
     return 0;
 }
 
-void inputcache_HandleRequest(InputCache_t *cache, int client_fd)
+void inputcache_HandleRequest(InputCacheContext_t *ctx, int client_fd)
 {
     CacheRequest req;
     CacheResponse resp;
@@ -225,21 +235,21 @@ void inputcache_HandleRequest(InputCache_t *cache, int client_fd)
         case CMD_GET_ALL:
             LOG_INFO("Handling CMD_GET_ALL request");
             resp.status = 0;
-            resp.data_size = sizeof(InputCache_t);
+            resp.data_size = sizeof(CacheData_t);
 
             send(client_fd, &resp, sizeof(resp), 0);
-            send(client_fd, cache, sizeof(InputCache_t), 0);
-            LOG_INFO("Sent complete InputCache data to client");
+            send(client_fd, ctx->cache, sizeof(CacheData_t), 0);
+            LOG_INFO("Sent complete CacheData to algorithm");
             break;
         
         case CMD_GET_METEO:
             LOG_INFO("Handling CMD_GET_METEO request");
             resp.status = 0;
-            resp.data_size = sizeof(Meteo_t) * cache->meteo_count;
+            resp.data_size = sizeof(Meteo_t) * ctx->cache->meteo_count;
 
             send(client_fd, &resp, sizeof(resp), 0);
-            send(client_fd, cache->meteo, sizeof(Meteo_t) * cache->meteo_count, 0);
-            LOG_INFO("Sent %zu Meteo entries to client", cache->meteo_count);
+            send(client_fd, ctx->cache->meteo, sizeof(Meteo_t) * ctx->cache->meteo_count, 0);
+            LOG_INFO("Sent %zu Meteo entries to algorithm", ctx->cache->meteo_count);
             break;
 
         case CMD_GET_SPOTPRIS:
@@ -248,7 +258,7 @@ void inputcache_HandleRequest(InputCache_t *cache, int client_fd)
             resp.data_size = sizeof(Spot_t);
             
             send(client_fd, &resp, sizeof(resp), 0);
-            send(client_fd, &cache->spotpris, sizeof(Spot_t), 0);
+            send(client_fd, &ctx->cache->spotpris, sizeof(Spot_t), 0);
             LOG_INFO("Sent Spotpris data to client");
             break;
 
@@ -266,7 +276,7 @@ void inputcache_HandleRequest(InputCache_t *cache, int client_fd)
                 break;
             }
 
-            if (!cache->shm) {
+            if (!ctx->shm) {
                 LOG_ERROR("Shared memory not initialized");
                 resp.status = 1;
                 resp.data_size = 0;
@@ -274,16 +284,16 @@ void inputcache_HandleRequest(InputCache_t *cache, int client_fd)
                 break;
             }
 
-            if (shm_Lock_Write(cache->shm) == 0) {
+            if (shm_Lock_Write(ctx->shm) == 0) {
                 int updated = 0;
                 for (size_t i = 0; i < set_req.count; i++) {
-                    if (shm_UpdateResults(cache->shm, &set_req.results[i]) == 0) {
+                    if (shm_UpdateResults(ctx->shm, &set_req.results[i]) == 0) {
                         updated++;
                     } else {
                         LOG_WARNING("Failed to update results for home_id %d", set_req.results[i].home_id);
                     }
                 }
-                shm_Unlock_Write(cache->shm);
+                shm_Unlock_Write(ctx->shm);
 
                 LOG_INFO("Updated %d/%zu results in shared memory", updated, set_req.count);
                 resp.status = 0;
@@ -358,7 +368,7 @@ static int inputcache_SaveMeteo(const MeteoData *_Data)
     return 0;
 }
 
-void inputcache_HandleMeteoData(InputCache_t *cache, int meteo_fd)
+void inputcache_HandleMeteoData(InputCacheContext_t *ctx, int meteo_fd)
 {            
         MeteoData meteo_test;
         ssize_t bytesReadMeteo = Pipes_ReadBinary(meteo_fd, &meteo_test, sizeof(MeteoData));
@@ -367,21 +377,21 @@ void inputcache_HandleMeteoData(InputCache_t *cache, int meteo_fd)
         {
             LOG_INFO("Got new data meteo %zd, count %zu", bytesReadMeteo, meteo_test.pCount);
 
-            cache->meteo_count = meteo_test.pCount;
-            for (size_t i = 0; i < cache->meteo_count; i++)
+            ctx->cache->meteo_count = meteo_test.pCount;
+            for (size_t i = 0; i < ctx->cache->meteo_count; i++)
             {
-                cache->meteo[i].id = meteo_test.pInfo[i].id;
-                strncpy(cache->meteo[i].city, meteo_test.pInfo[i].property_name, NAME_MAX - 1);
-                cache->meteo[i].lat = meteo_test.pInfo[i].lat;
-                cache->meteo[i].lon = meteo_test.pInfo[i].lon;
+                ctx->cache->meteo[i].id = meteo_test.pInfo[i].id;
+                strncpy(ctx->cache->meteo[i].city, meteo_test.pInfo[i].property_name, NAME_MAX - 1);
+                ctx->cache->meteo[i].lat = meteo_test.pInfo[i].lat;
+                ctx->cache->meteo[i].lon = meteo_test.pInfo[i].lon;
             
-                memcpy(cache->meteo[i].sample, meteo_test.pInfo[i].sample, sizeof(Samples) * KVARTAR_TOTALT);
+                memcpy(ctx->cache->meteo[i].sample, meteo_test.pInfo[i].sample, sizeof(MeteoEntry_t) * KVARTAR_TOTALT);
                 
             }
-            LOG_INFO("meteo after copy: %zu meteodata entries", cache->meteo_count);
+            LOG_INFO("meteo after copy: %zu meteodata entries", ctx->cache->meteo_count);
             inputcache_SaveMeteo(&meteo_test);
 
-            cache->updated_meteo = true;
+            ctx->updated_meteo = true;
         } else {
             LOG_ERROR("failed to read meteo data, got %zd bytes", bytesReadMeteo); //fixed size so should never trigger can still be wrong
         }
@@ -438,7 +448,7 @@ int inputcache_SaveSpotpris(const AllaSpotpriser *spotpris)
     return 0;
 }
 
-void inputcache_HandleSpotprisData(InputCache_t *cache, int spotpris_fd)
+void inputcache_HandleSpotprisData(InputCacheContext_t *ctx, int spotpris_fd)
 {
         AllaSpotpriser spotpris_test;
         
@@ -451,23 +461,23 @@ void inputcache_HandleSpotprisData(InputCache_t *cache, int spotpris_fd)
 
             for (int area = 0; area < AREA_COUNT; area++)
             {
-                cache->spotpris.count[area] = spotpris_test.areas[area].count;
+                ctx->cache->spotpris.count[area] = spotpris_test.areas[area].count;
                 
                 for (size_t entry = 0; entry < spotpris_test.areas[area].count; entry++)
                 {
-                    strncpy(cache->spotpris.data[area][entry].time_start, spotpris_test.areas[area].kvartar[entry].time_start, sizeof(cache->spotpris.data[area][entry].time_start) - 1);
-                    cache->spotpris.data[area][entry].time_start[sizeof(cache->spotpris.data[area][entry].time_start) - 1] = '\0';
+                    strncpy(ctx->cache->spotpris.data[area][entry].time_start, spotpris_test.areas[area].kvartar[entry].time_start, sizeof(ctx->cache->spotpris.data[area][entry].time_start) - 1);
+                    ctx->cache->spotpris.data[area][entry].time_start[sizeof(ctx->cache->spotpris.data[area][entry].time_start) - 1] = '\0';
 
-                    cache->spotpris.data[area][entry].sek_per_kwh = spotpris_test.areas[area].kvartar[entry].sek_per_kwh;
+                    ctx->cache->spotpris.data[area][entry].sek_per_kwh = spotpris_test.areas[area].kvartar[entry].sek_per_kwh;
                 }
                 
-                LOG_INFO("Area %s: %zu price entries copied", area_names[area], cache->spotpris.count[area]);
+                LOG_INFO("Area %s: %zu price entries copied", area_names[area], ctx->cache->spotpris.count[area]);
             }
             
             inputcache_SaveSpotpris(&spotpris_test);
             LOG_INFO("Spotpris data updated and saved");
 
-            cache->updated_spotpris = true;
+            ctx->updated_spotpris = true;
         } else {
             LOG_ERROR("Failed to read spotpris data, got %zd bytes", bytesReadSpotpris); //fixed size so can still be wrong
         }
@@ -495,11 +505,11 @@ void inputcache_SendNotification(NotifyMessageType type, uint16_t count)
     }
 }
 
-void inputcache_CleanupShm(InputCache_t *cache)
+void inputcache_CleanupShm(InputCacheContext_t *ctx)
 {
-    if (cache && cache->shm) {
-        shm_Detach(cache->shm);
-        cache->shm = NULL;
+    if (ctx && ctx->cache && ctx->shm) {
+        shm_Detach(ctx->shm);
+        ctx->shm = NULL;
     }
     shm_Destroy();
     LOG_INFO("Shared memory cleaned up");
@@ -528,7 +538,7 @@ void inputcache_CleanupAll(InputCacheContext_t *ctx)
     }
     
     if (ctx->cache) {
-        inputcache_CleanupShm(ctx->cache);
+        inputcache_CleanupShm(ctx);
         free(ctx->cache);
         ctx->cache = NULL;
     }

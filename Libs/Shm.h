@@ -12,7 +12,7 @@
 #define SHM_SIZE sizeof(SharedData_t)
 
 
-typedef struct SharedData_t{
+typedef struct SharedData_t {
 
     AlgorithmResults_t results[MAX_RESULTS];
     size_t results_count;
