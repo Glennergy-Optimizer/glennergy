@@ -32,23 +32,37 @@ https://www.havochvatten.se/data-kartor-och-rapporter/kartor-och-gis/visa-koordi
 
 
 1. Build everything
-sudo ./glennergy_install.sh
+sudo make install-all
 sudo ./systemd_install.sh
 
-2. Restart the services
+2. Watch logs
+tail -f *.log                   /var/log/glennergy
+sudo truncate -s 0 *.log        reset logs
+
+3. Restart the services
 sudo systemctl restart glennergy-server
 
-3. Watch logs
-sudo journalctl -u glennergy-server -f                                              kör i terminal 1
-tail -f *.log | awk '/^==>/{print "\033[1;34m" $0 "\033[0m"; next} {print}'         kör i terminal 2 /var/log/glennergy
-
-                                                    sudo truncate -s 0 *.log        reset logs
 4. In another terminal, trigger test
 sudo systemctl start glennergy-meteo.service
 sudo systemctl start glennergy-spotpris.service
 
-5. shutdown
-sudo systemctl stop glennergy-server glennergy-meteo.timer glennergy-spotpris.timer"
-
-6. test with curl result 13, 7, 1, 2, 3
+5. test with curl result 13, 7, 1, 2, 3
 curl -s http://localhost:8080/api/results/13
+
+6. shutdown
+sudo systemctl stop glennergy-server glennergy-meteo.timer glennergy-spotpris.timer
+
+7. uninstall
+sudo make uninstall-all
+
+8.To run updated code:
+sudo make clean-all                         # Clean source dir
+sudo make install-all                       # Rebuild AND reinstall to /usr/local/bin
+sudo systemctl restart glennergy-server     # Restart to use new binary
+
+tror man kan köra "sudo systemctl restart glennergy-*" för att trigga fresh Meteo och Spotpris
+
+9. if services not running yet
+sudo make clean-all
+sudo make install-all
+sudo ./systemd_install.sh                   # This will start services with new binaries
