@@ -78,7 +78,7 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
             if (rc != 0)
             {
                 Curl_Dispose(&resp);
-                return rc;
+                break;
             }
 
             // Parsa JSON så vi kan skicka med det

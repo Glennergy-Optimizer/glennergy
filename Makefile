@@ -1,6 +1,6 @@
 
 CC      := gcc
-CFLAGS  := -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L 
+CFLAGS  := -g -O0 -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L 
 LDFLAGS := -lcurl -ljansson -lpthread
 BUILD   := build
 
