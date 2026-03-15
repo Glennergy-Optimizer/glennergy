@@ -2,6 +2,7 @@
 #include "../Server/Log/Logger.h"
 #include "optimizer.h"
 #include "average.h"
+#include "utils.h"
 #include <string.h>
 #include <stdio.h>
 #include <time.h>

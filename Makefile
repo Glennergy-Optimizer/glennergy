@@ -1,6 +1,6 @@
 
 CC      := gcc
-CFLAGS  := -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L 
+CFLAGS  := -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200809L 
 LDFLAGS := -lcurl -ljansson -lpthread
 BUILD   := build
 
@@ -129,7 +129,7 @@ $(DEBUG_BUILD)/%.o: %.c
 
 PROFILE_BUILD := build_profile
 PROFILE_TARGET := glenn_profile_valgrind
-PROFILE_FLAGS := -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L -g -O0
+PROFILE_FLAGS := -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200809L -g -O0
 
 # Build ALL profile binaries (main + modules)
 profile: CFLAGS += $(PROFILE_FLAGS)

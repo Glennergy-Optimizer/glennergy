@@ -344,7 +344,7 @@ static int inputcache_SaveMeteo(const MeteoData *_Data)
     char date_str[16];
     GetTodayDateFile(date_str, sizeof(date_str));
 
-    for (int i = 0; i < _Data->pCount; i++)
+    for (size_t i = 0; i < _Data->pCount; i++)
     {
         snprintf(filename, sizeof(filename), "%s/meteo_%d_%s.json", meteo_folder, _Data->pInfo[i].id, date_str);
         json_error_t error;

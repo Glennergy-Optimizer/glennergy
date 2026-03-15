@@ -1,4 +1,3 @@
-#define _POSIX_C_SOURCE 200809L
 #define MODULE_NAME "CACHE"
 #include "../../Server/Log/Logger.h"
 #include "cache.h"

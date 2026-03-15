@@ -121,6 +121,7 @@ int TCPServer_Accept(TCPServer *_TCPServer)
 
 void TCPServer_Work(void *_Context, uint64_t monTime)
 {
+    (void)monTime;
     TCPServer* tcp_server = (TCPServer *)_Context;
 
     if (tcp_server == NULL)

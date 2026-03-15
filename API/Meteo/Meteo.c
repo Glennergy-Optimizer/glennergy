@@ -117,7 +117,7 @@ int Meteo_Parse(MeteoData *_MeteoData, const char *_JsonRaw)
 
     size_t array_size = json_array_size(temps);
 
-    for (int i = 0; i < _MeteoData->pCount; i++)
+    for (size_t i = 0; i < _MeteoData->pCount; i++)
     {
 
         for (size_t j = 0; j < array_size; j++)
@@ -144,7 +144,7 @@ int Meteo_Parse(MeteoData *_MeteoData, const char *_JsonRaw)
 int meteo_Fetch(MeteoData *_MeteoData)
 {
 
-    for (int i = 0; i < _MeteoData->pCount; i++)
+    for (size_t i = 0; i < _MeteoData->pCount; i++)
     {
 
         CurlResponse response;

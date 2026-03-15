@@ -1,7 +1,6 @@
 #ifndef HTTP_REQUEST_H
 #define HTTP_REQUEST_H
 
-#define _POSIX_C_SOURCE 200809L
 
 #include <stddef.h>
 

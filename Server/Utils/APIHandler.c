@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 int APIHandler_Init(APIHandler_t **ctx)
 {
@@ -25,7 +26,8 @@ int APIHandler_Init(APIHandler_t **ctx)
         
         if (retry < 9) {
             LOG_DEBUG("Shared memory not ready, retry %d/10 in 500ms...", retry + 1);
-            usleep(500000); // Wait 500ms
+            struct timespec ts = {.tv_sec = 0, .tv_nsec = 500000000};
+            nanosleep(&ts, NULL); // Wait 500ms
         }
     }
     LOG_ERROR("Failed to attach to shared memory after 10 retries (5 seconds)");

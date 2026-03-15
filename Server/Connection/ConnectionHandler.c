@@ -15,7 +15,7 @@ int ConnectionHandler_Initialize(ConnectionHandler **_ConnectionHandler, int _Po
     if (cHandler == NULL)
         return -1;
 
-    TCPServer_Initialize(&cHandler->tcp_server, _Port, 100, ConnectionHandler_OnAccept, cHandler);
+    TCPServer_Initialize(&cHandler->tcp_server, _Port, 500, ConnectionHandler_OnAccept, cHandler);
 
     TCPServer_Listen(cHandler->tcp_server);
 
@@ -34,7 +34,7 @@ int ConnectionHandler_OnAccept(void *_Context, int _Socket)
     if (cHandler == NULL)
         return -1;
 
-    LOG_INFO("New connection accepted");
+    LOG_INFO("New connection accepted, socket fd: %d", _Socket);
     
     Connection* connection = NULL;
     if (Connection_Initialize(&connection, _Socket, cHandler->api_ctx) != 0)

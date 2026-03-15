@@ -58,7 +58,8 @@ int Server_Run(Server *_Server)
         {
             monTime = SystemMonotonicMS();
             smw_work(monTime);
-            usleep(100); // Todo från compiler warning - Byta till använda "nanosleep" från "time.h" istället för "usleep" från "unistd.h"?
+            struct timespec ts = {.tv_sec = 0, .tv_nsec = 100000}; // 10 microseconds
+            nanosleep(&ts, NULL);
         }
 
         ConnectionHandler_Dispose(&cHandler);
@@ -114,7 +115,8 @@ int Server_Run(Server *_Server)
             LOG_WARNING("Child process %d exited unexpectedly", exited);
             break;  // Child died, clean up
         }
-        usleep(100000);  // 100ms sleep
+        struct timespec ts = {.tv_sec = 0, .tv_nsec = 100000000}; // 100ms
+        nanosleep(&ts, NULL);  // 100ms sleep
     }
     
     // Signal received or child died - terminate all children
