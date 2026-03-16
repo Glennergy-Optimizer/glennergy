@@ -19,8 +19,17 @@ fi
 # ============================================
 echo "[1/6] Setting up system user..."
 
+# Ensure group exists
+if ! getent group glennergy >/dev/null; then
+    groupadd --system glennergy
+    echo "      ✓ Created 'glennergy' group"
+else
+    echo "      ✓ Group 'glennergy' already exists"
+fi
+
+# Ensure user exists
 if ! id -u glennergy >/dev/null 2>&1; then
-    useradd -r -s /bin/false -d /var/lib/glennergy -c "Glennergy Service User" glennergy
+    useradd -r -g glennergy -s /bin/false -d /var/lib/glennergy -c "Glennergy Service User" glennergy
     echo "      ✓ Created 'glennergy' user"
 else
     echo "      ✓ User 'glennergy' already exists"
