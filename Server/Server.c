@@ -26,57 +26,57 @@ int Server_Initialize(Server **_Server, char **_Argv, int _Argc)
     return 0;
 }
 
-void Crontab_Add()
-{
-    pid_t pid = fork();
+// void Crontab_Add()
+// {
+//     pid_t pid = fork();
 
-    if (pid < 0)
-    {
-        exit(EXIT_FAILURE);
-    }
-    else if (pid == 0)
-    {
-        char path[1024];
-        realpath("./crontab_inst.sh", path); // resolves the absolute path at runtime
-        execlp("/bin/bash", "bash", path, "add", NULL);
-        perror("execl failed");
-        exit(EXIT_SUCCESS);
-    }
-    else
-    {
-        int status;
-        waitpid(pid, &status, 0);
-    }
-}
+//     if (pid < 0)
+//     {
+//         exit(EXIT_FAILURE);
+//     }
+//     else if (pid == 0)
+//     {
+//         char path[1024];
+//         realpath("./crontab_inst.sh", path); // resolves the absolute path at runtime
+//         execlp("/bin/bash", "bash", path, "add", NULL);
+//         perror("execl failed");
+//         exit(EXIT_SUCCESS);
+//     }
+//     else
+//     {
+//         int status;
+//         waitpid(pid, &status, 0);
+//     }
+// }
 
-void Crontab_Remove()
-{
-    pid_t pid = fork();
+// void Crontab_Remove()
+// {
+//     pid_t pid = fork();
 
-    if (pid < 0)
-    {
-        exit(EXIT_FAILURE);
-    }
-    else if (pid == 0)
-    {
-        execlp("./crontab_inst.sh", "crontab.sh", "remove", NULL);
-        perror("execl failed");
-        exit(EXIT_SUCCESS);
-    }
-    else
-    {
-        int status;
-        waitpid(pid, &status, 0);
-    }
-}
+//     if (pid < 0)
+//     {
+//         exit(EXIT_FAILURE);
+//     }
+//     else if (pid == 0)
+//     {
+//         execlp("./crontab_inst.sh", "crontab.sh", "remove", NULL);
+//         perror("execl failed");
+//         exit(EXIT_SUCCESS);
+//     }
+//     else
+//     {
+//         int status;
+//         waitpid(pid, &status, 0);
+//     }
+// }
 
 int Server_Run(Server *_Server)
 {
 
     SignalHandler_Initialize();
 
-    LOG_INFO("cleaning up stale shared memory segments...");
-    shm_Destroy();
+    // LOG_INFO("cleaning up stale shared memory segments...");
+    // shm_Destroy();
 
     int status_server, status_cache, status_algo;
     pid_t pid_server = fork();
@@ -93,11 +93,11 @@ int Server_Run(Server *_Server)
 
         smw_init();
 
-        APIHandler_t *api_handler = NULL;
-        APIHandler_Init(&api_handler);
+        // APIHandler_t *api_handler = NULL;
+        // APIHandler_Init(&api_handler);
 
         ConnectionHandler *cHandler = NULL;
-        ConnectionHandler_Initialize(&cHandler, _Server->config.port, Threads_AddQueueItem, api_handler);
+        ConnectionHandler_Initialize(&cHandler, _Server->config.port, Threads_AddQueueItem);
 
         uint64_t monTime = 0;
         while (SignalHandler_Stop() == 0)
@@ -109,7 +109,7 @@ int Server_Run(Server *_Server)
 
         ConnectionHandler_Dispose(&cHandler);
         smw_dispose();
-        APIHandler_Dispose(&api_handler);
+        // APIHandler_Dispose(&api_handler);
         Threads_Dispose(threads);
 
         log_CloseWrite();

@@ -262,49 +262,49 @@ void inputcache_HandleRequest(InputCacheContext_t *ctx, int client_fd)
             LOG_INFO("Sent Spotpris data to client");
             break;
 
-        case CMD_SET_RESULT:
-        {
-            LOG_INFO("Handling CMD_SET_RESULT request");
-            ResultRequest set_req;
-            ssize_t result_bytes = recv(client_fd, &set_req, sizeof(set_req), 0);
+        // case CMD_SET_RESULT:
+        // {
+        //     LOG_INFO("Handling CMD_SET_RESULT request");
+        //     ResultRequest set_req;
+        //     ssize_t result_bytes = recv(client_fd, &set_req, sizeof(set_req), 0);
 
-            if (result_bytes != sizeof(set_req)) {
-                LOG_ERROR("Failed to receive complete results data (got %zd bytes)", result_bytes);
-                resp.status = 1;
-                resp.data_size = 0;
-                send(client_fd, &resp, sizeof(resp), 0);
-                break;
-            }
+        //     if (result_bytes != sizeof(set_req)) {
+        //         LOG_ERROR("Failed to receive complete results data (got %zd bytes)", result_bytes);
+        //         resp.status = 1;
+        //         resp.data_size = 0;
+        //         send(client_fd, &resp, sizeof(resp), 0);
+        //         break;
+        //     }
 
-            if (!ctx->shm) {
-                LOG_ERROR("Shared memory not initialized");
-                resp.status = 1;
-                resp.data_size = 0;
-                send(client_fd, &resp, sizeof(resp), 0);
-                break;
-            }
+        //     if (!ctx->shm) {
+        //         LOG_ERROR("Shared memory not initialized");
+        //         resp.status = 1;
+        //         resp.data_size = 0;
+        //         send(client_fd, &resp, sizeof(resp), 0);
+        //         break;
+        //     }
 
-            if (shm_Lock_Write(ctx->shm) == 0) {
-                int updated = 0;
-                for (size_t i = 0; i < set_req.count; i++) {
-                    if (shm_UpdateResults(ctx->shm, &set_req.results[i]) == 0) {
-                        updated++;
-                    } else {
-                        LOG_WARNING("Failed to update results for home_id %d", set_req.results[i].home_id);
-                    }
-                }
-                shm_Unlock_Write(ctx->shm);
+        //     if (shm_Lock_Write(ctx->shm) == 0) {
+        //         int updated = 0;
+        //         for (size_t i = 0; i < set_req.count; i++) {
+        //             if (shm_UpdateResults(ctx->shm, &set_req.results[i]) == 0) {
+        //                 updated++;
+        //             } else {
+        //                 LOG_WARNING("Failed to update results for home_id %d", set_req.results[i].home_id);
+        //             }
+        //         }
+        //         shm_Unlock_Write(ctx->shm);
 
-                LOG_INFO("Updated %d/%zu results in shared memory", updated, set_req.count);
-                resp.status = 0;
-            } else {
-                LOG_ERROR("Failed to lock shared memory for writing");
-                resp.status = 1;
-            }
-            resp.data_size = 0;
-            send(client_fd, &resp, sizeof(resp), 0);
-        }
-        break;
+        //         LOG_INFO("Updated %d/%zu results in shared memory", updated, set_req.count);
+        //         resp.status = 0;
+        //     } else {
+        //         LOG_ERROR("Failed to lock shared memory for writing");
+        //         resp.status = 1;
+        //     }
+        //     resp.data_size = 0;
+        //     send(client_fd, &resp, sizeof(resp), 0);
+        // }
+        // break;
             
         case CMD_PING:
             LOG_INFO("Handling CMD_PING request");
@@ -505,15 +505,15 @@ void inputcache_SendNotification(NotifyMessageType type, uint16_t count)
     }
 }
 
-void inputcache_CleanupShm(InputCacheContext_t *ctx)
-{
-    if (ctx && ctx->cache && ctx->shm) {
-        shm_Detach(ctx->shm);
-        ctx->shm = NULL;
-    }
-    shm_Destroy();
-    LOG_INFO("Shared memory cleaned up");
-}
+// void inputcache_CleanupShm(InputCacheContext_t *ctx)
+// {
+//     if (ctx && ctx->cache && ctx->shm) {
+//         shm_Detach(ctx->shm);
+//         ctx->shm = NULL;
+//     }
+//     shm_Destroy();
+//     LOG_INFO("Shared memory cleaned up");
+// }
 
 void inputcache_CleanupAll(InputCacheContext_t *ctx)
 {
@@ -538,7 +538,7 @@ void inputcache_CleanupAll(InputCacheContext_t *ctx)
     }
     
     if (ctx->cache) {
-        inputcache_CleanupShm(ctx);
+        // inputcache_CleanupShm(ctx);
         free(ctx->cache);
         ctx->cache = NULL;
     }

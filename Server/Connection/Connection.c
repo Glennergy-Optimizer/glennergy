@@ -202,6 +202,7 @@ void Connection_Dispose(Connection **_Connection)
 
     free(connection);
     connection = NULL;
+}
 /* 
 #define MODULE_NAME "Connection"
 #include "Connection.h"
