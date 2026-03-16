@@ -36,3 +36,9 @@ sudo mkdir -p /var/cache/glennergy/spotpris
 sudo chown root:"$APP_GROUP" /var/log/glennergy /var/cache/glennergy/meteo /var/cache/glennergy/spotpris
 sudo chmod 2775 /var/log/glennergy /var/cache/glennergy/meteo /var/cache/glennergy/spotpris
 
+echo "Installation complete."
+echo "You must activate the new group before running the program:"
+echo
+echo "    newgrp $APP_GROUP"
+echo
+echo "or log out and back in."
