@@ -8,8 +8,12 @@ Hämtar spotpris och optimerar elförbrukning.
 git clone https://github.com/keseboleliasteliacom/glennergy.git
 cd glennergy
 ```
+2. Skapa en ny grupp för "glennergy" gruppen finns när installations-skriptet skapat och tilldelar permissions
+```
+newgrp glennergy
+```
 
-2. Kör installationsskriptet:
+3. Kör installationsskriptet:
 ```bash
 ./glennergy_install.sh
 ```
