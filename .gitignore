@@ -1,11 +1,16 @@
 # Prerequisites
 *.d
 
+# Compiled Binaries
+*.bin
+*.run
+*.out
+*.elf
+
 # Object files
 *.o
 *.ko
 *.obj
-*.elf
 
 # Linker output
 *.ilk
@@ -35,6 +40,8 @@
 *.i*86
 *.x86_64
 *.hex
+
+Algorithm/Glennergy-Algoritm
 Cache/Glennergy-InputCache
 API/Spotpris/Glennergy-Spotpris
 API/Meteo/Glennergy-Meteo
@@ -66,10 +73,8 @@ xoxoldAPI/*
 
 # Cache files
 *.json
+!API/Meteo/Glennergy-Fastigheter.json
 
 # debug information files
 *.dwo
-glennergy_install.sh
 .gitignore
-glennergy_install.sh
-glennergy_install.sh
