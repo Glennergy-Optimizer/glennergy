@@ -5,7 +5,7 @@ PREFIX ?= /usr/local/bin
 TARGET = Glennergy-Algorithm
 
 all:
-	$(CC) $(CFLAGS) main.c testreader.c average.c solar.c optimizer.c ../Libs/Sockets.c ../Server/Log/Logger.c ../Server/SignalHandler.c -o $(TARGET) -ljansson -lpthread -lm
+	$(CC) $(CFLAGS) main.c testreader.c average.c ../Libs/SHM.c ../Libs/Sockets.c ../Server/Log/Logger.c ../Server/SignalHandler.c -o $(TARGET) -ljansson -lpthread -lm
 
 install:
 	install -d $(DESTDIR)$(PREFIX)

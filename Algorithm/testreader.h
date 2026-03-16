@@ -1,12 +1,14 @@
 #ifndef TESTREADER_H
 #define TESTREADER_H
 
+#include <semaphore.h>
+#include "../Cache/CacheProtocol.h"
+
 #define MAX_ID 5
 
 #define ALGORITM_SHARED "/algoritm_shm"
 #define ALGORITM_MUTEX "/algoritm_mutex"
 
-int test_reader();
 
 typedef struct
 {
@@ -24,6 +26,8 @@ typedef struct
 {
     AlgoritmResult result[MAX_ID];
 } SharedMemory;
+
+int test_reader(SharedMemory *shm, sem_t *mutex);
 
 // #include "../Cache/CacheProtocol.h"
 // int test_reader();

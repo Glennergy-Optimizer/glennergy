@@ -112,28 +112,28 @@ int inputcache_OpenFIFOs(int *meteo_fd, int *spotpris_fd)
     return 0;
 }
 
-int inputcache_InitShm(InputCacheContext_t *ctx)
-{
-    if (!ctx) {
-        LOG_ERROR("Invalid cache pointer for shm init");
-        return -1;
-    }
+// int inputcache_InitShm(InputCacheContext_t *ctx)
+// {
+//     if (!ctx) {
+//         LOG_ERROR("Invalid cache pointer for shm init");
+//         return -1;
+//     }
 
-    if (shm_Create() < 0) {
-        LOG_ERROR("Failed to create shared memory");
-        return -1;
-    }
+//     if (shm_Create() < 0) {
+//         LOG_ERROR("Failed to create shared memory");
+//         return -1;
+//     }
 
-    ctx->shm = shm_Attach();
-    if (!ctx->shm) {
-        LOG_ERROR("Failed to attach to shared memory");
-        shm_Destroy();
-        return -1;
-    }
+//     ctx->shm = shm_Attach();
+//     if (!ctx->shm) {
+//         LOG_ERROR("Failed to attach to shared memory");
+//         shm_Destroy();
+//         return -1;
+//     }
 
-    LOG_INFO("Shared memory initialized successfully");
-    return 0;
-}
+//     LOG_INFO("Shared memory initialized successfully");
+//     return 0;
+// }
 
 int inputcache_InitNotifyPipe(void)
 {
@@ -189,13 +189,13 @@ int inputcache_InitAll(InputCacheContext_t *ctx, const char* config_path)
         return -1;
     }
     
-    if (inputcache_InitShm(ctx) != 0) {
-        close(ctx->socket_fd);
-        close(ctx->meteo_fd);
-        close(ctx->spotpris_fd);
-        free(ctx->cache);
-        return -1;
-    }
+    // if (inputcache_InitShm(ctx) != 0) {
+    //     close(ctx->socket_fd);
+    //     close(ctx->meteo_fd);
+    //     close(ctx->spotpris_fd);
+    //     free(ctx->cache);
+    //     return -1;
+    // }
     
     if (inputcache_InitNotifyPipe() != 0) {
         LOG_WARNING("Notification pipe init failed, will retry");
