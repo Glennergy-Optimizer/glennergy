@@ -21,7 +21,7 @@
                         "Access-Control-Allow-Headers: Content-Type\r\n" \
                         "Connection: close\r\n"                    \
                         "\r\n"                                           \
-                        "%s"    
+                        "%s"
 
 void Connection_Work(void *_Context, uint64_t monTime);
 
@@ -76,10 +76,10 @@ int Connection_Handle(Connection *_Connection)
             _Connection->timeout = 0;
         }
     }
-    
+
     HTTPRequest_ParseHeader(&request);
 
-    
+
     printf("Request: %s\n", request.url ? request.url : "NULL");
     // Browsers can automatically add a second get request with favicon.ico, which can cause issues if we try to parse it as an integer.
     // If we have a request for favicon, just ignore it
@@ -106,9 +106,10 @@ int Connection_Handle(Connection *_Connection)
         HTTPRequest_Dispose(&request);
         return 0;
     }
-    // Now, if we have a get request we actually want to handle, i.e "/id=3", we continue handling it 
+    // Now, if we have a get request we actually want to handle, i.e "/id=3", we continue handling it
 
-    int client_id = strtol(request.url, request.url + 1, 10);
+    //int client_id = strtol(request.url, request.url + 1, 10);
+    int client_id = strtol(request.url + 1, NULL, 10);
     printf("id: %d\n", client_id);
 
     int shm_fd;
@@ -136,7 +137,7 @@ int Connection_Handle(Connection *_Connection)
         printf("Got the stuff: %d\n", memory->result[i].id);
         for (int j = 0; j < 96; j++)
         {
-            
+
             printf("Recommendation: %d\n", memory->result[i].recommendation[j]);
             int rec = memory->result[i].recommendation[j];
             const char *type = NULL;
