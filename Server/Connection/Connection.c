@@ -108,8 +108,10 @@ int Connection_Handle(Connection *_Connection)
     }
     // Now, if we have a get request we actually want to handle, i.e "/id=3", we continue handling it
 
-    //int client_id = strtol(request.url, request.url + 1, 10);
-    int client_id = strtol(request.url + 1, NULL, 10);
+    // OBS/TODO - I produktion måste den här vara aktiv för att HTTP requesten ska fungera direkt och få data
+    int client_id = strtol(request.url, request.url + 1, 10);
+    // Men den här behövs för att Håkan ska kunna kompilera. Raden ovanför verkar funka med ubuntu
+    //int client_id = strtol(request.url + 1, NULL, 10);
     printf("id: %d\n", client_id);
 
     int shm_fd;

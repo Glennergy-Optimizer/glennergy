@@ -6,6 +6,11 @@
 #include <unistd.h>
 
 constexpr const char* FIFO_METEO_WRITE = "/tmp/fifo_meteo";
+// Todo - Install instruktions:
+
+/* 
+    Kör make i den här mappen, kopiera binären till Meteo-matten, kör sedan installations-skriptet och "Glennergy-Main" som vanligt.
+*/
 
 int main()
 {
