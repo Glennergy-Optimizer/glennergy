@@ -58,7 +58,7 @@ install:
 	# Install binary
 	install -m 755 $(TARGET) $(DESTDIR)$(INSTALLDIR)
 
-install-all: modules-all
+install-all:
 	@echo "Installing all modules..."
 	@$(MAKE) install
 	@$(MAKE) -C API/Meteo install

@@ -32,6 +32,7 @@ https://www.havochvatten.se/data-kartor-och-rapporter/kartor-och-gis/visa-koordi
 
 
 1. Build everything
+make modules-all
 sudo make install-all
 sudo ./systemd_install.sh
 
