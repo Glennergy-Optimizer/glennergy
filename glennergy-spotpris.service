@@ -1,6 +1,0 @@
-[Unit]
-Description=Glennergy Spotpris
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/bin/Glennergy-Spotpris
