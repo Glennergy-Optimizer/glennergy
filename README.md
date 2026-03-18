@@ -25,6 +25,13 @@ I nuläget finns 5 garanterade ID
 http://localhost:8080/id=3
 ```
 
+5. (bonus) Använda Doxyfile för att enkelt navigera tekniskt specifikation
+```
+doxygen Doxyfile
+```
+Sedan öppnar index.html som genererats i /html/index.html för att navigera.
+OBS - installerad med "sudo apt install doxygen"
+
 Installationen skapar följande struktur(TODO):
 
 ```
@@ -47,6 +54,8 @@ Documentation standard:
 - Modules via @defgroup
 - Memory ownership must be documented
 - Side effects must be documented
+
+
 
 
 ---
