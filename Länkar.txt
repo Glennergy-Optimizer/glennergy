@@ -1,0 +1,31 @@
+
+Git repo - https://github.com/keseboleliasteliacom/glennergy
+
+Offert/Lösningsförslag Google doc - https://docs.google.com/document/d/1nns-07eq_d2k9yxsRjOjyn5TJpBVkrRQxmNOs0yQv88/edit?tab=t.0
+(Behöver accepta invite via chas emailen)
+
+Figma flowchart - https://www.figma.com/board/Ev0xMDoHk7pAoLxdoViulS/Welcome-to-FigJam?node-id=4-420&t=ubA3CwFXgD3R8jHO-1
+(Behöver accepta inviten, skickad via discord)
+
+Trello - https://trello.com/b/hrf4wnoo/glennergy-ab
+
+
+https://www.havochvatten.se/data-kartor-och-rapporter/kartor-och-gis/visa-koordinater-pa-en-karta.html#
+
+1	Stockholm	1250400	59.330	18.070  SE3
+2	Goteborg	510300	57.720	12.010  SE3
+3	Malmo	    258600	55.610	13.020  SE4
+4	Uppsala	    127400	59.860	17.640  SE3
+5	Jonkoping	83100	57.780	14.170  SE3
+6	Norrkoping	82900	58.600	16.170  SE3
+7	Umea	    73200	63.830	20.240  SE2
+8	Gavle	    68300	60.690	17.130  SE2/SE3
+9	Karlstad	57300	59.380	13.510  SE3
+10	Halmstad	55200	56.670	12.860  SE4
+11  Vaxjo       53100   56.880  14.800  SE4
+12	Sundsvall	48300	62.400	17.330  SE2
+13	Lulea	    45400	65.600	22.160  SE1
+14	Ostersund	43000	63.180	14.650  SE2
+15	Kalmar	    34400	56.670	16.360  SE4
+16	Skelleftea	31100	64.760	20.990  SE1
+17	Visby	    22000	57.640	18.300  SE3

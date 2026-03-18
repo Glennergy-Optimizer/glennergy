@@ -1,11 +1,16 @@
 # Prerequisites
 *.d
 
+# Compiled Binaries
+*.bin
+*.run
+*.out
+*.elf
+
 # Object files
 *.o
 *.ko
 *.obj
-*.elf
 
 # Linker output
 *.ilk
@@ -36,6 +41,11 @@
 *.x86_64
 *.hex
 
+Algorithm/Glennergy-Algoritm
+Cache/Glennergy-InputCache
+API/Spotpris/Glennergy-Spotpris
+API/Meteo/Glennergy-Meteo
+Glennergy-Main
 # Debug files
 *.dSYM/
 *.su
@@ -51,5 +61,20 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+# Folders
+Logs/*
+cache_spotpris/*
+cache_meteo/*
+test_cache/*
+Tests/*
+!Tests/*.c
+xoxoldAPI/*
+
+
+# Cache files
+*.json
+!API/Meteo/Glennergy-Fastigheter.json
+
 # debug information files
 *.dwo
+.gitignore
