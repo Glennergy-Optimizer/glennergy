@@ -1,12 +1,14 @@
 [Unit]
 Description=Fetch Meteo data 15 min
 Requires=glennergy-meteo.service
+PartOf=glennergy.target
 
 [Timer]
 OnCalendar=*:0/15
 OnBootSec=5min
+#OnActiveSec=5s
 Persistent=true
 AccuracySec=1s
 
 [Install]
-WantedBy=timers.target
+WantedBy=glennergy.target

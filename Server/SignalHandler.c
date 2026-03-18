@@ -15,7 +15,7 @@ void SignalHandler_Initialize()
     signal(SIGINT, SignalHandler_Handle);
     signal(SIGTERM, SignalHandler_Handle);
     signal(SIGPIPE, SIG_IGN);
-    signal(SIGCHLD, SIG_IGN);
+    //signal(SIGCHLD, SIG_IGN);
 }
 
 int SignalHandler_Stop()

@@ -1,8 +1,8 @@
 [Unit]
 Description=Glennergy Meteo Data Fetcher
-After=network-online.target glennergy-server.service
+After=network-online.target glennergy-inputcache.service
 Wants=network-online.target
-Requires=glennergy-server.service
+Requires=glennergy-inputcache.service
 
 [Service]
 Type=oneshot

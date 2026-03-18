@@ -1,12 +1,14 @@
 [Unit]
 Description=Fetch Spotpris data hourly
 Requires=glennergy-spotpris.service
+PartOf=glennergy.target
 
 [Timer]
 OnCalendar=hourly
 OnBootSec=5min
+#OnActiveSec=5s
 Persistent=true
 AccuracySec=1s
 
 [Install]
-WantedBy=timers.target
+WantedBy=glennergy.target

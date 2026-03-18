@@ -29,18 +29,18 @@ int Server_Run(Server *_Server)
 
     SignalHandler_Initialize();
 
-    LOG_INFO("cleaning up stale shared memory segments...");
-    shm_Destroy();
+    // LOG_INFO("cleaning up stale shared memory segments...");
+    // shm_Destroy();
 
-    int status_server, status_cache, status_algo;
-    pid_t pid_server = fork();
+    // int status_server, status_cache, status_algo;
+    // pid_t pid_server = fork();
 
-    if (pid_server < 0)
-    {
-        exit(EXIT_FAILURE);
-    }
-    else if (pid_server == 0)
-    {
+    // if (pid_server < 0)
+    // {
+    //     exit(EXIT_FAILURE);
+    // }
+    // else if (pid_server == 0)
+    // {
 
         Threads threads[POOL_SIZE];
         Threads_Initialize(threads);
@@ -54,6 +54,8 @@ int Server_Run(Server *_Server)
         ConnectionHandler_Initialize(&cHandler, _Server->config.port, Threads_AddQueueItem, api_handler);
 
         uint64_t monTime = 0;
+        LOG_INFO("Server is running on port %d", _Server->config.port);
+
         while (SignalHandler_Stop() == 0)
         {
             monTime = SystemMonotonicMS();
@@ -61,76 +63,77 @@ int Server_Run(Server *_Server)
             struct timespec ts = {.tv_sec = 0, .tv_nsec = 100000}; // 10 microseconds
             nanosleep(&ts, NULL);
         }
-
+        LOG_INFO("Shutdown signal received, cleaning up...");
         ConnectionHandler_Dispose(&cHandler);
         smw_dispose();
         APIHandler_Dispose(&api_handler);
         Threads_Dispose(threads);
 
         log_CloseWrite();
-        exit(EXIT_SUCCESS);
-    }
-
-    pid_t pid_cache = fork();
-
-    if (pid_cache < 0)
-    {
-        kill(pid_server, SIGTERM);
-        exit(EXIT_FAILURE);
-    }
-    else if (pid_cache == 0)
-    {
-        execlp("Glennergy-InputCache", "Glennergy-InputCache", NULL);
-        LOG_ERROR("Failed to execute Glennergy-InputCache");
-        exit(EXIT_FAILURE);
-    }
-    // else
-    // {
-    //     test_reader();
-    //     wait(&status_pid);
-    //     wait(&status_cache);
-    // }
-    pid_t pid_algo = fork();
-    if (pid_algo < 0)
-    {
-        LOG_ERROR("Failed to fork for Glennergy-Algorithm");
-        kill(pid_server, SIGTERM);
-        kill(pid_cache, SIGTERM);       //handle restart instead of kill?
-        exit(EXIT_FAILURE);
-    }
-    else if (pid_algo == 0)
-    {
-        execlp("Glennergy-Algorithm", "Glennergy-Algorithm", NULL);
-        LOG_ERROR("Failed to execute Glennergy-Algorithm");
-        exit(EXIT_FAILURE);
-    }
-
-    LOG_INFO("All processes started: Server PID: %d, Cache PID: %d, Algorithm PID: %d", pid_server, pid_cache, pid_algo);
-
-    while (!SignalHandler_Stop())
-    {
-        // Check if any child exited
-        pid_t exited = waitpid(-1, NULL, WNOHANG);  // Non-blocking check
-        if (exited > 0) {
-            LOG_WARNING("Child process %d exited unexpectedly", exited);
-            break;  // Child died, clean up
-        }
-        struct timespec ts = {.tv_sec = 0, .tv_nsec = 100000000}; // 100ms
-        nanosleep(&ts, NULL);  // 100ms sleep
-    }
-    
-    // Signal received or child died - terminate all children
-    LOG_INFO("Shutting down, sending SIGTERM to children...");
-    kill(pid_server, SIGTERM);
-    kill(pid_cache, SIGTERM);
-    kill(pid_algo, SIGTERM);
-
-    waitpid(pid_server, &status_server, 0);
-    waitpid(pid_cache, &status_cache, 0);
-    waitpid(pid_algo, &status_algo, 0);
-
-    return 0;
+        
+        return 0;
 }
+
+    // pid_t pid_cache = fork();
+
+    // if (pid_cache < 0)
+    // {
+    //     kill(pid_server, SIGTERM);
+    //     exit(EXIT_FAILURE);
+    // }
+    // else if (pid_cache == 0)
+    // {
+    //     execlp("Glennergy-InputCache", "Glennergy-InputCache", NULL);
+    //     LOG_ERROR("Failed to execute Glennergy-InputCache");
+    //     exit(EXIT_FAILURE);
+    // }
+    // // else
+    // // {
+    // //     test_reader();
+    // //     wait(&status_pid);
+    // //     wait(&status_cache);
+    // // }
+    // pid_t pid_algo = fork();
+    // if (pid_algo < 0)
+    // {
+    //     LOG_ERROR("Failed to fork for Glennergy-Algorithm");
+    //     kill(pid_server, SIGTERM);
+    //     kill(pid_cache, SIGTERM);       //handle restart instead of kill?
+    //     exit(EXIT_FAILURE);
+    // }
+    // else if (pid_algo == 0)
+    // {
+    //     execlp("Glennergy-Algorithm", "Glennergy-Algorithm", NULL);
+    //     LOG_ERROR("Failed to execute Glennergy-Algorithm");
+    //     exit(EXIT_FAILURE);
+    // }
+
+    // LOG_INFO("All processes started: Server PID: %d, Cache PID: %d, Algorithm PID: %d", pid_server, pid_cache, pid_algo);
+
+    // while (!SignalHandler_Stop())
+    // {
+    //     // Check if any child exited
+    //     pid_t exited = waitpid(-1, NULL, WNOHANG);  // Non-blocking check
+    //     if (exited > 0) {
+    //         LOG_WARNING("Child process %d exited unexpectedly", exited);
+    //         break;  // Child died, clean up
+    //     }
+    //     struct timespec ts = {.tv_sec = 0, .tv_nsec = 100000000}; // 100ms
+    //     nanosleep(&ts, NULL);  // 100ms sleep
+    // }
+    
+    // // Signal received or child died - terminate all children
+    // LOG_INFO("Shutting down, sending SIGTERM to children...");
+    // kill(pid_server, SIGTERM);
+    // kill(pid_cache, SIGTERM);
+    // kill(pid_algo, SIGTERM);
+
+    // waitpid(pid_server, &status_server, 0);
+    // waitpid(pid_cache, &status_cache, 0);
+    // waitpid(pid_algo, &status_algo, 0);
+
+    // return 0;
+//}
 
 void Server_Dispose(Server **_Server)
 {

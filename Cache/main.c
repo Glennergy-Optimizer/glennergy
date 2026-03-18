@@ -16,7 +16,6 @@
 
 int main()
 {
-    int ret = -1;
     log_Init("cache.log");
     SignalHandler_Initialize();
     LOG_INFO("Starting Cache module...");
@@ -94,5 +93,5 @@ int main()
     
     inputcache_CleanupAll(&ctx);
     log_Cleanup();
-    return ret;
+    return 0;
 }

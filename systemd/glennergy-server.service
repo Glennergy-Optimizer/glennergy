@@ -1,22 +1,24 @@
 [Unit]
 Description=Glennergy Energy Management Server
 Documentation=man:glen(1)
-After=network.target
-Wants=network-online.target
+After=network.target glennergy-inputcache.service glennergy-algorithm.service
+Wants=network-online.target glennergy-inputcache.service glennergy-algorithm.service
+PartOf=glennergy.target
 
 [Service]
 Type=simple
 User=glennergy
 Group=glennergy
 ExecStart=/usr/local/bin/Glennergy-Main
+KillMode=process
 Restart=on-failure
 RestartSec=10s
 
 # The server forks Cache and Algorithm as children
 # Use mixed kill mode to terminate all processes in the group
-KillMode=mixed
-KillSignal=SIGTERM
-TimeoutStopSec=10s
+# KillMode=mixed
+# KillSignal=SIGTERM
+# TimeoutStopSec=10s
 
 # Logging
 StandardOutput=journal
@@ -41,4 +43,4 @@ LogsDirectoryMode=0755
 WorkingDirectory=/var/log/glennergy
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=glennergy.target
