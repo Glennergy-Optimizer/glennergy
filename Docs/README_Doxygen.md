@@ -33,3 +33,33 @@ This project uses a **customized Doxygen standard** for consistent documentation
 4. Doxygen will generate grouped, navigable documentation automatically.
 
 > This ensures all modules have consistent, clear documentation that includes ownership, pre/post conditions, errors, and side effects.
+
+
+---
+
+## AI-generated code suggestions
+
+When using AI to generate or document code:
+
+1. **Do not modify existing logic or initialization.**
+   - AI should never change the actual behavior of the code.
+   - Example: do not set `connection->bytesReadOut = 0` or free memory automatically.
+
+2. **Mark potential improvements as comments.**
+   - Use the format:
+     ```c
+     // Suggestion: [description of the improvement]
+     ```
+   - Examples:
+     ```c
+     // Suggestion: Could initialize connection->bytesReadOut to 0 here to avoid garbage value
+     // Suggestion: Free json_data before returning to avoid memory leak on error
+     ```
+   - These comments are **informative only** and do not alter code execution.
+
+3. **Follow normal Doxygen conventions regardless.**
+   - All structs, functions, and files should still be fully documented with `@file`, `@brief`, `@param`, `@return`, etc.
+
+4. **Purpose**
+   - This ensures consistency across the project.
+   - Allows developers to review AI suggestions manually before applying any changes.
