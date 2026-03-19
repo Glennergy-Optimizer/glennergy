@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 
+/* Standard HTTP header-mall */
 #define RESPONSE_HEADER "HTTP/1.1 %d %s\r\n"                                  \
                         "Content-Length: %zu\r\n"                             \
                         "Content-Type: application/json\r\n"                  \
@@ -12,6 +13,13 @@
                         "\r\n"                                                \
                         "%s"
 
+/**
+ * @brief Initierar en HTTPResponse-struktur till standardvärden.
+ * @param http_response Pekare till HTTPResponse.
+ * @return 0 vid framgång, -1 om NULL-pekar.
+ * @pre `http_response` måste vara giltig.
+ * @post Alla fält är initierade: status_code=200, pointers = NULL.
+ */
 int HTTPResponse_Initialize(HTTPResponse *http_response)
 {
     if (http_response == NULL)
@@ -25,6 +33,13 @@ int HTTPResponse_Initialize(HTTPResponse *http_response)
     return 0;
 }
 
+/**
+ * @brief Formaterar HTTPResponse till fullständig HTTP-respons.
+ * @param http_response Pekare till HTTPResponse.
+ * @return 0 vid framgång, -1 vid malloc-fel, -2 om `response` är NULL.
+ * @pre `http_response` måste initieras och `response` måste vara satt.
+ * @post `http_response->response_formatted` är allokerad och innehåller hela HTTP-responsen.
+ */
 int HTTPResponse_Format(HTTPResponse *http_response)
 {
     if (http_response == NULL)
@@ -71,6 +86,11 @@ int HTTPResponse_Format(HTTPResponse *http_response)
     return 0;
 }
 
+/**
+ * @brief Frigör minne allokerat av HTTPResponse.
+ * @param http_response Pekare till HTTPResponse.
+ * @post Alla interna pointers sätts till NULL.
+ */
 void HTTPResponse_Dispose(HTTPResponse *http_response)
 {
     if (http_response == NULL)
