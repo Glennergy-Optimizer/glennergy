@@ -15,23 +15,28 @@
 
 #define LOG_MSG_MAX 256
 
+/**
+ * @struct LogMessage
+ * @brief Struktur för ett loggmeddelande som skickas via pipe.
+ */
 typedef struct {
-    time_t timestamp;
-    pid_t pid;
-    char level[16];
-    char module[32];
-    char message[LOG_MSG_MAX];
+    time_t timestamp;          /**< Tidpunkt för loggning */
+    pid_t pid;                 /**< Process-ID */
+    char level[16];            /**< Loggnivå som sträng */
+    char module[32];           /**< Modulnamn */
+    char message[LOG_MSG_MAX]; /**< Själva meddelandet */
 } LogMessage;
 
-static int write_fd = -1;
-static pid_t logger_pid = -1;
-static LogLevel log_level = LOG_LEVEL_INFO;
+static int write_fd = -1;           /**< Pipe skriv-FD */
+static pid_t logger_pid = -1;       /**< PID för logger-child */
+static LogLevel log_level = LOG_LEVEL_INFO; /**< Aktuell loggnivå */
 
-static FILE* log_file = NULL;
-static char log_path[128] = ""; //will be set in log_Init
+static FILE* log_file = NULL;       /**< File pointer för loggfil */
+static char log_path[128] = "";     /**< Full filväg */
 
 static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+/* Lokala funktioner */
 static void log_ProcessLoop(int read_fd);
 static void log_ToFile(const LogMessage* log_msg);
 const char* log_GetLevelString(LogLevel level);
@@ -75,7 +80,7 @@ int log_Init(const char* filename)
 
     if (logger_pid == 0)
     {
-        //child process
+        // Child-process
         close(pipe_fds[1]); 
         log_ProcessLoop(pipe_fds[0]); //loop only reads
 
@@ -84,7 +89,7 @@ int log_Init(const char* filename)
     }
     else
     {
-        //parent process
+        // Parent-process
         close(pipe_fds[0]); 
         write_fd = pipe_fds[1]; //only writes, server child processes will inherit
 
@@ -92,7 +97,6 @@ int log_Init(const char* filename)
         if (flags != -1) {
             fcntl(write_fd, F_SETFL, flags | O_NONBLOCK);
         }
-
         printf("Logger initialized (PID: %d)\n", logger_pid);    
     }
     return 0;
@@ -131,7 +135,6 @@ void log_Message(LogLevel level, const char* module, const char* msg)
     {
         static unsigned long dropped = 0;
         dropped++;
-        
         if (dropped % 1000 == 0)
             fprintf(stderr, "WARNING: Log buffer full, %lu messages dropped\n", dropped);
         
@@ -206,6 +209,7 @@ static void log_ProcessLoop(int read_fd)
 
         log_ToFile(&log_msg);    
     }
+
     if(log_file)
     {
         fflush(log_file);
@@ -229,7 +233,6 @@ static void log_ToFile(const LogMessage* log_msg)
     fprintf(stderr, "[%s] [%s] [%s]: %s\n", 
             time_buf, log_msg->level, log_msg->module, log_msg->message);
     #endif
-
 }
 
 const char* log_GetLevelString(LogLevel level)
