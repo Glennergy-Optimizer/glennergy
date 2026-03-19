@@ -1,11 +1,25 @@
+/**
+ * @file Fetcher.c
+ * @brief Implementation of HTTP GET wrapper functions using libcurl.
+ *
+ * Provides initialization, write callback, HTTP GET execution, and cleanup
+ * for CurlResponse structures. Caller must allocate CurlResponse.
+ * 
+ * @author YourName
+ * @date 2026-03-19
+ */
+
 #include "Fetcher.h"
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
-// Förr hade vi att Init skapar en malloc CurlResponse och returnerar pekaren.
-// Kan inte detta ligga på stacken istället?
-// Nu har vi att Init tar en pekare till CurlResponse och initierar den.
-// Det betyder att anroparen måste skapa CurlResponse på stacke eller heapen själv, sedan kalla denna för att initiera.
+/**
+ * @brief Initialize a CurlResponse structure.
+ *
+ * @param _Response Pointer to CurlResponse to initialize
+ * @return 0 on success, -1 if _Response is NULL
+ */
 int Curl_Initialize(CurlResponse *_Response)
 {
     if (!_Response)
@@ -16,11 +30,21 @@ int Curl_Initialize(CurlResponse *_Response)
     _Response->data = NULL;
     _Response->size = 0;
     _Response->curl_handle = curl_easy_init();
-    
 
     return 0;
 }
 
+/**
+ * @brief Callback for writing received data into CurlResponse.
+ *
+ * Appends incoming data to the existing buffer and reallocates as needed.
+ *
+ * @param contents Pointer to data received
+ * @param size Size of one element
+ * @param nmemb Number of elements
+ * @param userp Pointer to CurlResponse
+ * @return Number of bytes written, 0 on allocation failure
+ */
 size_t Curl_WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
     size_t real_size = size * nmemb;
@@ -40,6 +64,16 @@ size_t Curl_WriteCallback(void *contents, size_t size, size_t nmemb, void *userp
     return real_size;
 }
 
+/**
+ * @brief Perform an HTTP GET request.
+ *
+ * @param _Response Pointer to initialized CurlResponse
+ * @param url URL string to fetch
+ * @return 0 on success,
+ *         -1 if _Response or curl_handle is NULL,
+ *         -2 on libcurl error,
+ *         -3 if HTTP status is not 200
+ */
 int Curl_HTTPGet(CurlResponse *_Response, char *url)
 {
     if (!_Response || !_Response->curl_handle)
@@ -70,6 +104,13 @@ int Curl_HTTPGet(CurlResponse *_Response, char *url)
     return 0;
 }
 
+/**
+ * @brief Clean up a CurlResponse.
+ *
+ * Frees memory allocated for data and cleans up CURL handle.
+ *
+ * @param _Response Pointer to CurlResponse to dispose
+ */
 void Curl_Dispose(CurlResponse *_Response)
 {
     if (!_Response)
