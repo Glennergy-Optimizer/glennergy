@@ -63,3 +63,19 @@ When using AI to generate or document code:
 4. **Purpose**
    - This ensures consistency across the project.
    - Allows developers to review AI suggestions manually before applying any changes.
+
+
+
+### Keep Original Comments
+
+**AI must always keep all original code comments intact.**
+
+- Do **not** remove, rewrite, or relocate existing comments.
+- Original TODOs, developer notes, clarifying comments, or inline explanations must remain exactly where they are.
+- AI may add new Doxygen comments, but they must **never replace or delete** existing comments.
+
+**Example:**
+
+```c
+// TODO: implement caching
+// Suggestion: Could pre-allocate cache array for performance
