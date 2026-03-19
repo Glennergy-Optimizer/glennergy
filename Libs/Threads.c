@@ -1,3 +1,7 @@
+/**
+ * @file Threads.c
+ * @brief Implementation of thread pool and queue system.
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include "Threads.h"
@@ -53,7 +57,23 @@ int Threads_AddQueueItem(Connection *_Connection)
 
     return 0;
 }
-
+/**
+ * @brief Worker thread main loop.
+ *
+ * @param arg Pointer to Threads structure
+ *
+ * @return NULL
+ *
+ * @details
+ * Each worker thread:
+ * - Waits for available connections in queue
+ * - Dequeues a connection
+ * - Processes it via Connection_Handle()
+ * - Releases it via Connection_Dispose()
+ *
+ * @note Internal function
+ */
+static void *Threads_Work(void *arg);
 void *Threads_Work(void *arg)
 {
     Threads *threads = (Threads *)arg;
