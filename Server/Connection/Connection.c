@@ -1,4 +1,16 @@
+/**
+ * @file Connection.c
+ * @brief Implementation of TCP client connection management.
+ *
+ * Handles initialization, reading HTTP requests, sending JSON responses,
+ * and resource cleanup for Connection structures.
+ *
+ * @author YourName
+ * @date 2026-03-19
+ */
+
 #define MODULE_NAME "Connection"
+
 #include "Connection.h"
 #include "../TCPServer.h"
 #include "../Log/Logger.h"
@@ -12,6 +24,7 @@
 #include <sys/socket.h>
 #include <string.h>
 #include <stdio.h>
+#include <semaphore.h> // Include semaphore so we dont get warnings
 
 #define RESPONSE_HEADER "HTTP/1.1 200 OK\r\n"                            \
                         "Content-Length: %zu\r\n"                        \
@@ -36,11 +49,29 @@ int Connection_Initialize(Connection **_Connection, int _Socket)
 
     connection->socket = _Socket;
     connection->timeout = 0;
+    // Behöver vi "connection->bytesReadOut = 0;" här? Det sätts ju i Connection_Handle så kanske inte nödvändigt att initiera det här?
 
     *_Connection = connection;
     return 0;
 }
 
+/**
+ * @brief Handle an incoming HTTP request on the connection and send response.
+ *
+ * @param _Connection Pointer to initialized Connection
+ * @return 0 on success, negative value on error
+ *
+ * @details
+ * - Reads HTTP headers using HTTPRequest_ReadHeaders.
+ * - Handles timeout logic (default 3s) using monotonic timer.
+ * - Ignores favicon.ico and empty "/" requests.
+ * - Parses client ID from URL and builds JSON response from shared memory.
+ * - Uses semaphore to safely read shared memory.
+ * - Sends JSON response using RESPONSE_HEADER.
+ *
+ * @note Internal logging is done via LOG_INFO and LOG_DEBUG macros.
+ * @note Shared memory and semaphore cleanup is performed before returning.
+ */
 int Connection_Handle(Connection *_Connection)
 {
     LOG_INFO("Handling incoming connection");
@@ -79,7 +110,6 @@ int Connection_Handle(Connection *_Connection)
 
     HTTPRequest_ParseHeader(&request);
 
-
     printf("Request: %s\n", request.url ? request.url : "NULL");
     // Browsers can automatically add a second get request with favicon.ico, which can cause issues if we try to parse it as an integer.
     // If we have a request for favicon, just ignore it
@@ -89,7 +119,6 @@ int Connection_Handle(Connection *_Connection)
                             "Content-Length: 0\r\n"
                            "Connection: close\r\n"
                            "\r\n";
-
         send(_Connection->socket, resp, strlen(resp), MSG_NOSIGNAL);
         HTTPRequest_Dispose(&request);
         return 0;
@@ -116,7 +145,6 @@ int Connection_Handle(Connection *_Connection)
 
     int shm_fd;
     sem_t *mutex;
-
     AlgoritmShared *memory;
 
     if (SHM_InitializeReader(&memory, ALGORITM_SHARED, shm_fd) != 0)
@@ -132,14 +160,11 @@ int Connection_Handle(Connection *_Connection)
     for (int i = 0; i < MAX_ID; i++)
     {
         if (client_id != memory->result[i].id)
-        {
             continue;
-        }
 
         printf("Got the stuff: %d\n", memory->result[i].id);
         for (int j = 0; j < 96; j++)
         {
-
             printf("Recommendation: %d\n", memory->result[i].recommendation[j]);
             int rec = memory->result[i].recommendation[j];
             const char *type = NULL;
@@ -154,16 +179,14 @@ int Connection_Handle(Connection *_Connection)
                 continue;
 
             json_t *obj = json_object();
-
             json_object_set_new(obj, "id", json_integer(memory->result[i].id));
-
             json_object_set_new(obj, "type", json_string(type));
-
             json_object_set_new(obj, "timestamp", json_string(memory->result[i].time[j].time));
 
             json_array_append_new(arr, obj);
         }
     }
+
     json_data = json_dumps(arr, JSON_INDENT(4));
     // printf("data %s\n", json_data);
     json_decref(arr);
@@ -179,7 +202,7 @@ int Connection_Handle(Connection *_Connection)
     if (actualLength >= sizeof(response))
     {
         LOG_ERROR("Response truncated: actual length %d exceeds buffer size %zu", actualLength, sizeof(response));
-        return -1;
+        return -1; // TODO - Free här vid error?
     }
 
 
@@ -190,12 +213,19 @@ int Connection_Handle(Connection *_Connection)
     LOG_DEBUG("Response sent");
 
     SHM_CloseSemaphore(&mutex);
-
     SHM_DisposeReader(&memory, ALGORITM_SHARED, shm_fd);
     HTTPRequest_Dispose(&request);
+
     return 0;
 }
 
+/**
+ * @brief Dispose a Connection and free resources.
+ *
+ * Closes the socket and frees memory.
+ *
+ * @param _Connection Pointer to a Connection* to dispose
+ */
 void Connection_Dispose(Connection **_Connection)
 {
     if (_Connection == NULL || *_Connection == NULL)
@@ -206,5 +236,5 @@ void Connection_Dispose(Connection **_Connection)
     close(connection->socket);
 
     free(connection);
-    connection = NULL;
+    connection = NULL; // Todo 
 }
