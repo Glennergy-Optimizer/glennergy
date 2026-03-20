@@ -1,3 +1,9 @@
+/**
+ * @file SMW.c
+ * @brief Implementation of shared memory and semaphore utilities.
+ * @ingroup SMW
+ */
+
 #define MODULE_NAME "SHM"
 #include "SHM.h"
 #include "../Server/Log/Logger.h"
@@ -6,7 +12,9 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
-
+/**
+ * @brief Initializes shared memory for writing.
+ */
 int SHM_InitializeWriter(AlgoritmShared **shared, const char *name, int shm_fd)
 {
     shm_fd = shm_open(name, O_CREAT | O_RDWR, 0666);
@@ -31,9 +39,15 @@ int SHM_InitializeWriter(AlgoritmShared **shared, const char *name, int shm_fd)
     }
 
     LOG_INFO("Successfully created shared memory region");
+
+    // Suggestion: Initialize shared memory content to known state (e.g., memset)
+
     return 0;
 }
 
+/**
+ * @brief Initializes shared memory for reading.
+ */
 int SHM_InitializeReader(AlgoritmShared **shared, const char *name, int shm_fd)
 {
     shm_fd = shm_open(name, O_RDONLY, 0);
@@ -44,7 +58,6 @@ int SHM_InitializeReader(AlgoritmShared **shared, const char *name, int shm_fd)
         return -1;
     }
 
-
     *shared = mmap(NULL, sizeof(AlgoritmShared), PROT_READ, MAP_SHARED, shm_fd, 0);
     if (*shared == MAP_FAILED)
     {
@@ -53,9 +66,15 @@ int SHM_InitializeReader(AlgoritmShared **shared, const char *name, int shm_fd)
     }
 
     LOG_INFO("Successfully opened shared memory region");
+
     return 0;
+
+    // Suggestion: Validate that shared memory size matches expected struct size
 }
 
+/**
+ * @brief Creates a semaphore.
+ */
 int SHM_CreateSemaphore(sem_t **sem, const char *name)
 {
     *sem = sem_open(name, O_CREAT, 0666, 1);
@@ -65,10 +84,15 @@ int SHM_CreateSemaphore(sem_t **sem, const char *name)
         LOG_ERROR("Failed to create semaphore");
         return -1;
     }
+
     LOG_INFO("Created semaphore");
+
     return 0;
 }
 
+/**
+ * @brief Opens an existing semaphore.
+ */
 int SHM_OpenSemaphore(sem_t **sem, const char *name)
 {
     *sem = sem_open(name, 0);
@@ -80,38 +104,70 @@ int SHM_OpenSemaphore(sem_t **sem, const char *name)
     }
 
     LOG_INFO("Opened semaphore");
+
     return 0;
 }
 
-// Closes semaphore
+/**
+ * @brief Closes a semaphore.
+ */
 void SHM_CloseSemaphore(sem_t **sem)
 {
     sem_close(*sem);
     LOG_INFO("Closed semaphore");
+
+    // Suggestion: Set *sem = NULL after closing to avoid dangling pointer
 }
 
-// Closes and unlinks semaphore
+/**
+ * @brief Closes and unlinks a semaphore.
+ */
 void SHM_DestroySemaphore(sem_t **sem, const char *name)
 {
     sem_close(*sem);
     sem_unlink(name);
+
+    // Suggestion: Set *sem = NULL after destruction
 }
 
+/**
+ * @brief Disposes shared memory reader resources.
+ */
 void SHM_DisposeReader(AlgoritmShared **shared, const char *name, int shm_fd)
 {
     (void)name; // Unused parameter, can be used for logging if needed
+
     munmap(*shared, sizeof(AlgoritmShared));
     close(shm_fd);
+
+    // Suggestion: Set *shared = NULL after munmap
 }
 
+/**
+ * @brief Disposes shared memory writer resources.
+ */
 void SHM_DisposeWriter(AlgoritmShared **shared, const char *name, int shm_fd)
 {
     (void)name; // Unused parameter, can be used for logging if needed
+
     munmap(*shared, sizeof(AlgoritmShared));
     close(shm_fd);
+
+    // Suggestion: Set *shared = NULL after munmap
 }
 
+/**
+ * @brief Removes shared memory object from the system.
+ *
+ * @param name Name of shared memory.
+ *
+ * @post Shared memory is unlinked.
+ *
+ * @warning Should only be called by owner process.
+ */
 void SHM_Destroy(const char *name)
 {
     shm_unlink(name);
+
+    // Suggestion: Add logging for successful/failed unlink
 }
