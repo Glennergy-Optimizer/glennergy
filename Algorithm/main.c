@@ -1,3 +1,16 @@
+/**
+ * @file main.c
+ * @brief Entry point for the Algorithm module. Reads cached data and computes recommendations.
+ *
+ * This file runs the main loop for the Algorithm module:
+ * - Connects to the cache
+ * - Reads meteo and spot price data
+ * - Computes recommendations and writes to shared memory
+ *
+ * @note Original comments and logging preserved.
+ * @ingroup Algorithm
+ */
+
 #define MODULE_NAME "ALGORITM"
 #include "../Server/Log/Logger.h"
 #include "AlgoritmProtocol.h"
@@ -16,7 +29,19 @@
 
 #define FIFO_ALGORITHM_READ "/tmp/fifo_algoritm"
 
+/**
+ * @brief Sends a request to the cache and receives the expected data.
+ *
+ * @param cmd Cache command to send
+ * @param data_out Pointer to memory where data will be stored
+ * @param expected_size Expected size of the output data
+ * @return 0 on success, -1 on error
+ *
+ * @warning Must ensure data_out is valid and allocated.
+ * @note Logs errors using LOG_ERROR; closes socket on failure.
+ */
 // gcc -Wall -Wextra -std=c11 -g testreader.c ../Sockets.c ../../Server/Log/Logger.c -I../../ -o testreader
+
 int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
 {
     if (!data_out || expected_size == 0)
@@ -74,6 +99,21 @@ int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
     return 0;
 }
 
+/**
+ * @brief Main loop for Algorithm module
+ *
+ * Initializes logging, shared memory, semaphores, and InputCache,
+ * then enters a loop to:
+ * - Fetch data from cache
+ * - Compute spot price statistics
+ * - Match meteo and spot prices
+ * - Store recommendations in shared memory
+ *
+ * @return 0 on normal exit, -1/-2 on initialization errors
+ *
+ * @warning Runs an infinite loop with sleep(10); ensure proper termination in production.
+ * @note Frees allocated InputCache memory and cleans up logging before exit.
+ */
 int main()
 {
     log_Init("algoritm.log");
@@ -121,7 +161,6 @@ int main()
         sem_wait(mutex);
         for (size_t area_idx = 0; area_idx < 4; area_idx++)
         {
-
             size_t show_count = cache->spotpris.count[area_idx];
             // if (show_count > 96)
             // show_count = 96; // Show only first 10

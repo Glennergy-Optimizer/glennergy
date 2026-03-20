@@ -8,8 +8,17 @@
 #include "average.h"
 #include "../Cache/InputCache.h"
 
+/**
+ * @brief Area names used for indexing statistics
+ */
 const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"}; // usch
 
+/**
+ * @brief Compare two doubles for qsort
+ * @param a Pointer to first double
+ * @param b Pointer to second double
+ * @return -1 if a<b, 1 if a>b, 0 if equal
+ */
 int compare_double(const void *a, const void *b)
 {
     double diff = (*(double *)a - *(double *)b);
@@ -75,6 +84,13 @@ int average_SpotprisStats(SpotStats_t *spot, InputCache_t *cache)
     return 0;
 }
 
+/**
+ * @brief Detect low-price windows in cache
+ * @param cache Input cache
+ * @param q25_threshold Threshold for 25th percentile
+ * @return 0 on success, -1 if cache invalid
+ * @warning Prints detected low-price windows to stdout
+ */
 int average_WindowLow(InputCache_t *cache, double q25_threshold)
 {
     if (!cache)
@@ -99,15 +115,15 @@ int average_WindowLow(InputCache_t *cache, double q25_threshold)
         else
         {
             if (start != -1)
-            {
+        {
                 printf(" Low price window: %s (%.3f SEK/kWh)\n\t\tto %s (%.3f SEK/kWh)\n",
                        cache->spotpris.data[0][start].time_start,
                        cache->spotpris.data[0][start].sek_per_kwh,
                        cache->spotpris.data[0][i - 1].time_start,
                        cache->spotpris.data[0][i - 1].sek_per_kwh);
                 start = -1; // Reset for next window
-            }
         }
+    }
     }
     if (start != -1)
     {
@@ -121,6 +137,13 @@ int average_WindowLow(InputCache_t *cache, double q25_threshold)
     return 0;
 }
 
+/**
+ * @brief Determine BUY/HOLD/SELL recommendation based on thresholds
+ * @param entry SpotEntry to evaluate
+ * @param q25_threshold Lower threshold
+ * @param q75_threshold Upper threshold
+ * @return 1=BUY, 2=HOLD, 3=SELL, 0=invalid, -1=error
+ */
 int average_WindowLow_test(SpotEntry_t *entry, double q25_threshold, double q75_threshold)
 {
     if (!entry)
@@ -154,6 +177,12 @@ int average_WindowLow_test(SpotEntry_t *entry, double q25_threshold, double q75_
     return 0;
 }
 
+/**
+ * @brief Test function computing spot statistics from Spot_t
+ * @param spot Pointer to SpotStats_t to store results
+ * @param entry Pointer to Spot_t input
+ * @return 0 on success, -1 on invalid parameters
+ */
 int average_SpotprisStats_test(SpotStats_t *spot, Spot_t *entry)
 {
     if (!entry || !spot)
