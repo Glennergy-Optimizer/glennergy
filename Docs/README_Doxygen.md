@@ -15,6 +15,8 @@ This project uses a **customized Doxygen standard** for consistent documentation
   - Document **ownership of memory**, pre/post conditions, side effects, errors
   - Keep original code comments if helpful for context
   - Internal functions should be documented with notes/warnings
+  - **Do not remove commented-out includes** (`// #include ...`) or `printf` / debug statements
+    - They must remain in the code for reference and debugging purposes
 
 - **Language requirement**:
   - All **Doxygen documentation must be written in English**
@@ -64,16 +66,21 @@ When using AI to generate or document code, follow these rules:
      ```
    - Suggestions **do not alter execution**.
 
-3. **Follow all Doxygen conventions**  
+3. **Preserve all debug statements and commented includes**  
+   - Do **not** remove any `printf`, `fprintf`, `LOG_*`, or other debug output.
+   - Do **not** remove any commented-out includes, e.g., `// #include <string.h>`.
+   - These lines should remain exactly as in the original code.
+
+4. **Follow all Doxygen conventions**  
    - Add `@file`, `@brief`, `@param`, `@return`, `@pre`, `@post`, `@warning`, `@note` consistently.
    - Document structs, arrays, and all functions fully.
    - All Doxygen documentation must be written in English.
 
-4. **Never remove existing comments or code**  
+5. **Never remove existing comments or code**  
    - Old commented-out code, TODOs, and clarifying notes must remain.
    - AI may add new Doxygen comments or suggestions **but never delete or move old code/comments**.
 
-5. **Checklist verification**  
+6. **Checklist verification**  
    - AI must self-check the following before returning a file:
 
 ---
@@ -98,12 +105,13 @@ For every file:
 - [ ] `@param` and `@return` included
 - [ ] `@pre` and `@post` for required conditions
 - [ ] `@warning` for risks or side effects
-- [ ] `@note` for extra context (ownership, side effects, arrays, etc.)
+- [ ] `@note` for extra context (ownership, side effects, arrays, debug prints, etc.)
 
 **Comments / code**
 - [ ] All original comments preserved
 - [ ] Suggestions only as `// Suggestion: ...`
 - [ ] No code logic or initialization modified
+- [ ] All `printf`, debug outputs, and commented includes preserved
 
 **General**
 - [ ] Doxygen groups correct and consistent
@@ -121,3 +129,7 @@ For every file:
 ---
 
 ### Keep Original Comments
+
+- **Do not remove or translate original comments**.
+- **Do not remove debug prints**.
+- **Do not remove commented-out includes**.
