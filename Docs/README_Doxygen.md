@@ -16,6 +16,11 @@ This project uses a **customized Doxygen standard** for consistent documentation
   - Keep original code comments if helpful for context
   - Internal functions should be documented with notes/warnings
 
+- **Language requirement**:
+  - All **Doxygen documentation must be written in English**
+  - Original code comments must **never be modified or translated**, regardless of language
+  - This ensures consistency in generated documentation while preserving developer intent
+
 - **Structs and functions**:
   - Describe each struct with `@note` on memory ownership
   - Document arrays with `@note` on size and valid elements
@@ -62,6 +67,7 @@ When using AI to generate or document code, follow these rules:
 3. **Follow all Doxygen conventions**  
    - Add `@file`, `@brief`, `@param`, `@return`, `@pre`, `@post`, `@warning`, `@note` consistently.
    - Document structs, arrays, and all functions fully.
+   - All Doxygen documentation must be written in English.
 
 4. **Never remove existing comments or code**  
    - Old commented-out code, TODOs, and clarifying notes must remain.
