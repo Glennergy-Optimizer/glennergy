@@ -1,3 +1,9 @@
+/**
+ * @file HTTPRequest.c
+ * @brief Implementation of HTTPRequest module.
+ *
+ * @ingroup HTTPREQUEST
+ */
 
 #include "HTTPRequest.h"
 #include <stdint.h>
@@ -7,6 +13,15 @@
 #include <stdio.h>
 #include <sys/socket.h>
 
+/**
+ * @brief Initializes an HTTPRequest structure.
+ *
+ * @param http_request Pointer to structure to initialize.
+ * @return 0 on success, -1 if http_request is NULL.
+ *
+ * @pre http_request must not be NULL.
+ * @post All fields are zeroed or set to NULL.
+ */
 int HTTPRequest_Initialize(HTTPRequest *http_request)
 {
     if (http_request == NULL)
@@ -21,11 +36,33 @@ int HTTPRequest_Initialize(HTTPRequest *http_request)
     return 0;
 }
 
+/**
+ * @brief Performs a non-blocking read from a socket.
+ *
+ * @param socket Socket file descriptor.
+ * @param buffer Buffer to read into.
+ * @param length Maximum number of bytes to read.
+ * @return Number of bytes read or negative on error.
+ *
+ * @note Internal helper function.
+ */
 int HTTPConnection_Read(int socket, uint8_t *buffer, size_t length)
 {
     return recv(socket, buffer, length, MSG_DONTWAIT);
 }
 
+/**
+ * @brief Reads HTTP headers into the request buffer.
+ *
+ * @param socket Socket descriptor.
+ * @param http_request Pointer to HTTPRequest struct.
+ * @param bytesReadOut Output parameter for number of bytes read.
+ * @return Connection_ReadResult indicating success, pending, or error.
+ *
+ * @pre http_request must be initialized.
+ * @post recv_buffer is updated with new data.
+ * @warning Non-blocking; may return pending if no data available.
+ */
 int HTTPRequest_ReadHeaders(int socket, HTTPRequest *http_request, int *bytesReadOut)
 {
     int bytesRead = HTTPConnection_Read(socket, (uint8_t *)(http_request->recv_buffer + http_request->recv_buffer_length),
@@ -54,6 +91,16 @@ int HTTPRequest_ReadHeaders(int socket, HTTPRequest *http_request, int *bytesRea
     return Connection_ReadResult_Pending;
 }
 
+/**
+ * @brief Parses HTTP headers from the buffer and extracts the URL.
+ *
+ * @param http_request Pointer to HTTPRequest struct.
+ * @return 0 on success, -1 on failure, 1 if headers incomplete.
+ *
+ * @pre recv_buffer must contain header data.
+ * @post http_request->url is allocated on success.
+ * @warning Caller must free url using HTTPRequest_Dispose.
+ */
 int HTTPRequest_ParseHeader(HTTPRequest *http_request)
 {
     if (http_request == NULL)
@@ -117,6 +164,13 @@ int HTTPRequest_ParseHeader(HTTPRequest *http_request)
     return 0;
 }
 
+/**
+ * @brief Frees resources associated with an HTTPRequest.
+ *
+ * @param http_request Pointer to HTTPRequest struct.
+ *
+ * @post url and request_body are freed and set to NULL.
+ */
 void HTTPRequest_Dispose(HTTPRequest *http_request)
 {
     if (http_request == NULL)
