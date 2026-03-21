@@ -1,135 +1,241 @@
-# Doxygen Documentation Standard
+# Doxygen Documentation Standard (AI-Enforced Version)
 
-This project uses a **customized Doxygen standard** for consistent documentation.
+This project uses a **strict, AI-enforced Doxygen documentation standard**.
+
+This document is not a guideline — it is a **set of mandatory rules** that MUST be followed for every file.
+
+---
+
+## ⚠️ AI COMPLIANCE CONTRACT (MANDATORY)
+
+When an AI agent processes any file in this project, it MUST:
+
+1. **Follow ALL rules in this document without exception**
+2. **NEVER modify logic, control flow, or initialization**
+3. **ONLY add documentation and comments**
+4. **VERIFY compliance using the checklist before returning output**
+5. **REFUSE to return a file if any checklist item is not satisfied**
+
+Failure to follow these rules results in **invalid output**.
+
+---
 
 ## Overview
 
-- Doxygen templates exist for three file types:
-  - **Header (.h)** – full public API documentation
-  - **Source (.c)** – implementation details, internal helpers, `@ingroup` usage
-  - **Main / test (.c)** – entry points or demos, minimal docs
+* Doxygen templates exist for three file types:
 
-- **Key conventions**:
-  - Use `@file`, `@brief` for all files
-  - Use `@defgroup` in headers and `@ingroup` in .c files
-  - Document **ownership of memory**, pre/post conditions, side effects, errors
-  - Keep original code comments if helpful for context
-  - Internal functions should be documented with notes/warnings
-  - **Do not remove commented-out includes** (`// #include ...`) or `printf` / debug statements
-    - They must remain in the code for reference and debugging purposes
-
-- **Language requirement**:
-  - All **Doxygen documentation must be written in English**
-  - Original code comments must **never be modified or translated**, regardless of language
-  - This ensures consistency in generated documentation while preserving developer intent
-
-- **Structs and functions**:
-  - Describe each struct with `@note` on memory ownership
-  - Document arrays with `@note` on size and valid elements
-  - Document each function with `@param`, `@return`, `@pre`, `@post`, `@warning`, `@note`
-
-- **File locations**:
-  - Templates are in `Docs/DoxygenTemplates/`
-  - Actual source code files copy/adapt these templates
+  * **Header (.h)** – full public API documentation
+  * **Source (.c)** – implementation details, internal helpers, `@ingroup` usage
+  * **Main / test (.c)** – entry points or demos, minimal docs
 
 ---
 
-## How to use
+## 🔒 Mandatory Rules
 
-1. Copy the appropriate template for your file type.
-2. Replace placeholders (`<MODULENAME>`, `<description>`, etc.).
-3. Fill in struct and function documentation according to the standard.
-4. Doxygen will generate grouped, navigable documentation automatically.
+### 1. Code Integrity (ABSOLUTE RULE)
 
-> This ensures all modules have consistent, clear documentation that includes ownership, pre/post conditions, errors, and side effects.
+AI MUST NOT:
 
----
+* Change logic
+* Change control flow (if/else, loops, switches)
+* Change variable initialization
+* Change function signatures
+* Move code
+* Remove code
 
-## AI Handling Instructions
+AI MAY:
 
-When using AI to generate or document code, follow these rules:
-
-1. **Do not modify existing logic, control flow, or initialization.**  
-   - AI must **never** change behavior, assignments, loops, if-checks, `static` qualifiers, or initializations.
-   - All original code logic must remain intact.
-
-2. **Mark potential improvements only as comments**  
-   - Use the format:
-     ```c
-     // Suggestion: [description of the improvement]
-     ```
-   - Examples:
-     ```c
-     // Suggestion: Could initialize connection->bytesReadOut to 0 here
-     // Suggestion: Free json_data before returning to avoid memory leak
-     // Suggestion: Consider logging errors for socket(), bind(), etc.
-     ```
-   - Suggestions **do not alter execution**.
-
-3. **Preserve all debug statements and commented includes**  
-   - Do **not** remove any `printf`, `fprintf`, `LOG_*`, or other debug output.
-   - Do **not** remove any commented-out includes, e.g., `// #include <string.h>`.
-   - These lines should remain exactly as in the original code.
-
-4. **Follow all Doxygen conventions**  
-   - Add `@file`, `@brief`, `@param`, `@return`, `@pre`, `@post`, `@warning`, `@note` consistently.
-   - Document structs, arrays, and all functions fully.
-   - All Doxygen documentation must be written in English.
-
-5. **Never remove existing comments or code**  
-   - Old commented-out code, TODOs, and clarifying notes must remain.
-   - AI may add new Doxygen comments or suggestions **but never delete or move old code/comments**.
-
-6. **Checklist verification**  
-   - AI must self-check the following before returning a file:
+* Add Doxygen comments
+* Add normal comments
+* Add `// Suggestion:` comments
 
 ---
 
-### AI Doxygen Checklist
+### 2. Suggestions Policy
 
-For every file:
+All improvements MUST be written as comments:
 
-**File comments**
-- [ ] `@file` exists
-- [ ] `@brief` exists
-- [ ] Header files: `@defgroup` present
-- [ ] Source files: `@ingroup` present
+```c
+// Suggestion: <clear and specific improvement>
+```
 
-**Structs / Typedefs**
-- [ ] All structs documented
-- [ ] Memory ownership described (`@note`)
-- [ ] Arrays documented with size & valid elements (`@note`)
+Rules:
 
-**Functions**
-- [ ] All functions documented
-- [ ] `@param` and `@return` included
-- [ ] `@pre` and `@post` for required conditions
-- [ ] `@warning` for risks or side effects
-- [ ] `@note` for extra context (ownership, side effects, arrays, debug prints, etc.)
+* Suggestions MUST NOT affect execution
+* Suggestions MUST NOT replace existing code
+* Suggestions MUST be optional and reviewable
 
-**Comments / code**
-- [ ] All original comments preserved
-- [ ] Suggestions only as `// Suggestion: ...`
-- [ ] No code logic or initialization modified
-- [ ] All `printf`, debug outputs, and commented includes preserved
+---
 
-**General**
-- [ ] Doxygen groups correct and consistent
-- [ ] Templates from `Docs/DoxygenTemplates/` followed
-- [ ] Documentation consistent throughout the file
+### 3. Preservation Rules (CRITICAL)
+
+AI MUST preserve:
+
+* All existing comments (ANY language)
+* All debug prints (`printf`, `fprintf`, logs)
+* All commented-out includes:
+
+  ```c
+  // #include <string.h>
+  ```
+* All TODOs and notes
+* All commented-out code
+
+AI MUST NOT:
+
+* Remove
+* Rewrite
+* Translate
+* Relocate
+
+---
+
+### 4. Language Rules
+
+* All **Doxygen documentation MUST be in English**
+* Original comments MUST remain unchanged (no translation)
+
+---
+
+### 5. Doxygen Requirements
+
+#### File Level
+
+Every file MUST contain:
+
+* `@file`
+* `@brief`
+
+Additionally:
+
+* Header files MUST include `@defgroup`
+* Source files MUST include `@ingroup`
+
+---
+
+#### Struct Documentation
+
+Every struct MUST include:
+
+* Description of purpose
+* `@note` describing **memory ownership**
+* `@note` describing arrays:
+
+  * Size
+  * Valid elements
+
+---
+
+#### Function Documentation
+
+Every function MUST include:
+
+* `@brief`
+* `@param` (all parameters)
+* `@return`
+* `@pre` (required state before call)
+* `@post` (state after call)
+* `@warning` (risks, undefined behavior, side effects)
+* `@note` (ownership, memory, debug behavior, etc.)
+
+---
+
+### 6. Internal Functions
+
+* MUST be documented
+* MUST include warnings if unsafe
+* MUST describe side effects
+
+---
+
+## 🔁 Mandatory AI Verification Step
+
+Before returning ANY file, the AI MUST perform a **full checklist validation**.
+
+If ANY item is missing:
+
+* The AI MUST continue working
+* The AI MUST NOT return incomplete output
+
+---
+
+## ✅ AI Doxygen Checklist (REQUIRED)
+
+### File Comments
+
+* [ ] `@file` exists
+* [ ] `@brief` exists
+* [ ] Header: `@defgroup` present
+* [ ] Source: `@ingroup` present
+
+### Structs / Typedefs
+
+* [ ] All structs documented
+* [ ] Memory ownership described (`@note`)
+* [ ] Arrays documented (size + valid elements)
+
+### Functions
+
+* [ ] ALL functions documented (no exceptions)
+* [ ] `@param` complete
+* [ ] `@return` present
+* [ ] `@pre` defined
+* [ ] `@post` defined
+* [ ] `@warning` included
+* [ ] `@note` included
+
+### Comments / Code Safety
+
+* [ ] ALL original comments preserved
+* [ ] NO logic modified
+* [ ] NO initialization changed
+* [ ] NO control flow changed
+* [ ] Debug prints preserved
+* [ ] Commented includes preserved
+
+### Suggestions
+
+* [ ] Suggestions use correct format
+* [ ] Suggestions do NOT affect execution
+
+### General
+
+* [ ] Correct template used
+* [ ] Groups (`@defgroup` / `@ingroup`) correct
+* [ ] Documentation is consistent
+
+---
+
+## ❌ Invalid Output Conditions
+
+The output is INVALID if:
+
+* Any checklist item is missing
+* Any code was modified
+* Any comment was removed or altered
+* Any required Doxygen tag is missing
 
 ---
 
 ## Purpose
 
-- Ensures **consistent, high-quality documentation** across the project.
-- Allows developers and AI agents to **verify compliance** using a checklist.
-- Supports review of AI suggestions before manual approval.
+* Enforce **strict consistency**
+* Ensure **safe AI-assisted documentation**
+* Guarantee **reviewable, non-destructive changes**
+* Enable **automated validation of AI output**
 
 ---
 
-### Keep Original Comments
+## Summary for AI Agents
 
-- **Do not remove or translate original comments**.
-- **Do not remove debug prints**.
-- **Do not remove commented-out includes**.
+You are not allowed to:
+
+* Skip rules
+* Assume completeness
+* Return partial documentation
+
+You are required to:
+
+* Follow ALL rules
+* Validate using checklist
+* Ensure 100% compliance before returning output
