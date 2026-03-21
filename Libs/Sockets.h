@@ -1,5 +1,5 @@
 /**
- * @file socket.h
+ * @file Sockets.h
  * @brief Wrapper functions for UNIX domain socket operations.
  * 
  * Provides simplified APIs for creating, binding, listening,

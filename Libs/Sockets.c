@@ -1,5 +1,5 @@
 /**
- * @file socket.c
+ * @file Sockets.c
  * @brief Implementation of UNIX domain socket wrapper functions.
  * 
  * Provides simplified APIs for socket creation, binding, listening,
