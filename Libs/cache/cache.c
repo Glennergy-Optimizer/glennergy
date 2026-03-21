@@ -1,9 +1,17 @@
 /**
  * @file cache.c
- * @brief Implementation of filesystem cache module.
+ * @brief Implementation of filesystem-based JSON cache with TTL support.
+ *
+ * @details
+ * Provides functions to store and retrieve cache entries as JSON files.
+ * Supports TTL (Time-To-Live) expiration and atomic writes using temporary files.
+ *
+ * @ingroup CACHE
  */
+
 #define _POSIX_C_SOURCE 200809L
 #define MODULE_NAME "CACHE"
+
 #include "../../Server/Log/Logger.h"
 #include "cache.h"
 #include <stdbool.h>
@@ -16,10 +24,22 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#define MAX_CACHE_SIZE (10 * 1024 * 1024)  // 10MB limit
-#define MAX_FILENAME 256
+#define MAX_CACHE_SIZE (10 * 1024 * 1024)  /**< 10MB limit. Maximum allowed file size in bytes */
+#define MAX_FILENAME 256                    /**< Maximum filename length */
 
-
+/**
+ * @brief Initialize cache instance.
+ *
+ * @param[out] cache Cache instance
+ * @param[in] cache_dir Directory path
+ * @param[in] set_ttl TTL in seconds
+ *
+ * @return 0 on success, -1 on failure
+ *
+ * @pre cache != NULL
+ * @pre cache_dir != NULL
+ * @post cache initialized with mutex ready
+ */
 int cache_Init(Cache *cache, const char *cache_dir, time_t set_ttl)
 {
     if (!cache || !cache_dir)
@@ -34,10 +54,10 @@ int cache_Init(Cache *cache, const char *cache_dir, time_t set_ttl)
     
     cache->cache_dir = strdup(cache_dir);
     if (!cache->cache_dir)
-    return -1;
+        return -1;
     
     cache->ttl = set_ttl;
-    mkdir(cache->cache_dir, 0755);
+    mkdir(cache->cache_dir, 0755);  /**< Safe if exists */
     
     if (pthread_mutex_init(&cache->mutex, NULL) != 0)
     {
@@ -49,6 +69,18 @@ int cache_Init(Cache *cache, const char *cache_dir, time_t set_ttl)
     return 0;
 }
 
+/**
+ * @brief Check if cache entry is valid.
+ *
+ * @param[in] cache Cache instance
+ * @param[in] key Cache key
+ *
+ * @return true if entry exists and not expired, false otherwise
+ *
+ * @pre cache != NULL
+ * @pre key != NULL
+ * @note TTL enforced if ttl > 0
+ */
 bool cache_IsValid(Cache *cache, const char *key)
 {
     if (!cache || !key)
@@ -72,6 +104,23 @@ bool cache_IsValid(Cache *cache, const char *key)
     return true;
 }
 
+/**
+ * @brief Retrieve cached JSON data.
+ *
+ * @param[in] cache Cache instance
+ * @param[in] key Cache key
+ * @param[out] buffer Pointer to heap-allocated buffer (caller must free)
+ * @param[out] size Size of returned data
+ *
+ * @return true if data successfully retrieved, false otherwise
+ *
+ * @pre cache != NULL
+ * @pre key != NULL
+ * @pre buffer != NULL
+ * @pre size != NULL
+ * @post *buffer contains the file content
+ * @note Returns false if file does not exist or is expired
+ */
 bool cache_Get(Cache *cache, const char *key, char **buffer, size_t *size)
 {
     if (!cache || !key || !buffer || !size)
@@ -116,7 +165,6 @@ bool cache_Get(Cache *cache, const char *key, char **buffer, size_t *size)
         goto cleanup;
     }
 
-
     size_t bytes_read = fread(json_data, sizeof(char), filesize, fptr);
     if (bytes_read != filesize) {
         LOG_ERROR("fread() failed for %s", filename);
@@ -135,9 +183,26 @@ cleanup:
     //pthread_mutex_unlock(&cache->mutex);
     if(result)
         LOG_INFO("Loaded: %s (size: %zu bytes, age: %ld sec)", key, bytes_read, file_age);
+
     return result;
 }
 
+/**
+ * @brief Store JSON data in cache atomically.
+ *
+ * @param[in] cache Cache instance
+ * @param[in] key Cache key
+ * @param[in] data Data buffer
+ * @param[in] size Size of data in bytes
+ *
+ * @return 0 on success, -1 on failure
+ *
+ * @pre cache != NULL
+ * @pre key != NULL
+ * @pre data != NULL
+ * @post Data written atomically (temp file + rename)
+ * @note Thread-safety optional via mutex
+ */
 int cache_Set(Cache *cache, const char *key, const char *data, size_t size)
 {
     if (!cache || !key || !data)
@@ -145,7 +210,8 @@ int cache_Set(Cache *cache, const char *key, const char *data, size_t size)
 
     char filename[MAX_FILENAME];
     char temp_filename[MAX_FILENAME + 8];
-    //pthread_mutex_lock(&cache->mutex);
+    // pthread_mutex_lock(&cache->mutex);
+
     snprintf(filename, sizeof(filename), "%s/%s.json", cache->cache_dir, key);
     snprintf(temp_filename, sizeof(temp_filename), "%s.tmp", filename);
 
@@ -153,14 +219,13 @@ int cache_Set(Cache *cache, const char *key, const char *data, size_t size)
     if (!fptr)
     {
         LOG_ERROR("fopen() failed for %s", temp_filename);
-        //pthread_mutex_unlock(&cache->mutex);
+        // pthread_mutex_unlock(&cache->mutex);
         return -1;
     }
 
-    
     size_t written = fwrite(data, sizeof(char), size, fptr);
     fclose(fptr);
-    
+
     if (written != size) {
         LOG_ERROR("fwrite() incomplete: %zu/%zu bytes written to %s", written, size, temp_filename);
         unlink(temp_filename);
@@ -172,11 +237,19 @@ int cache_Set(Cache *cache, const char *key, const char *data, size_t size)
         unlink(temp_filename);
         return -1;
     }
-    //pthread_mutex_unlock(&cache->mutex);
+
+    // pthread_mutex_unlock(&cache->mutex);
     LOG_INFO("Saved: %s (size:%zu)", filename, size);
     return 0;
 }
 
+/**
+ * @brief Cleanup cache instance.
+ *
+ * @param[in,out] cache Cache instance
+ *
+ * @post Mutex destroyed and cache_dir freed
+ */
 void cache_Dispose(Cache *cache)
 {
     if (!cache)
@@ -186,5 +259,4 @@ void cache_Dispose(Cache *cache)
     free(cache->cache_dir);
     cache->cache_dir = NULL;
     pthread_mutex_destroy(&cache->mutex);
-    
 }
