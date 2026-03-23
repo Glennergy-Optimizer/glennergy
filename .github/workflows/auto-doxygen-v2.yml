@@ -89,7 +89,7 @@ jobs:
 
           git checkout -B "$AUTO_BRANCH"
           git add .
-          git commit -m "docs: automated doxygen update [skip ci]"
+          git commit -m "docs: automated doxygen update [skip ci]" || echo "No commit created"
           git push --force --set-upstream origin "$AUTO_BRANCH"
 
           echo "AUTO_BRANCH=$AUTO_BRANCH" >> "$GITHUB_ENV"
@@ -100,6 +100,19 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           BASE_BRANCH: ${{ github.ref_name }}
         run: |
+          cat > pr_body.md <<'EOF'
+          Automated documentation PR.
+
+          This PR updates Doxygen comments for changed .c/.h files according to the customized project standard.
+
+          Review checklist:
+          - No logic changes
+          - Original comments preserved
+          - No removed printf/debug output
+          - No removed commented-out includes
+          - Suggestions only as // Suggestion: ...
+          EOF
+
           PR_COUNT=$(gh pr list \
             --head "$AUTO_BRANCH" \
             --base "$BASE_BRANCH" \
@@ -112,17 +125,7 @@ jobs:
               --base "$BASE_BRANCH" \
               --head "$AUTO_BRANCH" \
               --title "docs: automated doxygen update for ${BASE_BRANCH}" \
-              --body "Automated documentation PR.
-
-This PR updates Doxygen comments for changed .c/.h files according to the customized project standard.
-
-Review checklist:
-- No logic changes
-- Original comments preserved
-- No removed printf/debug output
-- No removed commented-out includes
-- Suggestions only as // Suggestion: ...
-"
+              --body-file pr_body.md
           else
             echo "An open PR already exists."
           fi
