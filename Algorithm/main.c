@@ -147,7 +147,7 @@ int main()
         if (cache_request(CMD_GET_ALL, cache, sizeof(InputCache_t)) < 0)
         {
             LOG_ERROR("Failed to get data from cache, retrying in 5 seconds...");
-            sleep(5);
+            sleep(1);
         }
 
         // LOG_INFO("Received from cache Meteo: %zu HomeSystem: %zu price areas: %zu", cache->meteo_count, cache->home_count, sizeof(cache->spotpris.count) / sizeof(cache->spotpris.count[0]));
@@ -222,7 +222,7 @@ int main()
         }
 
         sem_post(mutex);
-        sleep(10);
+        sleep(2);
     }
     printf("Free cache\n");
     SHM_CloseSemaphore(&mutex);
