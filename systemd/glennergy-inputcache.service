@@ -9,6 +9,7 @@ Type=simple
 User=glennergy
 Group=glennergy
 ExecStart=/usr/local/bin/Glennergy-InputCache
+ExecStopPost=/bin/sh -c 'rm -f /dev/shm/glennergy_shm || true'
 KillMode=process
 Restart=on-failure
 RestartSec=5s

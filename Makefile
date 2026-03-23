@@ -142,6 +142,8 @@ profile: $(PROFILE_TARGET)
 	@$(MAKE) -C Cache clean && $(MAKE) -C Cache CFLAGS="$(PROFILE_FLAGS)"
 	@$(MAKE) -C Algorithm clean && $(MAKE) -C Algorithm CFLAGS="$(PROFILE_FLAGS)"
 	@echo "All profile builds complete!"
+
+install-profile: profile
 	@echo "Installing profile binaries to $(INSTALLDIR)..."
 	@install -d $(DESTDIR)$(INSTALLDIR)
 	@install -m 755 $(PROFILE_TARGET) $(DESTDIR)$(INSTALLDIR)/Glennergy-Main
@@ -160,7 +162,7 @@ $(PROFILE_BUILD)/%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Profile main server (catches forked children automatically)
-run-profile-server: profile
+run-profile-server: install-profile
 	@echo "Profiling main server + forked children..."
 	@sudo chown -R $(USER):$(USER) /var/log/glennergy /var/cache/glennergy /var/run/glennergy 2>/dev/null || true
 	@sudo rm -f /dev/shm/glennergy_shm /tmp/fifo_* 2>/dev/null || true
@@ -172,7 +174,7 @@ run-profile-server: profile
 			 /usr/local/bin/Glennergy-Main
 
 # Profile Meteo module
-run-profile-meteo: profile
+run-profile-meteo: install-profile
 	@echo "Profiling Meteo..."
 	sudo valgrind --tool=cachegrind \
 			 --cache-sim=yes \
@@ -180,14 +182,31 @@ run-profile-meteo: profile
 			 /usr/local/bin/Glennergy-Meteo
 
 # Profile Spotpris module
-run-profile-spotpris: profile
+run-profile-spotpris: install-profile
 	@echo "Profiling Spotpris..."
 	sudo valgrind --tool=cachegrind \
 			 --cache-sim=yes \
 			 --cachegrind-out-file=cachegrind.spotpris.%p \
 			 /usr/local/bin/Glennergy-Spotpris
 
-run-callgrind-server: profile
+# Profile InputCache module
+run-profile-inputcache: install-profile
+	@echo "Profiling InputCache..."
+	sudo valgrind --tool=cachegrind \
+			 --cache-sim=yes \
+			 --cachegrind-out-file=cachegrind.inputcache.%p \
+			 /usr/local/bin/Glennergy-InputCache
+
+# Profile Algorithm module
+run-profile-algorithm: install-profile
+	@echo "Profiling Algorithm..."
+	sudo valgrind --tool=cachegrind \
+			 --cache-sim=yes \
+			 --cachegrind-out-file=cachegrind.algorithm.%p \
+			 /usr/local/bin/Glennergy-Algorithm
+
+
+run-callgrind-server: install-profile
 	@echo "Profiling function calls..."
 	@sudo chown -R $(USER):$(USER) /var/log/glennergy /var/cache/glennergy /var/run/glennergy 2>/dev/null || true
 	@sudo rm -f /dev/shm/glennergy_shm /tmp/fifo_* /tmp/glennergy_cache.sock 2>/dev/null || true

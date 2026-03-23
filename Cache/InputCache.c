@@ -355,7 +355,7 @@ static int inputcache_SaveMeteo(const MeteoData *_Data)
             LOG_ERROR("Failed to load raw json [METEO]");
             return -2;
         }
-        result = json_dump_file(root, filename, JSON_INDENT(4));
+        result = json_dump_file(root, filename, JSON_INDENT(4)); //TODO: go JSON_COMPACT or database
 
         if (result < 0)
         {

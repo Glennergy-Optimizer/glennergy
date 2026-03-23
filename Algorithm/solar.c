@@ -3,6 +3,7 @@
 #include "solar.h"
 #include <math.h>
 #include <string.h>
+#include <stdio.h>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -37,9 +38,13 @@ static double solar_CalculateSunEfficiency(int time_slot, double lat, double pan
     return efficiency * tilt_factor;
 }
 
-static double solar_PredictSlot( double ghi, double cloud_cover, double temp, double panel_capacity, double panel_tilt, double lat, int time_slot)
+static double solar_PredictSlot(double ghi, double cloud_cover, double temp, double panel_capacity, double panel_tilt, double lat, int time_slot, int is_day)
 {
-    if (time_slot < 0 || time_slot >= 96) return 0.0;
+    if (time_slot < 0 || time_slot >= 96)
+        return 0.0;
+
+    if(!is_day)
+        return 0.0;
     
     // Cloud reduction
     double cloud_factor = 1.0 - (cloud_cover / 100.0 * CLOUD_REDUCTION_FACTOR);
@@ -60,7 +65,7 @@ static double solar_PredictSlot( double ghi, double cloud_cover, double temp, do
     double solar_kwh = (effective_ghi / 1000.0) * panel_efficiency * 
                        sun_efficiency * temp_factor * panel_capacity / QUARTERS_PER_HOUR;
     
-    return (solar_kwh > 0) ? solar_kwh : 0.0;
+    return (solar_kwh > 0.0) ? solar_kwh : 0.0;
 }
 
 int solar_PredictHome(CacheData_t *cache, int home_idx, double *solar_output)
@@ -91,6 +96,11 @@ int solar_PredictHome(CacheData_t *cache, int home_idx, double *solar_output)
     LOG_DEBUG("Predicting solar for home_id=%d (%.2f kWh capacity)", home->id, home->panel_capacitykwh);
     
     for (int slot = 0; slot < 96 && slot < KVARTAR_TOTALT; slot++) {
+        // Extract hour and minute from timestamp to get time-of-day slot
+        int hour, minute;
+        sscanf(meteo->sample[slot].time_start, "%*d-%*d-%*dT%d:%d", &hour, &minute);
+        int time_of_day_slot = (hour * 4) + (minute / 15);
+        
         solar_output[slot] = solar_PredictSlot(
             meteo->sample[slot].ghi,
             meteo->sample[slot].cloud_cover,
@@ -98,7 +108,8 @@ int solar_PredictHome(CacheData_t *cache, int home_idx, double *solar_output)
             home->panel_capacitykwh,
             home->panel_tiltdegrees,
             home->lat,
-            slot
+            time_of_day_slot,  // Use actual time-of-day, not array index!
+            meteo->sample[slot].is_day
         );
     }
 
