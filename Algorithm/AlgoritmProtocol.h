@@ -39,15 +39,9 @@ typedef struct
  */
 typedef struct
 {
-<<<<<<< HEAD
     int id;
     double recommendation[96];
     time_start time[96];
-=======
-    int id;                       /**< Unique identifier */
-    int recommendation[96];       /**< Recommendations per quarter-hour */
-    time_start time[96];           /**< Corresponding timestamps */
->>>>>>> 134fa1332d9b65fe00fc1e597cc285c0c1c4f593
 } AlgoritmResult;
 
 /**

@@ -104,7 +104,6 @@ int average_SpotprisStats(SpotStats_t *spot, InputCache_t *cache)
     return 0;
 }
 
-<<<<<<< HEAD
 
 
 double average_WindowLow_percent(SpotEntry_t *entry, double min, double max)
@@ -134,7 +133,6 @@ double average_WindowLow_percent(SpotEntry_t *entry, double min, double max)
     return percentage;
 }
 
-=======
 /**
  * @brief Detect low-price windows in cache
  * @param cache Pointer to InputCache_t
@@ -143,7 +141,6 @@ double average_WindowLow_percent(SpotEntry_t *entry, double min, double max)
  * @warning Prints detected low-price windows to stdout
  * @note Only uses the first area (SE1) for detection
  */
->>>>>>> 134fa1332d9b65fe00fc1e597cc285c0c1c4f593
 int average_WindowLow(InputCache_t *cache, double q25_threshold)
 {
     if (!cache)

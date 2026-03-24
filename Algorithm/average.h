@@ -44,9 +44,7 @@ typedef struct {
     Stats_t area[4]; /**< Area-specific statistics */
 } SpotStats_t;
 
-<<<<<<< HEAD
 double average_WindowLow_percent(SpotEntry_t *entry, double min, double max);
-=======
 /**
  * @brief Compute statistics for spot prices in cache
  * @param spot Pointer to SpotStats_t to store results
@@ -56,7 +54,6 @@ double average_WindowLow_percent(SpotEntry_t *entry, double min, double max);
  * @post `spot` contains min, max, average, median, q25, q75 per area
  * @warning Logs errors to stderr if data missing
  */
->>>>>>> 134fa1332d9b65fe00fc1e597cc285c0c1c4f593
 int average_SpotprisStats(SpotStats_t *spot, InputCache_t *cache);
 
 /**
