@@ -22,10 +22,10 @@ install:
 	# Create directory
 	install -d $(DESTDIR)$(INSTALLDIR)
 
-	install -m 644 Glennergy-Fastigheter.json $(DESTDIR)$(CONFIGDIR)
+	install -m 644 ../Glennergy-Fastigheter.json $(DESTDIR)$(CONFIGDIR)
 
 	# Install binary
-	install -m 755 $(TARGET) $(DESTDIR)$(INSTALLDIR)
+
 
 
 uninstall:

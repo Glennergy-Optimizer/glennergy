@@ -159,13 +159,12 @@ int main()
                             if (strncmp(cache->meteo[i].sample[j].time_start, cache->spotpris.data[area_idx][entry].time_start, 16) == 0)
                             {
                                 shm->result[i].id = cache->meteo[i].id;
-                                int temp = average_WindowLow_test(&cache->spotpris.data[area_idx][entry], stats.area[area_idx].q25, stats.area[area_idx].q75);
+                                double temp = average_WindowLow_percent(&cache->spotpris.data[area_idx][entry], stats.area[area_idx].min, stats.area[area_idx].max);
 
-                                if (temp > 0)
-                                {
-                                    shm->result[i].recommendation[j] = temp;
-                                    snprintf(shm->result[i].time[j].time, sizeof(shm->result[i].time[j].time), "%s", cache->spotpris.data[area_idx][entry].time_start);
-                                }
+                                printf("TEMP: %.2f", temp);
+
+                                shm->result[i].recommendation[j] = temp;
+                                snprintf(shm->result[i].time[j].time, sizeof(shm->result[i].time[j].time), "%s", cache->spotpris.data[area_idx][entry].time_start);
 
                                 printf("  Matched time: %s, temp: %.2f °C, GHI: %.2f W/m², City: %s id: %d\n",
                                        cache->meteo[i].sample[j].time_start,

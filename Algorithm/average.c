@@ -75,6 +75,35 @@ int average_SpotprisStats(SpotStats_t *spot, InputCache_t *cache)
     return 0;
 }
 
+
+
+double average_WindowLow_percent(SpotEntry_t *entry, double min, double max)
+{
+    if (!entry)
+    {
+        fprintf(stderr, "Invalid cache parameter\n");
+        return -1.0;
+    }
+
+    double price = entry->sek_per_kwh;
+
+    if ((max - min) < 0.0001)
+    {
+        return 0.5; // or 0.0 — depends on how you want to handle it
+    }
+
+    double percentage = (price - min) / (max - min);
+
+    // Clamp to [0.0, 1.0]
+    if (percentage < 0.0) percentage = 0.0;
+    if (percentage > 1.0) percentage = 1.0;
+
+    printf("%s (%.3f SEK/kWh) -> %.2f%%\n",
+           entry->time_start, price, percentage * 100);
+
+    return percentage;
+}
+
 int average_WindowLow(InputCache_t *cache, double q25_threshold)
 {
     if (!cache)

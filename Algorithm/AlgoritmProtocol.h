@@ -16,7 +16,7 @@ typedef struct
 typedef struct
 {
     int id;
-    int recommendation[96];
+    double recommendation[96];
     time_start time[96];
 } AlgoritmResult;
 
