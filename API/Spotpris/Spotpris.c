@@ -115,10 +115,14 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
             //_AllaSpotpriser->areas[i].kvartar[j].eur_per_kwh = json_real_value(json_object_get(obj, "EUR_per_kWh"));
             //_AllaSpotpriser->areas[i].kvartar[j].exchange_rate = json_real_value(json_object_get(obj, "EXR"));
             
-            // Null terminator här också
-            strncpy(_AllaSpotpriser->areas[i].kvartar[j].time_start, start, sizeof(_AllaSpotpriser->areas[i].kvartar[j].time_start));
+            char utc_timestamp[32];
+            if (convertToUTC(start, utc_timestamp, sizeof(utc_timestamp)) == 0) {
+                strncpy(_AllaSpotpriser->areas[i].kvartar[j].time_start, utc_timestamp, sizeof(_AllaSpotpriser->areas[i].kvartar[j].time_start));
+            } else {
+                LOG_WARNING("Failed to convert timestamp to UTC: %s\n", start);
+                strncpy(_AllaSpotpriser->areas[i].kvartar[j].time_start, start, sizeof(_AllaSpotpriser->areas[i].kvartar[j].time_start));
+            }
             _AllaSpotpriser->areas[i].kvartar[j].time_start[sizeof(_AllaSpotpriser->areas[i].kvartar[j].time_start) -1] = '\0';
-            
             //strncpy(_AllaSpotpriser->areas[i].kvartar[j].time_end, end, sizeof(_AllaSpotpriser->areas[i].kvartar[j].time_end));
             //_AllaSpotpriser->areas[i].kvartar[j].time_end[sizeof(_AllaSpotpriser->areas[i].kvartar[j].time_end) -1] = '\0';
         }

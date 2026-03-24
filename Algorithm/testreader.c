@@ -15,7 +15,7 @@
 #include "../Libs/Sockets.h"
 #include "utils.h"
 
-#define FIFO_ALGORITHM_READ "/tmp/fifo_algoritm"
+//#define FIFO_ALGORITHM_READ "/tmp/fifo_algoritm"
 
 int algorithm_WaitForNotification(void)
 {

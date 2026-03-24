@@ -2,7 +2,7 @@ from flask import Flask, send_file, jsonify
 import requests
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from datetime import datetime
+from datetime import datetime, timezone
 import io
 
 app = Flask(__name__)
@@ -47,14 +47,14 @@ def get_graph(home_id):
         
         # Solar production (bars)
         ax1.bar(timestamps, solar, width=0.01, alpha=0.6, color='orange', label='Solar Production')
-        ax1.set_xlabel('Time', fontsize=12)
+        ax1.set_xlabel('Time (UTC)', fontsize=12)
         ax1.set_ylabel('Solar Production (kWh)', color='orange', fontsize=12)
         ax1.tick_params(axis='y', labelcolor='orange')
         ax1.grid(True, alpha=0.3)
         
         # Format x-axis to show time
         ax1.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
-        ax1.xaxis.set_major_locator(mdates.HourLocator(interval=2))
+        ax1.xaxis.set_major_locator(mdates.HourLocator(interval=1))
         plt.xticks(rotation=45, ha='right')
         
         # Grid price (line)
@@ -68,7 +68,7 @@ def get_graph(home_id):
         avg_price = data.get('avg_grid_price', sum(prices)/len(prices) if prices else 0)
         date_str = timestamps[0].strftime('%Y-%m-%d')
         
-        plt.title(f'Solar Production vs Grid Price - Home {home_id} ({date_str})\n'
+        plt.title(f'Solar Production vs Grid Price - Home {home_id} ({date_str} UTC)\n'
                   f'Total Solar: {total_solar:.2f} kWh | '
                   f'Avg Price: {avg_price:.3f} SEK/kWh | '
                   f'Slots: {num_slots}', 

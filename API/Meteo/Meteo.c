@@ -11,7 +11,7 @@
 #include <math.h>
 #include <jansson.h>
 
-#define METEO_LINK "https://api.open-meteo.com/v1/forecast?latitude=%2.f&longitude=%2f&minutely_15=temperature_2m,shortwave_radiation,direct_normal_irradiance,diffuse_radiation,cloud_cover,is_day&forecast_days=3&forecast_minutely_15=128&timezone=Europe/Stockholm"
+#define METEO_LINK "https://api.open-meteo.com/v1/forecast?latitude=%2.f&longitude=%2f&minutely_15=temperature_2m,shortwave_radiation,direct_normal_irradiance,diffuse_radiation,cloud_cover,is_day&forecast_days=3&forecast_minutely_15=128&timezone=UTC"
 
 int Meteo_Initialize(MeteoData *_MeteoData)
 {
@@ -123,7 +123,7 @@ int Meteo_Parse(MeteoData *_MeteoData, const char *_JsonRaw)
         for (size_t j = 0; j < array_size; j++)
         {
             snprintf(_MeteoData->pInfo[i].sample[j].time_start,
-            sizeof(_MeteoData->pInfo[i].sample[j].time_start), "%s", json_string_value(json_array_get(times, j)));
+            sizeof(_MeteoData->pInfo[i].sample[j].time_start), "%s:00Z", json_string_value(json_array_get(times, j)));
             
             _MeteoData->pInfo[i].sample[j].temp = json_number_value(json_array_get(temps, j));
             _MeteoData->pInfo[i].sample[j].ghi = json_number_value(json_array_get(ghi, j));

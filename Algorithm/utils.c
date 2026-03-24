@@ -22,17 +22,20 @@ int calculateMeteoOffset(const Meteo_t *meteo, const Spot_t *spotpris, int area_
         return -1;
     }
     
-    // Parse hour and minute from meteo start time: "2026-03-13T06:00"
-    int meteo_hour, meteo_min;
-    sscanf(meteo->sample[0].time_start, "%*d-%*d-%*dT%d:%d", &meteo_hour, &meteo_min);
+    // Find matching timestamp in spotpris array
+    // Meteo: "2026-03-24T13:15Z", Spotpris: "2026-03-24T13:15:00Z"
+    // Compare first 16 chars (up to minutes: "2026-03-24T13:15")
+    for (int i = 0; i < spotpris->count[area_idx]; i++)
+    {
+        if (strncmp(meteo->sample[0].time_start, spotpris->data[area_idx][i].time_start, 16) == 0)
+        {
+            LOG_DEBUG("Meteo starts at %s, matched spotpris slot %d", meteo->sample[0].time_start, i);
+            return i;
+        }
+    }
     
-    // Calculate offset in 15-min slots
-    // Example: 06:00 = 6 hours × 4 slots/hour = 24 slots from 00:00
-    int offset = (meteo_hour * 4) + (meteo_min / 15);
-    
-    LOG_DEBUG("Meteo starts at %s, spotpris offset = %d slots", meteo->sample[0].time_start, offset);
-    
-    return offset;
+    LOG_WARNING("No matching spotpris slot for meteo time %s", meteo->sample[0].time_start);
+    return 0;
 }
 
 int cacheRequest(CacheCommand cmd, void *data_out, size_t expected_size)
