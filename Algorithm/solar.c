@@ -93,7 +93,7 @@ int solar_PredictHome(CacheData_t *cache, int home_idx, double *solar_output)
     Homesystem_t *home = &cache->home[home_idx];
     Meteo_t *meteo = &cache->meteo[meteo_idx];
     
-    LOG_DEBUG("Predicting solar for home_id=%d (%.2f kWh capacity)", home->id, home->panel_capacitykwh);
+    LOG_DEBUG("Predicting solar for home_id=%d (%.2f kW capacity)", home->id, home->panel_capacitykw);
     
     for (int slot = 0; slot < 96 && slot < KVARTAR_TOTALT; slot++) {
         // Extract hour and minute from timestamp to get time-of-day slot
@@ -105,7 +105,7 @@ int solar_PredictHome(CacheData_t *cache, int home_idx, double *solar_output)
             meteo->sample[slot].ghi,
             meteo->sample[slot].cloud_cover,
             meteo->sample[slot].temp,
-            home->panel_capacitykwh,
+            home->panel_capacitykw,
             home->panel_tiltdegrees,
             home->lat,
             time_of_day_slot,  // Use actual time-of-day, not array index!

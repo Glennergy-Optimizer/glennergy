@@ -28,7 +28,7 @@ int homesystem_LoadAll(Homesystem_t **systems, const char* file_path)
     }
 
     size_t count = json_array_size(systems_array);
-    *systems = malloc(count * sizeof(Homesystem_t));
+    *systems = malloc(count * sizeof(Homesystem_t));    //ATTENTION
     if (*systems == NULL)
     {
         fprintf(stderr, "Memory allocation failed\n");
@@ -47,7 +47,7 @@ int homesystem_LoadAll(Homesystem_t **systems, const char* file_path)
                                 "city",                 &city,
                                 "lat",                  &(*systems)[i].lat,
                                 "lon",                  &(*systems)[i].lon,
-                                "panel_capacitykwh",     &(*systems)[i].panel_capacitykwh,
+                                "panel_capacitykw",     &(*systems)[i].panel_capacitykw,
                                 "panel_tiltdegrees",    &(*systems)[i].panel_tiltdegrees,
                                 "panel_azimuthdegrees", &(*systems)[i].panel_azimuthdegrees,
                                 "electricity_area",     &electricity_area);
@@ -107,7 +107,7 @@ int homesystem_LoadAllCount(Homesystem_t *systems, const char* config_path, size
                                 "city", &city,
                                 "lat", &systems[i].lat,
                                 "lon", &systems[i].lon,
-                                "panel_capacitykwh", &systems[i].panel_capacitykwh,
+                                "panel_capacitykw", &systems[i].panel_capacitykw,
                                 "panel_tiltdegrees", &systems[i].panel_tiltdegrees,
                                 "panel_azimuthdegrees", &systems[i].panel_azimuthdegrees,
                                 "electricity_area", &electricity_area);

@@ -178,4 +178,51 @@ int test_reader()
     LOG_INFO("Cleaning up and exiting...");
     free(cache);
     return 0;
+
+
+    // SharedMemory *shm;
+    // int shm_fd;
+    // sem_t *mutex;
+
+    // if (SHM_InitializeWriter(&shm, ALGORITM_SHARED, shm_fd) != 0)
+    // {
+    //     printf("Error algo!\n");
+    //     return -1;
+    // }
+
+    // if (SHM_CreateSemaphore(&mutex, ALGORITM_MUTEX) != 0)
+    // {
+    //     printf("Error algo 2!\n");
+    //     return -2;
+    // }
+
+    // while (1)
+    // {
+    //     // sem_wait(mutex);     
+    //     for (size_t j = 0; j < 96; j++)
+    //     {
+    //         if (strncmp(cache->meteo[i].sample[j].time_start, cache->spotpris.data[area_idx][entry].time_start, 16) == 0)
+    //         {
+    //             shm->result[i].id = cache->meteo[i].id;
+    //             int temp = average_WindowLow_test(&cache->spotpris.data[area_idx][entry], stats.area[area_idx].q25, stats.area[area_idx].q75);
+
+    //             if (temp > 0)
+    //             {
+    //                 shm->result[i].recommendation[j] = temp;
+    //                 snprintf(shm->result[i].time[j].time, sizeof(shm->result[i].time[j].time), "%s", cache->spotpris.data[area_idx][entry].time_start);
+    //             }
+
+    //             }
+    //     }
+    // }
+    //     sem_post(mutex);
+    //     sleep(10);
+    // }
+    // printf("Free cache\n");
+    // SHM_CloseSemaphore(&mutex);
+    // SHM_DisposeWriter(&shm, ALGORITM_SHARED, shm_fd);
+    // free(cache);
+    // log_Cleanup();
+    // return 0;
+
 }

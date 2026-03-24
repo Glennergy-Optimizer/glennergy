@@ -13,11 +13,6 @@
 #include <sys/stat.h>
 //#include <sys/types.h>
 
-
-// Enkelkommando för att kompilera just denna filen Todo - Can be removed?
-// gcc -Wall -Wextra -std=c11 spotpristest.c spotpris.c ../Fetcher.c -lcurl -ljansson -D_POSIX_C_SOURCE=200112L -o spotpris_app
-
-// Named pipe
 #define FIFO_SPOTPRIS_WRITE "/tmp/fifo_spotpris"
 
 int main(void)
@@ -33,10 +28,6 @@ int main(void)
         LOG_ERROR("Failed to fetch: %d\n", rc);
         return -4;
     }
-
-    // Todo - Endast för debugging/testing, ta bort i prod
-   // AllaSpotpriser_Print(&spotpriser);
-
 
     if (mkfifo(FIFO_SPOTPRIS_WRITE, 0666) < 0 && errno != EEXIST)
     {

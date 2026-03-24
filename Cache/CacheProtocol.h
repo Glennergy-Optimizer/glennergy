@@ -66,6 +66,7 @@ typedef struct {
     double solar_kwh;
     double grid_price;
     EnergyStrategy_t strategy;
+    double score;
 } TimeSlot_t;
 
 typedef struct {
@@ -95,7 +96,7 @@ typedef struct {
 // typedef struct {
 //     int id;
 //     char city[NAME_MAX];
-//     double panel_capacitykwh;
+//     double panel_capacitykw;
 //     double panel_tiltdegrees;
 //     double panel_azimuthdegrees;
 //     double lat;

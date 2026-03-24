@@ -29,49 +29,38 @@ int Server_Run(Server *_Server)
 
     SignalHandler_Initialize();
 
-    // LOG_INFO("cleaning up stale shared memory segments...");
-    // shm_Destroy();
 
-    // int status_server, status_cache, status_algo;
-    // pid_t pid_server = fork();
+    Threads threads[POOL_SIZE];
+    Threads_Initialize(threads);
 
-    // if (pid_server < 0)
-    // {
-    //     exit(EXIT_FAILURE);
-    // }
-    // else if (pid_server == 0)
-    // {
+    smw_init();
 
-        Threads threads[POOL_SIZE];
-        Threads_Initialize(threads);
+    APIHandler_t *api_handler = NULL;
+    APIHandler_Init(&api_handler);
 
-        smw_init();
+    ConnectionHandler *cHandler = NULL;
+    ConnectionHandler_Initialize(&cHandler, _Server->config.port, Threads_AddQueueItem, api_handler);
 
-        APIHandler_t *api_handler = NULL;
-        APIHandler_Init(&api_handler);
+    uint64_t monTime = 0;
+    LOG_INFO("Server is running on port %d", _Server->config.port);
 
-        ConnectionHandler *cHandler = NULL;
-        ConnectionHandler_Initialize(&cHandler, _Server->config.port, Threads_AddQueueItem, api_handler);
+    while (SignalHandler_Stop() == 0)
+    {
+        monTime = SystemMonotonicMS();
+        smw_work(monTime);
+        struct timespec ts = {.tv_sec = 0, .tv_nsec = 100000}; // 10 microseconds
+        nanosleep(&ts, NULL);
+    }
+    LOG_INFO("Shutdown signal received, cleaning up...");
+    
+    ConnectionHandler_Dispose(&cHandler);
+    smw_dispose();
+    APIHandler_Dispose(&api_handler);
+    Threads_Dispose(threads);
 
-        uint64_t monTime = 0;
-        LOG_INFO("Server is running on port %d", _Server->config.port);
-
-        while (SignalHandler_Stop() == 0)
-        {
-            monTime = SystemMonotonicMS();
-            smw_work(monTime);
-            struct timespec ts = {.tv_sec = 0, .tv_nsec = 100000}; // 10 microseconds
-            nanosleep(&ts, NULL);
-        }
-        LOG_INFO("Shutdown signal received, cleaning up...");
-        ConnectionHandler_Dispose(&cHandler);
-        smw_dispose();
-        APIHandler_Dispose(&api_handler);
-        Threads_Dispose(threads);
-
-        log_CloseWrite();
+    log_CloseWrite();
         
-        return 0;
+    return 0;
 }
 
     // pid_t pid_cache = fork();

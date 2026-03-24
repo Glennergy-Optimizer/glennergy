@@ -100,6 +100,7 @@ static char* APIHandler_GetResult(APIHandler_t *ctx, int home_id)
         json_object_set_new(slot, "solar_kwh", json_real(result_copy.slots[i].solar_kwh));
         json_object_set_new(slot, "grid_price", json_real(result_copy.slots[i].grid_price));
         json_object_set_new(slot, "strategy", json_string(strategy_to_string(result_copy.slots[i].strategy)));
+        json_object_set_new(slot, "score", json_real(result_copy.slots[i].score));
         json_array_append_new(slots, slot);
     }
     json_object_set_new(result, "slots", slots);

@@ -89,9 +89,11 @@ void *Threads_Work(void *arg)
         pthread_mutex_unlock(&global_queue.queue_mutex);
 
 
-        //Thread handles a client, disposes it and grabs another one from the queue if there is more clients
-        Connection_Handle(client);
-        Connection_Dispose(&client);
+        if (client != NULL)
+        {
+            Connection_Handle(client);
+            Connection_Dispose(&client);
+        }
     }
 
     return NULL;

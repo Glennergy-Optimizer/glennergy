@@ -10,42 +10,6 @@
 #include "../../Libs/Utils/utils.h"
 
 
-// Support funktions för internt användning
-// Hämta dagens datum i formatet YYYY/MM-DD (URLer måste ha YYYY/MM-DD format)
-
-
-// Print funktions för debug, kan användas av andra moduler
-// SpotPriceEntry
-// void SpotPriceEntry_Print(const SpotPriceEntry *e)
-// {
-//     if (!e) return;
-//     printf("  [%s - %s]\n", e->time_start, e->time_end);
-//     printf("    SEK: %.5f, EUR: %.5f, EXR: %.5f\n",
-//            e->sek_per_kwh, e->eur_per_kwh, e->exchange_rate);
-// }
-
-// DagligSpotpris
-// void DagligSpotpris_Print(const DagligSpotpris *d)
-// {
-//     if (!d) return;
-//     printf("Area: %s, count: %zu\n", d->areaname, d->count);
-//     for (size_t i = 0; i < d->count && i < 4; i++)
-//         SpotPriceEntry_Print(&d->kvartar[i]);
-//     //printf("Raw JSON (first 20 chars): %.20s\n", d->raw_json_data);
-// }
-
-// //OBS: Just nu printar vi 4 kvartar för att debuggingen inte ska bli cluttrad. Kan ändras till 96 om man vill se hela resultatet
-// AllaSpotpriser
-// void AllaSpotpriser_Print(const AllaSpotpriser *a)
-// {
-//     if (!a) return;
-//     for (int i = 0; i < 4; i++)
-//         DagligSpotpris_Print(&a->areas[i]);
-// }
-
-
-
-// Levererar en populera AllaSpotpriser struct
 int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
 {
     if (!_AllaSpotpriser)

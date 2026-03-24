@@ -10,7 +10,7 @@
 typedef struct {
     int id;
     char city[NAME_MAX];
-    double panel_capacitykwh;           // Total installed solar capacity (kWh)
+    double panel_capacitykw;           // Total installed solar capacity (kWh)
     double panel_tiltdegrees;           // Panel tilt angle (0-90 degrees)
     double panel_azimuthdegrees;        // Panel orientation (0=North, 90=East, 180=South, 270=West)
     

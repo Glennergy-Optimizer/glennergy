@@ -13,6 +13,7 @@
 #include <errno.h> // Den här för create_Folder, resten för system monotonic grejer
 #include <string.h>
 #include <stdio.h>
+
 // Plattformsepcifika headers 
 #if defined(_WIN32)
     #include <windows.h>
@@ -44,6 +45,13 @@ static inline void GetTodayDate(char *buffer, size_t size) {
     struct tm tm = *localtime(&t);
     snprintf(buffer, size, "%04d/%02d-%02d",
              tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+}
+
+static inline void GetTomorrowDate(char *buffer, size_t size) { //TODO use old GetTodayDate and just add one day to tm struct
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    snprintf(buffer, size, "%04d/%02d-%02d",
+             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday - 1);
 }
 
 static inline void GetTodayDateFile(char *buffer, size_t size)
@@ -86,8 +94,12 @@ static inline int convertToUTC(const char *input, char *output, size_t output_si
     tm_time.tm_mon -= 1;
     
     // Convert to time_t (treats as UTC)
-    time_t utc_time = timegm(&tm_time);
-    
+    #if defined(_WIN32)
+        time_t utc_time = _mkgmtime(&tm_time);
+    #else
+        time_t utc_time = timegm(&tm_time);
+    #endif
+
     if (utc_time == -1)
         return -1;
     
