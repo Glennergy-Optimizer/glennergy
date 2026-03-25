@@ -145,15 +145,27 @@ int Connection_Handle(Connection *_Connection)
         printf("Got the stuff: %d\n", memory->result[i].id);
         for (int j = 0; j < 96; j++)
         {
+<<<<<<< HEAD
 
             printf("Recommendation: %.3f\n", memory->result[i].recommendation[j]);
             double rec = memory->result[i].recommendation[j];
+=======
+            printf("Recommendation: %d\n", memory->result[i].recommendation[j]);
+            int rec = memory->result[i].recommendation[j];
+            const char *type = NULL;
+>>>>>>> 134fa1332d9b65fe00fc1e597cc285c0c1c4f593
 
             const char *type = NULL;
 
             json_t *obj = json_object();
             json_object_set_new(obj, "id", json_integer(memory->result[i].id));
+<<<<<<< HEAD
+
             json_object_set_new(obj, "type", json_real(rec));
+
+=======
+            json_object_set_new(obj, "type", json_string(type));
+>>>>>>> 134fa1332d9b65fe00fc1e597cc285c0c1c4f593
             json_object_set_new(obj, "timestamp", json_string(memory->result[i].time[j].time));
             json_array_append_new(arr, obj);
 
