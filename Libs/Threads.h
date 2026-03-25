@@ -27,8 +27,6 @@ typedef struct{
     int thread_stop;
 }Threads;
 
-
-
 int Threads_Initialize(Threads* _ThreadPool);
 
 //Used as callback inside ConnectionHandler_OnConnect()

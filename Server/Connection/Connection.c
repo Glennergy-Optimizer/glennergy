@@ -19,7 +19,7 @@
                         "Access-Control-Allow-Origin: *\r\n"             \
                         "Access-Control-Allow-Methods: GET, OPTIONS\r\n" \
                         "Access-Control-Allow-Headers: Content-Type\r\n" \
-                        "Connection: close\r\n"                          \
+                        "Connection: close\r\n"                    \
                         "\r\n"                                           \
                         "%s"
 
@@ -79,13 +79,14 @@ int Connection_Handle(Connection *_Connection)
 
     HTTPRequest_ParseHeader(&request);
 
+
     printf("Request: %s\n", request.url ? request.url : "NULL");
     // Browsers can automatically add a second get request with favicon.ico, which can cause issues if we try to parse it as an integer.
     // If we have a request for favicon, just ignore it
     if (request.url != NULL && strcmp(request.url, "/favicon.ico") == 0)
     {
-        const char *resp = "HTTP/1.1 204 No Content\r\n"
-                           "Content-Length: 0\r\n"
+        const char* resp = "HTTP/1.1 204 No Content\r\n"
+                            "Content-Length: 0\r\n"
                            "Connection: close\r\n"
                            "\r\n";
 
@@ -97,10 +98,10 @@ int Connection_Handle(Connection *_Connection)
     // Browsers also sometimes sends an empty "/" request so let's handle that too.
     if (request.url == NULL || strcmp(request.url, "/") == 0)
     {
-        const char *resp = "HTTP/1.1 204 No Content\r\n"
-                           "Content-Length: 0\r\n"
-                           "Connection: close\r\n"
-                           "\r\n";
+        const char* resp = "HTTP/1.1 204 No Content\r\n"
+                        "Content-Length: 0\r\n"
+                        "Connection: close\r\n"
+                        "\r\n";
         send(_Connection->socket, resp, strlen(resp), MSG_NOSIGNAL);
         HTTPRequest_Dispose(&request);
         return 0;
@@ -108,13 +109,12 @@ int Connection_Handle(Connection *_Connection)
     // Now, if we have a get request we actually want to handle, i.e "/id=3", we continue handling it
 
     // OBS/TODO - I produktion måste den här vara aktiv för att HTTP requesten ska fungera direkt och få data
-    char *rec_offset = request.url + 1;
-    int client_id = strtol(request.url, &rec_offset, 10);
+    int client_id = strtol(request.url, request.url + 1, 10);
     // Men den här behövs för att Håkan ska kunna kompilera. Raden ovanför verkar funka med ubuntu
-    // int client_id = strtol(request.url + 1, NULL, 10);
+    //int client_id = strtol(request.url + 1, NULL, 10);
     printf("id: %d\n", client_id);
 
-    int shm_fd = -1;
+    int shm_fd;
     sem_t *mutex;
 
     AlgoritmShared *memory;
@@ -140,25 +140,28 @@ int Connection_Handle(Connection *_Connection)
         for (int j = 0; j < 96; j++)
         {
 
-            printf("Recommendation: %.3f\n", memory->result[i].recommendation[j]);
-            double rec = memory->result[i].recommendation[j];
-
+            printf("Recommendation: %d\n", memory->result[i].recommendation[j]);
+            int rec = memory->result[i].recommendation[j];
             const char *type = NULL;
+
+            if (rec == 1)
+                type = "BUY";
+            else if (rec == 2)
+                type = "HOLD";
+            else if (rec == 3)
+                type = "SELL";
+            else
+                continue;
 
             json_t *obj = json_object();
 
             json_object_set_new(obj, "id", json_integer(memory->result[i].id));
 
-            json_object_set_new(obj, "type", json_real(rec));
+            json_object_set_new(obj, "type", json_string(type));
 
             json_object_set_new(obj, "timestamp", json_string(memory->result[i].time[j].time));
 
             json_array_append_new(arr, obj);
-
-            if (strstr(memory->result[i].time[j].time, "23:45") != NULL)
-            {
-                break;
-            }
         }
     }
     json_data = json_dumps(arr, JSON_INDENT(4));
@@ -166,18 +169,19 @@ int Connection_Handle(Connection *_Connection)
     json_decref(arr);
     sem_post(mutex);
 
-    // snprintf(RESPONSE_HEADER, sizeof(RESPONSE_HEADER), "%s", json_data);
+    //snprintf(RESPONSE_HEADER, sizeof(RESPONSE_HEADER), "%s", json_data);
 
     printf("size of json data: %zu\n", strlen(json_data));
 
     char response[12000];
-    // snprintf(response, sizeof(response), RESPONSE_HEADER, strlen(json_data), json_data);
+    //snprintf(response, sizeof(response), RESPONSE_HEADER, strlen(json_data), json_data);
     int actualLength = snprintf(response, sizeof(response), RESPONSE_HEADER, strlen(json_data), json_data);
     if (actualLength >= sizeof(response))
     {
         LOG_ERROR("Response truncated: actual length %d exceeds buffer size %zu", actualLength, sizeof(response));
         return -1;
     }
+
 
     printf("data %s\n", response);
     send(_Connection->socket, response, actualLength, MSG_NOSIGNAL);
