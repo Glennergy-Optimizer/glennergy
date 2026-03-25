@@ -12,6 +12,7 @@ find . -type f -name Makefile \
   -not -path "*/latex/*" \
   -not -path "*/html/*" \
   -not -path "*/Docs/*" \
+  -not -path "*/Client-CPP/*" \
   | while read mf; do
     dir=$(dirname "$mf")
     echo "Processing $dir"

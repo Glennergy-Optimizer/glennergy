@@ -75,6 +75,8 @@ int average_WindowLow(InputCache_t *cache, double q25_threshold);
  */
 int average_WindowLow_test(SpotEntry_t *entry, double q25_threshold, double q75_threshold);
 
+double average_WindowLow_percent(SpotEntry_t *entry, double min, double max);
+
 /**
  * @brief Test function computing spot statistics from Spot_t
  * @param spot Pointer to SpotStats_t to store results

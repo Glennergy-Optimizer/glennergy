@@ -40,7 +40,7 @@ typedef struct
 typedef struct
 {
     int id;                       /**< Unique identifier */
-    int recommendation[96];       /**< Recommendations per quarter-hour */
+    double recommendation[96];       /**< Recommendations per quarter-hour */
     time_start time[96];           /**< Corresponding timestamps */
 } AlgoritmResult;
 
