@@ -32,6 +32,8 @@ DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.4-mini")
 DEFAULT_MAX_FILES = int(os.getenv("MAX_FILES_PER_RUN", "2"))
 DEFAULT_MAX_CHARS = int(os.getenv("MAX_CHARS_PER_FILE", "18000"))
 DEFAULT_MAX_OUTPUT_TOKENS = int(os.getenv("OPENAI_MAX_OUTPUT_TOKENS", "12000"))
+DEFAULT_INPUT_COST_PER_MILLION = float(os.getenv("OPENAI_INPUT_COST_PER_MILLION", "0.25"))
+DEFAULT_OUTPUT_COST_PER_MILLION = float(os.getenv("OPENAI_OUTPUT_COST_PER_MILLION", "2.00"))
 
 
 @dataclass
@@ -39,6 +41,13 @@ class Usage:
     input_tokens: int = 0
     output_tokens: int = 0
     total_tokens: int = 0
+
+
+def estimate_cost_usd(usage: Usage, input_cost_per_million: float, output_cost_per_million: float) -> float:
+    return (
+        (usage.input_tokens / 1_000_000) * input_cost_per_million
+        + (usage.output_tokens / 1_000_000) * output_cost_per_million
+    )
 
 
 def run_git(args: list[str]) -> str:
@@ -301,7 +310,14 @@ def write_file(path: Path, text: str) -> None:
     path.write_text(normalized, encoding="utf-8", newline="\n")
 
 
-def process_files(files: Iterable[Path], model: str, max_chars: int, max_output_tokens: int) -> int:
+def process_files(
+    files: Iterable[Path],
+    model: str,
+    max_chars: int,
+    max_output_tokens: int,
+    input_cost_per_million: float,
+    output_cost_per_million: float,
+) -> int:
     docs_rules = load_text(DOCS_DIR / "README_Doxygen.md")
     header_template = load_text(DOCS_DIR / "template_H.h")
     source_template = load_text(DOCS_DIR / "template_C.c")
@@ -360,17 +376,25 @@ def process_files(files: Iterable[Path], model: str, max_chars: int, max_output_
 
         write_file(path, updated_normalized)
         changed_count += 1
+        estimated_cost = estimate_cost_usd(usage, input_cost_per_million, output_cost_per_million)
         print(
             f"Updated {rel} "
-            f"(input_tokens={usage.input_tokens}, output_tokens={usage.output_tokens}, total_tokens={usage.total_tokens})"
+            f"(input_tokens={usage.input_tokens}, output_tokens={usage.output_tokens}, "
+            f"total_tokens={usage.total_tokens}, estimated_cost_usd=${estimated_cost:.6f})"
         )
 
+    total_estimated_cost = estimate_cost_usd(
+        total_usage,
+        input_cost_per_million=input_cost_per_million,
+        output_cost_per_million=output_cost_per_million,
+    )
     print(
         "Run summary: "
         f"files_updated={changed_count}, "
         f"input_tokens={total_usage.input_tokens}, "
         f"output_tokens={total_usage.output_tokens}, "
-        f"total_tokens={total_usage.total_tokens}"
+        f"total_tokens={total_usage.total_tokens}, "
+        f"estimated_cost_usd=${total_estimated_cost:.6f}"
     )
     return changed_count
 
@@ -383,6 +407,8 @@ def main() -> int:
     parser.add_argument("--max-chars", type=int, default=DEFAULT_MAX_CHARS)
     parser.add_argument("--max-output-tokens", type=int, default=DEFAULT_MAX_OUTPUT_TOKENS)
     parser.add_argument("--model", default=DEFAULT_MODEL)
+    parser.add_argument("--input-cost-per-million", type=float, default=DEFAULT_INPUT_COST_PER_MILLION)
+    parser.add_argument("--output-cost-per-million", type=float, default=DEFAULT_OUTPUT_COST_PER_MILLION)
     args = parser.parse_args()
 
     base, head = resolve_diff_range(args.base, args.head)
@@ -401,6 +427,8 @@ def main() -> int:
         model=args.model,
         max_chars=args.max_chars,
         max_output_tokens=args.max_output_tokens,
+        input_cost_per_million=args.input_cost_per_million,
+        output_cost_per_million=args.output_cost_per_million,
     )
     return 0 if changed_count >= 0 else 1
 
