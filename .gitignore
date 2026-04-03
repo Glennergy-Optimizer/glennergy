@@ -85,3 +85,7 @@ xoxoldAPI/*
 # debug information files
 *.dwo
 .gitignore
+
+# AI condex files
+AI_CONTEXT.md
+Docs/architecture-overview.md
