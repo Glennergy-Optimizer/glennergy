@@ -4,7 +4,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
-// Todo - testing if this is good
+// Todo - nothing =(
 
 ssize_t Pipes_ReadBinary(int _Fd, void *_Buf, size_t _Size)
 {
