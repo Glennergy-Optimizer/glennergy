@@ -89,3 +89,7 @@ xoxoldAPI/*
 # AI condex files
 AI_CONTEXT.md
 Docs/architecture-overview.md
+
+# Python cache files
+__pycache__/
+*.py[cod]
