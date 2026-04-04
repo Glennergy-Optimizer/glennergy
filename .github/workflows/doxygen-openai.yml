@@ -53,6 +53,20 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Derive PR metadata
+        run: |
+          if [ -n "${TEST_LABEL}" ]; then
+            SAFE_LABEL=$(printf '%s' "${TEST_LABEL}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g' | sed 's/-\{2,\}/-/g' | sed 's/^-//' | sed 's/-$//')
+            if [ -z "${SAFE_LABEL}" ]; then
+              SAFE_LABEL="test-${GITHUB_RUN_ID}"
+            fi
+            echo "PR_BRANCH=docs/doxygen-ai-${SAFE_LABEL}" >> "$GITHUB_ENV"
+            echo "PR_TITLE=docs: AI Doxygen updates [${TEST_LABEL}]" >> "$GITHUB_ENV"
+          else
+            echo "PR_BRANCH=docs/doxygen-ai" >> "$GITHUB_ENV"
+            echo "PR_TITLE=docs: AI Doxygen updates" >> "$GITHUB_ENV"
+          fi
+
       - name: Update Doxygen comments for changed files
         run: python tools/doxygen_ai/update_docs.py --files "${MANUAL_FILE_PATHS}" --model "${OPENAI_MODEL}" --test-label "${TEST_LABEL}"
 
@@ -69,9 +83,9 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "docs: update doxygen comments"
-          branch: "docs/doxygen-ai"
+          branch: ${{ env.PR_BRANCH }}
           delete-branch: true
-          title: "docs: AI Doxygen updates${{ github.event.inputs.test_label != '' && format(' [{0}]', github.event.inputs.test_label) || '' }}"
+          title: ${{ env.PR_TITLE }}
           body: |
             This draft PR contains automated Doxygen documentation updates generated for changed files.
 
