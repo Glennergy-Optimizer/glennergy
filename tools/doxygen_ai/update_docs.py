@@ -54,6 +54,18 @@ class OpenAIResult:
     model: str
 
 
+@dataclass
+class FileResult:
+    path: str
+    status: str
+    model: str = ""
+    input_tokens: int = 0
+    output_tokens: int = 0
+    total_tokens: int = 0
+    estimated_cost_usd: float = 0.0
+    estimated_cost_sek: float = 0.0
+
+
 def estimate_cost_usd(usage: Usage, input_cost_per_million: float, output_cost_per_million: float) -> float:
     return (
         (usage.input_tokens / 1_000_000) * input_cost_per_million
@@ -426,6 +438,48 @@ def write_rejected_output(path: Path, text: str) -> Path:
     return output_path
 
 
+def append_github_summary(
+    file_results: list[FileResult],
+    total_usage: Usage,
+    total_estimated_cost_usd: float,
+    total_estimated_cost_sek: float,
+) -> None:
+    summary_path = os.getenv("GITHUB_STEP_SUMMARY", "").strip()
+    if not summary_path:
+        return
+
+    updated_count = sum(1 for result in file_results if result.status == "updated")
+    no_change_count = sum(1 for result in file_results if result.status == "no_change")
+    skipped_count = sum(1 for result in file_results if result.status == "skipped")
+
+    lines = [
+        "## Doxygen AI Summary",
+        "",
+        f"- Files considered: {len(file_results)}",
+        f"- Files updated: {updated_count}",
+        f"- Files unchanged: {no_change_count}",
+        f"- Files skipped: {skipped_count}",
+        f"- Input tokens: {total_usage.input_tokens}",
+        f"- Output tokens: {total_usage.output_tokens}",
+        f"- Total tokens: {total_usage.total_tokens}",
+        f"- Estimated cost (USD): ${total_estimated_cost_usd:.6f}",
+        f"- Estimated cost (SEK): {total_estimated_cost_sek:.6f} kr",
+        "",
+        "| File | Status | Model | Input | Output | Total | USD | SEK |",
+        "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: |",
+    ]
+
+    for result in file_results:
+        lines.append(
+            f"| {result.path} | {result.status} | {result.model or '-'} | "
+            f"{result.input_tokens} | {result.output_tokens} | {result.total_tokens} | "
+            f"${result.estimated_cost_usd:.6f} | {result.estimated_cost_sek:.6f} kr |"
+        )
+
+    with open(summary_path, "a", encoding="utf-8", newline="\n") as handle:
+        handle.write("\n".join(lines) + "\n")
+
+
 def process_files(
     files: Iterable[Path],
     model: str,
@@ -443,6 +497,7 @@ def process_files(
 
     total_usage = Usage()
     changed_count = 0
+    file_results: list[FileResult] = []
 
     for path in files:
         original = load_text(path)
@@ -452,6 +507,7 @@ def process_files(
 
         if len(original) > max_chars:
             print(f"Skipping {rel}: file exceeds MAX_CHARS_PER_FILE ({len(original)} > {max_chars})")
+            file_results.append(FileResult(path=rel, status="skipped"))
             continue
 
         if paired_file is not None:
@@ -499,6 +555,7 @@ def process_files(
 
         if not updated.strip():
             print(f"Skipping {rel}: model returned empty output")
+            file_results.append(FileResult(path=rel, status="skipped", model=actual_model))
             continue
 
         if code_changed(original, updated):
@@ -513,12 +570,34 @@ def process_files(
         updated_normalized = updated.replace("\r\n", "\n")
         if original_normalized == updated_normalized:
             print(f"No documentation changes needed for {rel}")
+            file_results.append(
+                FileResult(
+                    path=rel,
+                    status="no_change",
+                    model=actual_model,
+                    input_tokens=usage.input_tokens,
+                    output_tokens=usage.output_tokens,
+                    total_tokens=usage.total_tokens,
+                )
+            )
             continue
 
         write_file(path, updated_normalized)
         changed_count += 1
         estimated_cost = estimate_cost_usd(usage, input_cost_per_million, output_cost_per_million)
         estimated_cost_sek = convert_usd_to_sek(estimated_cost, usd_to_sek)
+        file_results.append(
+            FileResult(
+                path=rel,
+                status="updated",
+                model=actual_model,
+                input_tokens=usage.input_tokens,
+                output_tokens=usage.output_tokens,
+                total_tokens=usage.total_tokens,
+                estimated_cost_usd=estimated_cost,
+                estimated_cost_sek=estimated_cost_sek,
+            )
+        )
         print(
             f"Updated {rel} "
             f"(model={actual_model}, input_tokens={usage.input_tokens}, output_tokens={usage.output_tokens}, "
@@ -540,6 +619,12 @@ def process_files(
         f"total_tokens={total_usage.total_tokens}, "
         f"estimated_cost_usd=${total_estimated_cost:.6f}, "
         f"estimated_cost_sek={total_estimated_cost_sek:.6f} kr"
+    )
+    append_github_summary(
+        file_results=file_results,
+        total_usage=total_usage,
+        total_estimated_cost_usd=total_estimated_cost,
+        total_estimated_cost_sek=total_estimated_cost_sek,
     )
     return changed_count
 
