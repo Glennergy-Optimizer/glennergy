@@ -10,6 +10,14 @@ on:
         description: "Branch or ref to check out for the run"
         required: false
         default: "ny-dev"
+      model:
+        description: "OpenAI model to use for this run"
+        required: false
+        default: "gpt-5.4-mini"
+      test_label:
+        description: "Optional free-text label for comparing runs"
+        required: false
+        default: ""
       file_paths:
         description: "Optional comma-separated file paths to process manually"
         required: false
@@ -25,12 +33,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      OPENAI_MODEL: gpt-5.4-mini
+      OPENAI_MODEL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.model || 'gpt-5.4-mini' }}
       MAX_FILES_PER_RUN: "2"
       MAX_CHARS_PER_FILE: "18000"
       OPENAI_MAX_OUTPUT_TOKENS: "12000"
       GITHUB_EVENT_BEFORE: ${{ github.event.before }}
       TARGET_REF: ${{ github.event.inputs.target_ref }}
+      TEST_LABEL: ${{ github.event.inputs.test_label }}
       MANUAL_FILE_PATHS: ${{ github.event.inputs.file_paths }}
     steps:
       - name: Check out repository
@@ -45,7 +54,15 @@ jobs:
           python-version: "3.12"
 
       - name: Update Doxygen comments for changed files
-        run: python tools/doxygen_ai/update_docs.py --files "${MANUAL_FILE_PATHS}"
+        run: python tools/doxygen_ai/update_docs.py --files "${MANUAL_FILE_PATHS}" --model "${OPENAI_MODEL}" --test-label "${TEST_LABEL}"
+
+      - name: Upload rejected outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: doxygen-ai-rejected-outputs-${{ github.run_id }}
+          path: tools/doxygen_ai/rejected
+          if-no-files-found: ignore
 
       - name: Create draft pull request with documentation updates
         uses: peter-evans/create-pull-request@v7
@@ -54,9 +71,13 @@ jobs:
           commit-message: "docs: update doxygen comments"
           branch: "docs/doxygen-ai"
           delete-branch: true
-          title: "docs: AI Doxygen updates"
+          title: "docs: AI Doxygen updates${{ github.event.inputs.test_label != '' && format(' [{0}]', github.event.inputs.test_label) || '' }}"
           body: |
             This draft PR contains automated Doxygen documentation updates generated for changed files.
+
+            Requested model: `${{ env.OPENAI_MODEL }}`
+            Test label: `${{ env.TEST_LABEL }}`
+            Target ref: `${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target_ref || github.ref_name }}`
 
             Please review carefully before merging:
             - confirm the documentation matches the project standard

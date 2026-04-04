@@ -38,6 +38,7 @@ DEFAULT_MAX_OUTPUT_TOKENS = int(os.getenv("OPENAI_MAX_OUTPUT_TOKENS", "12000"))
 DEFAULT_INPUT_COST_PER_MILLION = float(os.getenv("OPENAI_INPUT_COST_PER_MILLION", "0.25"))
 DEFAULT_OUTPUT_COST_PER_MILLION = float(os.getenv("OPENAI_OUTPUT_COST_PER_MILLION", "2.00"))
 DEFAULT_USD_TO_SEK = float(os.getenv("OPENAI_USD_TO_SEK", "9.19981"))
+DEFAULT_TEST_LABEL = os.getenv("DOXYGEN_AI_TEST_LABEL", "").strip()
 
 
 @dataclass
@@ -52,6 +53,19 @@ class OpenAIResult:
     text: str
     usage: Usage
     model: str
+
+
+@dataclass
+class FileResult:
+    path: str
+    status: str
+    model: str = ""
+    input_tokens: int = 0
+    output_tokens: int = 0
+    total_tokens: int = 0
+    estimated_cost_usd: float = 0.0
+    estimated_cost_sek: float = 0.0
+    details: str = ""
 
 
 def estimate_cost_usd(usage: Usage, input_cost_per_million: float, output_cost_per_million: float) -> float:
@@ -144,6 +158,23 @@ def parse_explicit_files(file_paths_raw: str) -> list[Path]:
     return files
 
 
+def expand_module_files(files: list[Path]) -> list[Path]:
+    expanded: list[Path] = []
+    seen: set[Path] = set()
+
+    for path in files:
+        if path not in seen:
+            seen.add(path)
+            expanded.append(path)
+
+        paired_file = find_paired_file(path)
+        if paired_file is not None and paired_file not in seen:
+            seen.add(paired_file)
+            expanded.append(paired_file)
+
+    return expanded
+
+
 def has_doxygen(text: str) -> bool:
     return bool(re.search(r"/\*\*[\s\S]*?@(file|brief|param|return|defgroup|ingroup)\b", text))
 
@@ -186,8 +217,15 @@ def build_prompt(
     if file_kind == "source" and not is_entrypoint_or_test(path, code):
         source_file_guidance = """Additional source-file guidance:
 - Keep public function documentation in source files brief when the paired header already documents the public API contract.
-- For public non-static functions in source files, prefer a short implementation-oriented @brief and, when appropriate, a sentence such as: See header for full contract documentation.
-- Do not repeat full @param, @return, @note, @warning, @pre, or @post blocks for public source-file functions unless they describe implementation-specific behavior that is not already documented in the header.
+- For public non-static functions in source files, the default style should be brief-only documentation.
+- Preferred pattern for public non-static functions in source files:
+  /**
+   * @brief Implementation of <function name>.
+   *
+   * See header for full contract documentation.
+   */
+- Do not repeat @param, @return, @note, @warning, @pre, or @post blocks for public source-file functions unless they describe implementation-specific behavior that is not already documented in the header.
+- Repeating header-level public API contract details in source files is undesirable output.
 - Internal or static helper functions may include additional tags, but only when they add meaningful, non-obvious information.
 """
 
@@ -402,6 +440,54 @@ def write_rejected_output(path: Path, text: str) -> Path:
     return output_path
 
 
+def append_github_summary(
+    file_results: list[FileResult],
+    total_usage: Usage,
+    total_estimated_cost_usd: float,
+    total_estimated_cost_sek: float,
+    requested_model: str,
+    test_label: str,
+) -> None:
+    summary_path = os.getenv("GITHUB_STEP_SUMMARY", "").strip()
+    if not summary_path:
+        return
+
+    updated_count = sum(1 for result in file_results if result.status == "updated")
+    no_change_count = sum(1 for result in file_results if result.status == "no_change")
+    skipped_count = sum(1 for result in file_results if result.status == "skipped")
+    rejected_count = sum(1 for result in file_results if result.status == "rejected")
+
+    lines = [
+        "## Doxygen AI Summary",
+        "",
+        f"- Requested model: {requested_model}",
+        f"- Test label: {test_label or '(none)'}",
+        f"- Files considered: {len(file_results)}",
+        f"- Files updated: {updated_count}",
+        f"- Files unchanged: {no_change_count}",
+        f"- Files skipped: {skipped_count}",
+        f"- Files rejected: {rejected_count}",
+        f"- Input tokens: {total_usage.input_tokens}",
+        f"- Output tokens: {total_usage.output_tokens}",
+        f"- Total tokens: {total_usage.total_tokens}",
+        f"- Estimated cost (USD): ${total_estimated_cost_usd:.6f}",
+        f"- Estimated cost (SEK): {total_estimated_cost_sek:.6f} kr",
+        "",
+        "| File | Status | Model | Input | Output | Total | USD | SEK | Details |",
+        "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |",
+    ]
+
+    for result in file_results:
+        lines.append(
+            f"| {result.path} | {result.status} | {result.model or '-'} | "
+            f"{result.input_tokens} | {result.output_tokens} | {result.total_tokens} | "
+            f"${result.estimated_cost_usd:.6f} | {result.estimated_cost_sek:.6f} kr | {result.details or '-'} |"
+        )
+
+    with open(summary_path, "a", encoding="utf-8", newline="\n") as handle:
+        handle.write("\n".join(lines) + "\n")
+
+
 def process_files(
     files: Iterable[Path],
     model: str,
@@ -419,6 +505,8 @@ def process_files(
 
     total_usage = Usage()
     changed_count = 0
+    file_results: list[FileResult] = []
+    rejection_messages: list[str] = []
 
     for path in files:
         original = load_text(path)
@@ -428,6 +516,7 @@ def process_files(
 
         if len(original) > max_chars:
             print(f"Skipping {rel}: file exceeds MAX_CHARS_PER_FILE ({len(original)} > {max_chars})")
+            file_results.append(FileResult(path=rel, status="skipped", details="File exceeds MAX_CHARS_PER_FILE"))
             continue
 
         if paired_file is not None:
@@ -461,9 +550,15 @@ def process_files(
             result = call_openai(system_prompt, user_prompt, model, max_output_tokens)
         except urllib.error.HTTPError as exc:
             body = exc.read().decode("utf-8", errors="replace")
-            raise RuntimeError(f"OpenAI API request failed for {rel}: HTTP {exc.code} {body}") from exc
+            file_results.append(FileResult(path=rel, status="rejected", details=f"HTTP {exc.code}"))
+            rejection_messages.append(f"{rel}: OpenAI API request failed with HTTP {exc.code}: {body}")
+            print(f"Rejected {rel}: OpenAI API request failed with HTTP {exc.code}")
+            continue
         except urllib.error.URLError as exc:
-            raise RuntimeError(f"OpenAI API request failed for {rel}: {exc}") from exc
+            file_results.append(FileResult(path=rel, status="rejected", details="Network/API request error"))
+            rejection_messages.append(f"{rel}: OpenAI API request failed: {exc}")
+            print(f"Rejected {rel}: OpenAI API request failed: {exc}")
+            continue
 
         updated = result.text
         usage = result.usage
@@ -475,26 +570,61 @@ def process_files(
 
         if not updated.strip():
             print(f"Skipping {rel}: model returned empty output")
+            file_results.append(FileResult(path=rel, status="skipped", model=actual_model, details="Model returned empty output"))
             continue
 
         if code_changed(original, updated):
             rejected_path = write_rejected_output(path, updated)
-            raise RuntimeError(
-                f"Rejected model output for {rel}: non-comment code changed. "
-                f"Saved rejected output to {rejected_path.relative_to(REPO_ROOT).as_posix()}. "
-                "The prompt or model behavior needs review."
+            details = f"Non-comment code changed; saved to {rejected_path.relative_to(REPO_ROOT).as_posix()}"
+            file_results.append(
+                FileResult(
+                    path=rel,
+                    status="rejected",
+                    model=actual_model,
+                    input_tokens=usage.input_tokens,
+                    output_tokens=usage.output_tokens,
+                    total_tokens=usage.total_tokens,
+                    details=details,
+                )
             )
+            rejection_messages.append(f"{rel}: {details}")
+            print(f"Rejected {rel}: {details}")
+            continue
 
         original_normalized = original.replace("\r\n", "\n")
         updated_normalized = updated.replace("\r\n", "\n")
         if original_normalized == updated_normalized:
             print(f"No documentation changes needed for {rel}")
+            file_results.append(
+                FileResult(
+                    path=rel,
+                    status="no_change",
+                    model=actual_model,
+                    input_tokens=usage.input_tokens,
+                    output_tokens=usage.output_tokens,
+                    total_tokens=usage.total_tokens,
+                    details="No changes were necessary",
+                )
+            )
             continue
 
         write_file(path, updated_normalized)
         changed_count += 1
         estimated_cost = estimate_cost_usd(usage, input_cost_per_million, output_cost_per_million)
         estimated_cost_sek = convert_usd_to_sek(estimated_cost, usd_to_sek)
+        file_results.append(
+            FileResult(
+                path=rel,
+                status="updated",
+                model=actual_model,
+                input_tokens=usage.input_tokens,
+                output_tokens=usage.output_tokens,
+                total_tokens=usage.total_tokens,
+                estimated_cost_usd=estimated_cost,
+                estimated_cost_sek=estimated_cost_sek,
+                details="Documentation updated",
+            )
+        )
         print(
             f"Updated {rel} "
             f"(model={actual_model}, input_tokens={usage.input_tokens}, output_tokens={usage.output_tokens}, "
@@ -517,6 +647,20 @@ def process_files(
         f"estimated_cost_usd=${total_estimated_cost:.6f}, "
         f"estimated_cost_sek={total_estimated_cost_sek:.6f} kr"
     )
+    append_github_summary(
+        file_results=file_results,
+        total_usage=total_usage,
+        total_estimated_cost_usd=total_estimated_cost,
+        total_estimated_cost_sek=total_estimated_cost_sek,
+        requested_model=model,
+        test_label=os.getenv("DOXYGEN_AI_TEST_LABEL", "").strip(),
+    )
+
+    if rejection_messages:
+        raise RuntimeError(
+            "One or more files were rejected during documentation generation:\n"
+            + "\n".join(rejection_messages)
+        )
     return changed_count
 
 
@@ -529,15 +673,18 @@ def main() -> int:
     parser.add_argument("--max-chars", type=int, default=DEFAULT_MAX_CHARS)
     parser.add_argument("--max-output-tokens", type=int, default=DEFAULT_MAX_OUTPUT_TOKENS)
     parser.add_argument("--model", default=DEFAULT_MODEL)
+    parser.add_argument("--test-label", default=DEFAULT_TEST_LABEL)
     parser.add_argument("--input-cost-per-million", type=float, default=DEFAULT_INPUT_COST_PER_MILLION)
     parser.add_argument("--output-cost-per-million", type=float, default=DEFAULT_OUTPUT_COST_PER_MILLION)
     parser.add_argument("--usd-to-sek", type=float, default=DEFAULT_USD_TO_SEK)
     args = parser.parse_args()
+    os.environ["DOXYGEN_AI_TEST_LABEL"] = args.test_label.strip()
 
     explicit_files = args.files.strip()
     if explicit_files:
         files = parse_explicit_files(explicit_files)
-        print(f"Manual file selection enabled for {len(files)} file(s)")
+        files = expand_module_files(files)
+        print(f"Manual file selection enabled for {len(files)} file(s) after module expansion")
     else:
         base, head = resolve_diff_range(args.base, args.head)
         files = changed_files(base, head)
