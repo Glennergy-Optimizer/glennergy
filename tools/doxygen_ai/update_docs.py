@@ -27,6 +27,7 @@ from typing import Iterable
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DOCS_DIR = REPO_ROOT / "Docs"
 AI_CONTEXT_PATH = REPO_ROOT / "AI_CONTEXT.md"
+REJECTED_OUTPUT_DIR = REPO_ROOT / "tools" / "doxygen_ai" / "rejected"
 ALLOWED_SUFFIXES = {".c", ".h", ".cpp", ".hpp", ".cc", ".hh"}
 HEADER_SUFFIXES = {".h", ".hpp", ".hh"}
 SOURCE_SUFFIXES = {".c", ".cpp", ".cc"}
@@ -393,6 +394,14 @@ def write_file(path: Path, text: str) -> None:
     path.write_text(normalized, encoding="utf-8", newline="\n")
 
 
+def write_rejected_output(path: Path, text: str) -> Path:
+    REJECTED_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    relative_name = path.relative_to(REPO_ROOT).as_posix().replace("/", "__")
+    output_path = REJECTED_OUTPUT_DIR / f"{relative_name}.rejected.txt"
+    output_path.write_text(text if text.endswith("\n") else f"{text}\n", encoding="utf-8", newline="\n")
+    return output_path
+
+
 def process_files(
     files: Iterable[Path],
     model: str,
@@ -469,8 +478,10 @@ def process_files(
             continue
 
         if code_changed(original, updated):
+            rejected_path = write_rejected_output(path, updated)
             raise RuntimeError(
                 f"Rejected model output for {rel}: non-comment code changed. "
+                f"Saved rejected output to {rejected_path.relative_to(REPO_ROOT).as_posix()}. "
                 "The prompt or model behavior needs review."
             )
 
