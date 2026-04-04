@@ -34,6 +34,7 @@ DEFAULT_MAX_CHARS = int(os.getenv("MAX_CHARS_PER_FILE", "18000"))
 DEFAULT_MAX_OUTPUT_TOKENS = int(os.getenv("OPENAI_MAX_OUTPUT_TOKENS", "12000"))
 DEFAULT_INPUT_COST_PER_MILLION = float(os.getenv("OPENAI_INPUT_COST_PER_MILLION", "0.25"))
 DEFAULT_OUTPUT_COST_PER_MILLION = float(os.getenv("OPENAI_OUTPUT_COST_PER_MILLION", "2.00"))
+DEFAULT_USD_TO_SEK = float(os.getenv("OPENAI_USD_TO_SEK", "9.19981"))
 
 
 @dataclass
@@ -55,6 +56,10 @@ def estimate_cost_usd(usage: Usage, input_cost_per_million: float, output_cost_p
         (usage.input_tokens / 1_000_000) * input_cost_per_million
         + (usage.output_tokens / 1_000_000) * output_cost_per_million
     )
+
+
+def convert_usd_to_sek(usd_amount: float, usd_to_sek: float) -> float:
+    return usd_amount * usd_to_sek
 
 
 def run_git(args: list[str]) -> str:
@@ -325,6 +330,7 @@ def process_files(
     max_output_tokens: int,
     input_cost_per_million: float,
     output_cost_per_million: float,
+    usd_to_sek: float,
 ) -> int:
     docs_rules = load_text(DOCS_DIR / "README_Doxygen.md")
     header_template = load_text(DOCS_DIR / "template_H.h")
@@ -389,10 +395,12 @@ def process_files(
         write_file(path, updated_normalized)
         changed_count += 1
         estimated_cost = estimate_cost_usd(usage, input_cost_per_million, output_cost_per_million)
+        estimated_cost_sek = convert_usd_to_sek(estimated_cost, usd_to_sek)
         print(
             f"Updated {rel} "
             f"(model={actual_model}, input_tokens={usage.input_tokens}, output_tokens={usage.output_tokens}, "
-            f"total_tokens={usage.total_tokens}, estimated_cost_usd=${estimated_cost:.6f})"
+            f"total_tokens={usage.total_tokens}, estimated_cost_usd=${estimated_cost:.6f}, "
+            f"estimated_cost_sek={estimated_cost_sek:.6f} kr)"
         )
 
     total_estimated_cost = estimate_cost_usd(
@@ -400,13 +408,15 @@ def process_files(
         input_cost_per_million=input_cost_per_million,
         output_cost_per_million=output_cost_per_million,
     )
+    total_estimated_cost_sek = convert_usd_to_sek(total_estimated_cost, usd_to_sek)
     print(
         "Run summary: "
         f"files_updated={changed_count}, "
         f"input_tokens={total_usage.input_tokens}, "
         f"output_tokens={total_usage.output_tokens}, "
         f"total_tokens={total_usage.total_tokens}, "
-        f"estimated_cost_usd=${total_estimated_cost:.6f}"
+        f"estimated_cost_usd=${total_estimated_cost:.6f}, "
+        f"estimated_cost_sek={total_estimated_cost_sek:.6f} kr"
     )
     return changed_count
 
@@ -421,6 +431,7 @@ def main() -> int:
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--input-cost-per-million", type=float, default=DEFAULT_INPUT_COST_PER_MILLION)
     parser.add_argument("--output-cost-per-million", type=float, default=DEFAULT_OUTPUT_COST_PER_MILLION)
+    parser.add_argument("--usd-to-sek", type=float, default=DEFAULT_USD_TO_SEK)
     args = parser.parse_args()
 
     base, head = resolve_diff_range(args.base, args.head)
@@ -441,6 +452,7 @@ def main() -> int:
         max_output_tokens=args.max_output_tokens,
         input_cost_per_million=args.input_cost_per_million,
         output_cost_per_million=args.output_cost_per_million,
+        usd_to_sek=args.usd_to_sek,
     )
     return 0 if changed_count >= 0 else 1
 
