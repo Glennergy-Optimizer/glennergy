@@ -1,0 +1,60 @@
+name: Doxygen AI
+
+on:
+  push:
+    branches:
+      - ny-dev
+  workflow_dispatch:
+    inputs:
+      file_paths:
+        description: "Optional comma-separated file paths to process manually"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-doxygen:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_MODEL: gpt-5.4-mini
+      MAX_FILES_PER_RUN: "2"
+      MAX_CHARS_PER_FILE: "18000"
+      OPENAI_MAX_OUTPUT_TOKENS: "12000"
+      GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+      MANUAL_FILE_PATHS: ${{ github.event.inputs.file_paths }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Update Doxygen comments for changed files
+        run: python tools/doxygen_ai/update_docs.py --files "${MANUAL_FILE_PATHS}"
+
+      - name: Create draft pull request with documentation updates
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "docs: update doxygen comments"
+          branch: "docs/doxygen-ai"
+          delete-branch: true
+          title: "docs: AI Doxygen updates"
+          body: |
+            This draft PR contains automated Doxygen documentation updates generated for changed files.
+
+            Please review carefully before merging:
+            - confirm the documentation matches the project standard
+            - confirm no code behavior was changed
+            - edit wording if needed before merge
+          draft: true
+          base: ny-dev

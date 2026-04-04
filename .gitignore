@@ -85,3 +85,10 @@ xoxoldAPI/*
 # debug information files
 *.dwo
 .gitignore
+
+# AI condex files
+Docs/architecture-overview.md
+
+# Python cache files
+__pycache__/
+*.py[cod]
