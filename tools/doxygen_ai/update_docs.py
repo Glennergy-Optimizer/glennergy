@@ -43,6 +43,13 @@ class Usage:
     total_tokens: int = 0
 
 
+@dataclass
+class OpenAIResult:
+    text: str
+    usage: Usage
+    model: str
+
+
 def estimate_cost_usd(usage: Usage, input_cost_per_million: float, output_cost_per_million: float) -> float:
     return (
         (usage.input_tokens / 1_000_000) * input_cost_per_million
@@ -262,7 +269,7 @@ def code_changed(original: str, updated: str) -> bool:
     return normalize_code_without_comments(original) != normalize_code_without_comments(updated)
 
 
-def call_openai(system_prompt: str, user_prompt: str, model: str, max_output_tokens: int) -> tuple[str, Usage]:
+def call_openai(system_prompt: str, user_prompt: str, model: str, max_output_tokens: int) -> OpenAIResult:
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY is required")
@@ -302,7 +309,8 @@ def call_openai(system_prompt: str, user_prompt: str, model: str, max_output_tok
         output_tokens=int(usage_data.get("output_tokens") or 0),
         total_tokens=int(usage_data.get("total_tokens") or 0),
     )
-    return text, usage
+    actual_model = str(data.get("model") or model)
+    return OpenAIResult(text=text, usage=usage, model=actual_model)
 
 
 def write_file(path: Path, text: str) -> None:
@@ -347,12 +355,16 @@ def process_files(
 
         print(f"Processing {rel} with model {model}")
         try:
-            updated, usage = call_openai(system_prompt, user_prompt, model, max_output_tokens)
+            result = call_openai(system_prompt, user_prompt, model, max_output_tokens)
         except urllib.error.HTTPError as exc:
             body = exc.read().decode("utf-8", errors="replace")
             raise RuntimeError(f"OpenAI API request failed for {rel}: HTTP {exc.code} {body}") from exc
         except urllib.error.URLError as exc:
             raise RuntimeError(f"OpenAI API request failed for {rel}: {exc}") from exc
+
+        updated = result.text
+        usage = result.usage
+        actual_model = result.model
 
         total_usage.input_tokens += usage.input_tokens
         total_usage.output_tokens += usage.output_tokens
@@ -379,7 +391,7 @@ def process_files(
         estimated_cost = estimate_cost_usd(usage, input_cost_per_million, output_cost_per_million)
         print(
             f"Updated {rel} "
-            f"(input_tokens={usage.input_tokens}, output_tokens={usage.output_tokens}, "
+            f"(model={actual_model}, input_tokens={usage.input_tokens}, output_tokens={usage.output_tokens}, "
             f"total_tokens={usage.total_tokens}, estimated_cost_usd=${estimated_cost:.6f})"
         )
 
