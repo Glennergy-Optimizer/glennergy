@@ -6,6 +6,10 @@ on:
       - ny-dev
   workflow_dispatch:
     inputs:
+      target_ref:
+        description: "Branch or ref to check out for the run"
+        required: false
+        default: "ny-dev"
       file_paths:
         description: "Optional comma-separated file paths to process manually"
         required: false
@@ -26,12 +30,14 @@ jobs:
       MAX_CHARS_PER_FILE: "18000"
       OPENAI_MAX_OUTPUT_TOKENS: "12000"
       GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+      TARGET_REF: ${{ github.event.inputs.target_ref }}
       MANUAL_FILE_PATHS: ${{ github.event.inputs.file_paths }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target_ref || github.ref }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
