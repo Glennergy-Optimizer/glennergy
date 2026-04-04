@@ -14,13 +14,14 @@
 /**
  * @brief Internal helper function (example).
  *
- * Performs <kort beskrivning av funktionen>.
+ * Performs <short description of the helper>.
  *
- * @param[in] input Some input parameter
- * @return Computed result
+ * @param[in] input Some input parameter.
+ * @return Computed result.
  *
- * @note Only for internal use.
- * @warning Do not call externally.
+ * @note Add internal notes only when they communicate real side effects,
+ * assumptions, or ownership behavior.
+ * @warning Add warnings only when there is an actual internal risk.
  */
 static int InternalHelper(int input)
 {
@@ -31,7 +32,7 @@ static int InternalHelper(int input)
 /**
  * @brief ExampleFunction implementation.
  *
- * See header for full documentation.
+ * See header for full contract documentation.
  */
 int ExampleFunction(ExampleStruct *output, int param)
 {

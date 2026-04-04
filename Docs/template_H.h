@@ -7,25 +7,25 @@
  * @file Template.h
  * @brief Public API for the <MODULENAME> module.
  *
- * Provides data structures and functions for <kort beskrivning av modulens syfte>.
+ * Provides the public types and functions for <short module purpose>.
  */
 
 /**
  * @defgroup <MODULENAME> <MODULENAME>
- * @brief <Kort beskrivning av modulen>
+ * @brief <Short module description>
  *
- * <Längre beskrivning, t.ex. vad modulen hanterar, beroenden, eventuella begränsningar.>
+ * <Longer description of what the module manages, key dependencies, and
+ * important limitations if needed.>
  *
- * @note Data may include <specific notes>.
- * @note Internally performs <network I/O, parsing, caching etc.>
+ * @note Add notes only when they communicate meaningful ownership, blocking,
+ * thread, or lifecycle behavior.
  * @{
  */
 
 /**
- * @brief Example struct representing <vad structen representerar>.
+ * @brief Example struct representing <what the struct models>.
  *
- * @note This struct owns its memory.
- * @warning Null-terminated strings must not be freed externally.
+ * @note Describe ownership or lifetime only when it matters.
  */
 typedef struct {
     char name[32]; /**< Example string field. */
@@ -42,10 +42,10 @@ typedef struct {
  * - 0 on success
  * - -1 on error
  *
- * @note Performs <blocking I/O, parsing, etc.>
- * @warning Output structure must be pre-allocated.
- * @pre output != NULL
- * @post output contains valid data.
+ * @note Add ownership, blocking, or lifecycle notes only when useful.
+ * @warning Add warnings only when misuse or side effects are meaningful.
+ * @pre Add only if the requirement is not obvious from the signature.
+ * @post Add only if there is a meaningful postcondition to communicate.
  */
 int ExampleFunction(ExampleStruct *output, int param);
 

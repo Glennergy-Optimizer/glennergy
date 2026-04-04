@@ -1,241 +1,302 @@
 # Doxygen Documentation Standard (AI-Enforced Version)
 
-This project uses a **strict, AI-enforced Doxygen documentation standard**.
+This project uses a strict, AI-enforced Doxygen documentation standard.
 
-This document is not a guideline — it is a **set of mandatory rules** that MUST be followed for every file.
+The goal is to produce consistent, useful documentation while preserving code and keeping implementation files readable.
 
 ---
 
-## ⚠️ AI COMPLIANCE CONTRACT (MANDATORY)
+## AI Compliance Contract
 
 When an AI agent processes any file in this project, it MUST:
 
-1. **Follow ALL rules in this document without exception**
-2. **NEVER modify logic, control flow, or initialization**
-3. **ONLY add documentation and comments**
-4. **VERIFY compliance using the checklist before returning output**
-5. **REFUSE to return a file if any checklist item is not satisfied**
+1. Follow the rules in this document
+2. Never modify logic, control flow, initialization, or signatures
+3. Only add or update documentation and comments
+4. Preserve existing comments and developer intent
+5. Prefer concise, useful documentation over repetitive boilerplate
 
-Failure to follow these rules results in **invalid output**.
-
----
-
-## Overview
-
-* Doxygen templates exist for three file types:
-
-  * **Header (.h)** – full public API documentation
-  * **Source (.c)** – implementation details, internal helpers, `@ingroup` usage
-  * **Main / test (.c)** – entry points or demos, minimal docs
+If a rule conflicts with code preservation, preserve the code and existing comments.
 
 ---
 
-## 🔒 Mandatory Rules
+## File Roles
 
-### 1. Code Integrity (ABSOLUTE RULE)
+Different file types require different documentation depth:
+
+- Header files (`.h`, `.hpp`) are the authoritative public API contract
+- Source files (`.c`, `.cpp`) focus on implementation details and internal helpers
+- Main, test, and demo files use minimal, practical documentation
+
+Do not document source files as heavily as headers unless the code genuinely requires it.
+
+---
+
+## Mandatory Rules
+
+### 1. Code Integrity
 
 AI MUST NOT:
 
-* Change logic
-* Change control flow (if/else, loops, switches)
-* Change variable initialization
-* Change function signatures
-* Move code
-* Remove code
+- Change logic
+- Change control flow
+- Change variable initialization
+- Change function signatures
+- Move code
+- Remove code
 
 AI MAY:
 
-* Add Doxygen comments
-* Add normal comments
-* Add `// Suggestion:` comments
-
----
+- Add or update Doxygen comments
+- Add or update normal comments
+- Add `// Suggestion:` comments
 
 ### 2. Suggestions Policy
 
-All improvements MUST be written as comments:
+All improvements must be written as comments:
 
 ```c
 // Suggestion: <clear and specific improvement>
 ```
 
-Rules:
+Suggestions must:
 
-* Suggestions MUST NOT affect execution
-* Suggestions MUST NOT replace existing code
-* Suggestions MUST be optional and reviewable
+- Not affect execution
+- Not replace existing code
+- Remain optional and reviewable
 
----
-
-### 3. Preservation Rules (CRITICAL)
+### 3. Preservation Rules
 
 AI MUST preserve:
 
-* All existing comments (ANY language)
-* All debug prints (`printf`, `fprintf`, logs)
-* All commented-out includes:
-
-  ```c
-  // #include <string.h>
-  ```
-* All TODOs and notes
-* All commented-out code
+- All existing comments in any language
+- All debug prints (`printf`, `fprintf`, logs)
+- All TODOs and notes
+- All commented-out includes
+- All commented-out code
 
 AI MUST NOT:
 
-* Remove
-* Rewrite
-* Translate
-* Relocate
-
----
+- Remove existing comments
+- Rewrite comments unnecessarily
+- Translate original comments
+- Relocate comments unless needed to place documentation directly above the documented item
 
 ### 4. Language Rules
 
-* All **Doxygen documentation MUST be in English**
-* Original comments MUST remain unchanged (no translation)
+- All new Doxygen documentation must be in English
+- Original comments must remain unchanged
 
 ---
 
-### 5. Doxygen Requirements
+## Required File-Level Tags
 
-#### File Level
+Every documented file must include:
 
-Every file MUST contain:
-
-* `@file`
-* `@brief`
+- `@file`
+- `@brief`
 
 Additionally:
 
-* Header files MUST include `@defgroup`
-* Source files MUST include `@ingroup`
+- Header files must include `@defgroup`
+- Source files must include `@ingroup`
 
 ---
 
-#### Struct Documentation
+## Header File Standard
 
-Every struct MUST include:
+Headers are the main source of truth for public API documentation.
 
-* Description of purpose
-* `@note` describing **memory ownership**
-* `@note` describing arrays:
+Public types and functions in headers should usually contain:
 
-  * Size
-  * Valid elements
+- `@brief`
+- `@param` for all parameters when applicable
+- `@return` when the function returns a value
 
----
+Add these when they communicate meaningful contract information:
 
-#### Function Documentation
+- `@note`
+- `@warning`
+- `@pre`
+- `@post`
 
-Every function MUST include:
+Use these tags when they add value, not just to satisfy a pattern.
 
-* `@brief`
-* `@param` (all parameters)
-* `@return`
-* `@pre` (required state before call)
-* `@post` (state after call)
-* `@warning` (risks, undefined behavior, side effects)
-* `@note` (ownership, memory, debug behavior, etc.)
+Typical reasons to include `@note`, `@warning`, `@pre`, or `@post`:
 
----
-
-### 6. Internal Functions
-
-* MUST be documented
-* MUST include warnings if unsafe
-* MUST describe side effects
+- ownership or lifetime rules
+- blocking I/O
+- thread-safety assumptions
+- side effects that are not obvious from the signature
+- real misuse risks
 
 ---
 
-## 🔁 Mandatory AI Verification Step
+## Source File Standard
 
-Before returning ANY file, the AI MUST perform a **full checklist validation**.
+Source files are implementation-oriented and should stay concise.
 
-If ANY item is missing:
+Public function implementations in source files should usually use one of these styles:
 
-* The AI MUST continue working
-* The AI MUST NOT return incomplete output
+1. A short implementation summary
+2. A short implementation summary plus a note such as:
+   `See header for full contract documentation.`
+
+Do not repeat full public API contracts in `.c` or `.cpp` files when the header already documents them.
+
+Internal or `static` helper functions in source files must be documented, but briefly.
+
+Include `@param`, `@return`, `@note`, or `@warning` only when they communicate something non-obvious or important, such as:
+
+- internal ownership assumptions
+- blocking behavior
+- thread interaction
+- hidden side effects
+- unsafe usage constraints
+
+Avoid low-value boilerplate, for example:
+
+- obvious consequences already implied by the code
+- generic warnings on every function
+- notes that restate standard C behavior without project relevance
+
+If two versions are both correct, prefer the more concise one.
 
 ---
 
-## ✅ AI Doxygen Checklist (REQUIRED)
+## Main, Test, and Demo Files
+
+These files should remain minimal.
+
+They must include:
+
+- `@file`
+- `@brief`
+- `@ingroup`
+
+Document the file purpose and important side effects when relevant, but do not turn demos into full API references.
+
+---
+
+## Struct Documentation
+
+Public structs should include:
+
+- a short description of purpose
+- ownership or lifetime notes when relevant
+- array size or valid element notes when relevant
+
+Do not invent ownership notes when the code does not imply a meaningful ownership rule.
+
+---
+
+## Function Documentation Rules
+
+All functions should be documented, but the level of detail depends on the file role.
+
+### Public Functions in Headers
+
+Required:
+
+- `@brief`
+- `@param` for each parameter when applicable
+- `@return` if non-void
+
+Optional, when meaningful:
+
+- `@note`
+- `@warning`
+- `@pre`
+- `@post`
+
+### Public Functions in Source Files
+
+Required:
+
+- `@brief`
+
+Optional, only when useful:
+
+- `@param`
+- `@return`
+- `@note`
+- `@warning`
+
+Prefer concise implementation-oriented wording. If the header already contains the contract, do not duplicate it.
+
+### Internal Functions
+
+Required:
+
+- `@brief`
+
+Optional, only when useful:
+
+- `@param`
+- `@return`
+- `@note`
+- `@warning`
+
+---
+
+## Validation Checklist
+
+Before returning a file, verify:
 
 ### File Comments
 
-* [ ] `@file` exists
-* [ ] `@brief` exists
-* [ ] Header: `@defgroup` present
-* [ ] Source: `@ingroup` present
+- `@file` exists
+- `@brief` exists
+- Header files use `@defgroup`
+- Source files use `@ingroup`
 
-### Structs / Typedefs
+### Structs and Types
 
-* [ ] All structs documented
-* [ ] Memory ownership described (`@note`)
-* [ ] Arrays documented (size + valid elements)
+- Public structs are documented
+- Ownership or lifetime is described when relevant
+- Arrays are described when relevant
 
 ### Functions
 
-* [ ] ALL functions documented (no exceptions)
-* [ ] `@param` complete
-* [ ] `@return` present
-* [ ] `@pre` defined
-* [ ] `@post` defined
-* [ ] `@warning` included
-* [ ] `@note` included
+- All functions have at least an appropriate level of documentation
+- Header public APIs contain clear contract documentation
+- Source public APIs stay concise when headers already cover the contract
+- Internal helpers are documented without unnecessary boilerplate
 
-### Comments / Code Safety
+### Safety
 
-* [ ] ALL original comments preserved
-* [ ] NO logic modified
-* [ ] NO initialization changed
-* [ ] NO control flow changed
-* [ ] Debug prints preserved
-* [ ] Commented includes preserved
+- Original comments are preserved
+- Logic is unchanged
+- Initialization is unchanged
+- Control flow is unchanged
+- Debug prints are preserved
+- Commented includes are preserved
 
 ### Suggestions
 
-* [ ] Suggestions use correct format
-* [ ] Suggestions do NOT affect execution
-
-### General
-
-* [ ] Correct template used
-* [ ] Groups (`@defgroup` / `@ingroup`) correct
-* [ ] Documentation is consistent
+- Suggestions use `// Suggestion:`
+- Suggestions do not affect execution
 
 ---
 
-## ❌ Invalid Output Conditions
+## Invalid Output Conditions
 
-The output is INVALID if:
+Output is invalid if:
 
-* Any checklist item is missing
-* Any code was modified
-* Any comment was removed or altered
-* Any required Doxygen tag is missing
-
----
-
-## Purpose
-
-* Enforce **strict consistency**
-* Ensure **safe AI-assisted documentation**
-* Guarantee **reviewable, non-destructive changes**
-* Enable **automated validation of AI output**
+- Code behavior changes
+- Existing comments are removed or altered unnecessarily
+- Required file-level tags are missing
+- Public headers are undocumented
+- Source files are filled with repetitive boilerplate instead of concise implementation docs
 
 ---
 
 ## Summary for AI Agents
 
-You are not allowed to:
-
-* Skip rules
-* Assume completeness
-* Return partial documentation
-
 You are required to:
 
-* Follow ALL rules
-* Validate using checklist
-* Ensure 100% compliance before returning output
+- Preserve code and comments
+- Document headers thoroughly
+- Document source files concisely
+- Use warnings and notes only when they add real value
+- Prefer useful clarity over exhaustive repetition

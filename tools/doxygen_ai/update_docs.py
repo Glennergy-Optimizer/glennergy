@@ -28,6 +28,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 DOCS_DIR = REPO_ROOT / "Docs"
 AI_CONTEXT_PATH = REPO_ROOT / "AI_CONTEXT.md"
 ALLOWED_SUFFIXES = {".c", ".h", ".cpp", ".hpp", ".cc", ".hh"}
+HEADER_SUFFIXES = {".h", ".hpp", ".hh"}
+SOURCE_SUFFIXES = {".c", ".cpp", ".cc"}
 DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.4-mini")
 DEFAULT_MAX_FILES = int(os.getenv("MAX_FILES_PER_RUN", "2"))
 DEFAULT_MAX_CHARS = int(os.getenv("MAX_CHARS_PER_FILE", "18000"))
@@ -120,8 +122,32 @@ def is_entrypoint_or_test(path: Path, text: str) -> bool:
     return lowered.startswith("main.") or "int main(" in text or "int main(void" in text
 
 
-def build_prompt(path: Path, code: str, docs_rules: str, header_template: str, source_template: str, main_template: str, ai_context: str) -> tuple[str, str]:
-    file_kind = "header" if path.suffix.lower() in {".h", ".hpp", ".hh"} else "source"
+def find_paired_file(path: Path) -> Path | None:
+    if path.suffix.lower() in HEADER_SUFFIXES:
+        candidate_suffixes = SOURCE_SUFFIXES
+    elif path.suffix.lower() in SOURCE_SUFFIXES:
+        candidate_suffixes = HEADER_SUFFIXES
+    else:
+        return None
+
+    for suffix in candidate_suffixes:
+        candidate = path.with_suffix(suffix)
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def build_prompt(
+    path: Path,
+    code: str,
+    docs_rules: str,
+    header_template: str,
+    source_template: str,
+    main_template: str,
+    ai_context: str,
+    paired_file_context: str,
+) -> tuple[str, str]:
+    file_kind = "header" if path.suffix.lower() in HEADER_SUFFIXES else "source"
     mode = "update_existing_docs" if has_doxygen(code) else "document_full_file"
     template = header_template if file_kind == "header" else main_template if is_entrypoint_or_test(path, code) else source_template
 
@@ -145,6 +171,9 @@ Mandatory Doxygen rules:
 
 Relevant template:
 {template}
+
+Paired module file context:
+{paired_file_context}
 """
 
     user_prompt = f"""Task mode: {mode}
@@ -344,10 +373,27 @@ def process_files(
     for path in files:
         original = load_text(path)
         rel = path.relative_to(REPO_ROOT).as_posix()
+        paired_file = find_paired_file(path)
+        paired_file_context = "No paired header/source file was found."
 
         if len(original) > max_chars:
             print(f"Skipping {rel}: file exceeds MAX_CHARS_PER_FILE ({len(original)} > {max_chars})")
             continue
+
+        if paired_file is not None:
+            paired_text = load_text(paired_file)
+            paired_rel = paired_file.relative_to(REPO_ROOT).as_posix()
+            if len(paired_text) <= max_chars:
+                paired_file_context = (
+                    f"Use this only as supporting module context. Do not modify it.\n"
+                    f"Paired path: {paired_rel}\n"
+                    f"Paired file contents:\n{paired_text}"
+                )
+            else:
+                paired_file_context = (
+                    f"Paired path: {paired_rel}\n"
+                    f"Paired file exists but was omitted because it exceeds MAX_CHARS_PER_FILE."
+                )
 
         system_prompt, user_prompt = build_prompt(
             path,
@@ -357,6 +403,7 @@ def process_files(
             source_template,
             main_template,
             ai_context,
+            paired_file_context,
         )
 
         print(f"Processing {rel} with model {model}")
