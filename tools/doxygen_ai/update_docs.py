@@ -186,8 +186,15 @@ def build_prompt(
     if file_kind == "source" and not is_entrypoint_or_test(path, code):
         source_file_guidance = """Additional source-file guidance:
 - Keep public function documentation in source files brief when the paired header already documents the public API contract.
-- For public non-static functions in source files, prefer a short implementation-oriented @brief and, when appropriate, a sentence such as: See header for full contract documentation.
-- Do not repeat full @param, @return, @note, @warning, @pre, or @post blocks for public source-file functions unless they describe implementation-specific behavior that is not already documented in the header.
+- For public non-static functions in source files, the default style should be brief-only documentation.
+- Preferred pattern for public non-static functions in source files:
+  /**
+   * @brief Implementation of <function name>.
+   *
+   * See header for full contract documentation.
+   */
+- Do not repeat @param, @return, @note, @warning, @pre, or @post blocks for public source-file functions unless they describe implementation-specific behavior that is not already documented in the header.
+- Repeating header-level public API contract details in source files is undesirable output.
 - Internal or static helper functions may include additional tags, but only when they add meaningful, non-obvious information.
 """
 
