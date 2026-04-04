@@ -144,6 +144,23 @@ def parse_explicit_files(file_paths_raw: str) -> list[Path]:
     return files
 
 
+def expand_module_files(files: list[Path]) -> list[Path]:
+    expanded: list[Path] = []
+    seen: set[Path] = set()
+
+    for path in files:
+        if path not in seen:
+            seen.add(path)
+            expanded.append(path)
+
+        paired_file = find_paired_file(path)
+        if paired_file is not None and paired_file not in seen:
+            seen.add(paired_file)
+            expanded.append(paired_file)
+
+    return expanded
+
+
 def has_doxygen(text: str) -> bool:
     return bool(re.search(r"/\*\*[\s\S]*?@(file|brief|param|return|defgroup|ingroup)\b", text))
 
@@ -544,7 +561,8 @@ def main() -> int:
     explicit_files = args.files.strip()
     if explicit_files:
         files = parse_explicit_files(explicit_files)
-        print(f"Manual file selection enabled for {len(files)} file(s)")
+        files = expand_module_files(files)
+        print(f"Manual file selection enabled for {len(files)} file(s) after module expansion")
     else:
         base, head = resolve_diff_range(args.base, args.head)
         files = changed_files(base, head)
