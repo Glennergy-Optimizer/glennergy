@@ -113,6 +113,36 @@ def changed_files(base: str, head: str) -> list[Path]:
     return files
 
 
+def parse_explicit_files(file_paths_raw: str) -> list[Path]:
+    files: list[Path] = []
+    seen: set[Path] = set()
+
+    for part in file_paths_raw.split(","):
+        raw = part.strip()
+        if not raw:
+            continue
+
+        rel = Path(raw)
+        abs_path = (REPO_ROOT / rel).resolve()
+
+        try:
+            abs_path.relative_to(REPO_ROOT.resolve())
+        except ValueError as exc:
+            raise RuntimeError(f"Explicit file path is outside the repository: {raw}") from exc
+
+        if not abs_path.exists():
+            raise RuntimeError(f"Explicit file path does not exist: {raw}")
+
+        if abs_path.suffix.lower() not in ALLOWED_SUFFIXES:
+            raise RuntimeError(f"Explicit file path has unsupported extension: {raw}")
+
+        if abs_path not in seen:
+            seen.add(abs_path)
+            files.append(abs_path)
+
+    return files
+
+
 def has_doxygen(text: str) -> bool:
     return bool(re.search(r"/\*\*[\s\S]*?@(file|brief|param|return|defgroup|ingroup)\b", text))
 
@@ -472,6 +502,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--base", default=None)
     parser.add_argument("--head", default=None)
+    parser.add_argument("--files", default="")
     parser.add_argument("--max-files", type=int, default=DEFAULT_MAX_FILES)
     parser.add_argument("--max-chars", type=int, default=DEFAULT_MAX_CHARS)
     parser.add_argument("--max-output-tokens", type=int, default=DEFAULT_MAX_OUTPUT_TOKENS)
@@ -481,11 +512,19 @@ def main() -> int:
     parser.add_argument("--usd-to-sek", type=float, default=DEFAULT_USD_TO_SEK)
     args = parser.parse_args()
 
-    base, head = resolve_diff_range(args.base, args.head)
-    files = changed_files(base, head)
+    explicit_files = args.files.strip()
+    if explicit_files:
+        files = parse_explicit_files(explicit_files)
+        print(f"Manual file selection enabled for {len(files)} file(s)")
+    else:
+        base, head = resolve_diff_range(args.base, args.head)
+        files = changed_files(base, head)
 
     if not files:
-        print(f"No changed C/C++ files found in diff {base}..{head}")
+        if explicit_files:
+            print("No valid explicit files were provided")
+        else:
+            print(f"No changed C/C++ files found in diff {base}..{head}")
         return 0
 
     limited_files = files[: args.max_files]

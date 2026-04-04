@@ -5,6 +5,11 @@ on:
     branches:
       - ny-dev
   workflow_dispatch:
+    inputs:
+      file_paths:
+        description: "Optional comma-separated file paths to process manually"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -21,6 +26,7 @@ jobs:
       MAX_CHARS_PER_FILE: "18000"
       OPENAI_MAX_OUTPUT_TOKENS: "12000"
       GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+      MANUAL_FILE_PATHS: ${{ github.event.inputs.file_paths }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -33,7 +39,7 @@ jobs:
           python-version: "3.12"
 
       - name: Update Doxygen comments for changed files
-        run: python tools/doxygen_ai/update_docs.py
+        run: python tools/doxygen_ai/update_docs.py --files "${MANUAL_FILE_PATHS}"
 
       - name: Create draft pull request with documentation updates
         uses: peter-evans/create-pull-request@v7
