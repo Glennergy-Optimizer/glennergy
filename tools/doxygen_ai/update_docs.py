@@ -38,6 +38,7 @@ DEFAULT_MAX_OUTPUT_TOKENS = int(os.getenv("OPENAI_MAX_OUTPUT_TOKENS", "12000"))
 DEFAULT_INPUT_COST_PER_MILLION = float(os.getenv("OPENAI_INPUT_COST_PER_MILLION", "0.25"))
 DEFAULT_OUTPUT_COST_PER_MILLION = float(os.getenv("OPENAI_OUTPUT_COST_PER_MILLION", "2.00"))
 DEFAULT_USD_TO_SEK = float(os.getenv("OPENAI_USD_TO_SEK", "9.19981"))
+DEFAULT_TEST_LABEL = os.getenv("DOXYGEN_AI_TEST_LABEL", "").strip()
 
 
 @dataclass
@@ -444,6 +445,8 @@ def append_github_summary(
     total_usage: Usage,
     total_estimated_cost_usd: float,
     total_estimated_cost_sek: float,
+    requested_model: str,
+    test_label: str,
 ) -> None:
     summary_path = os.getenv("GITHUB_STEP_SUMMARY", "").strip()
     if not summary_path:
@@ -457,6 +460,8 @@ def append_github_summary(
     lines = [
         "## Doxygen AI Summary",
         "",
+        f"- Requested model: {requested_model}",
+        f"- Test label: {test_label or '(none)'}",
         f"- Files considered: {len(file_results)}",
         f"- Files updated: {updated_count}",
         f"- Files unchanged: {no_change_count}",
@@ -647,6 +652,8 @@ def process_files(
         total_usage=total_usage,
         total_estimated_cost_usd=total_estimated_cost,
         total_estimated_cost_sek=total_estimated_cost_sek,
+        requested_model=model,
+        test_label=os.getenv("DOXYGEN_AI_TEST_LABEL", "").strip(),
     )
 
     if rejection_messages:
@@ -666,10 +673,12 @@ def main() -> int:
     parser.add_argument("--max-chars", type=int, default=DEFAULT_MAX_CHARS)
     parser.add_argument("--max-output-tokens", type=int, default=DEFAULT_MAX_OUTPUT_TOKENS)
     parser.add_argument("--model", default=DEFAULT_MODEL)
+    parser.add_argument("--test-label", default=DEFAULT_TEST_LABEL)
     parser.add_argument("--input-cost-per-million", type=float, default=DEFAULT_INPUT_COST_PER_MILLION)
     parser.add_argument("--output-cost-per-million", type=float, default=DEFAULT_OUTPUT_COST_PER_MILLION)
     parser.add_argument("--usd-to-sek", type=float, default=DEFAULT_USD_TO_SEK)
     args = parser.parse_args()
+    os.environ["DOXYGEN_AI_TEST_LABEL"] = args.test_label.strip()
 
     explicit_files = args.files.strip()
     if explicit_files:
