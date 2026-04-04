@@ -1,3 +1,10 @@
+/**
+ * @file Pipes.c
+ * @brief Implementation of binary pipe read and write helpers.
+ *
+ * @ingroup Pipes
+ */
+
 #include "Pipes.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,6 +13,14 @@
 #include <errno.h>
 // Todo - nothing =(
 
+/**
+ * @brief Read up to the requested number of bytes from a file descriptor.
+ *
+ * Continues until the buffer is filled, end-of-file is reached, or a
+ * non-blocking read returns `EAGAIN`.
+ *
+ * See header for full contract documentation.
+ */
 ssize_t Pipes_ReadBinary(int _Fd, void *_Buf, size_t _Size)
 {
     size_t total = 0;
@@ -40,6 +55,14 @@ ssize_t Pipes_ReadBinary(int _Fd, void *_Buf, size_t _Size)
     return total;
 }
 
+/**
+ * @brief Write up to the requested number of bytes to a file descriptor.
+ *
+ * Continues until the buffer is fully written or a non-blocking write returns
+ * `EAGAIN`.
+ *
+ * See header for full contract documentation.
+ */
 ssize_t Pipes_WriteBinary(int _Fd, void *_Buf, size_t _Size)
 {
     ssize_t bytesWritten = 0;
