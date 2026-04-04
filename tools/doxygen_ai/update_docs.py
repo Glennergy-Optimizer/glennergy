@@ -27,6 +27,7 @@ from typing import Iterable
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DOCS_DIR = REPO_ROOT / "Docs"
 AI_CONTEXT_PATH = REPO_ROOT / "AI_CONTEXT.md"
+REJECTED_OUTPUT_DIR = REPO_ROOT / "tools" / "doxygen_ai" / "rejected"
 ALLOWED_SUFFIXES = {".c", ".h", ".cpp", ".hpp", ".cc", ".hh"}
 HEADER_SUFFIXES = {".h", ".hpp", ".hh"}
 SOURCE_SUFFIXES = {".c", ".cpp", ".cc"}
@@ -180,6 +181,15 @@ def build_prompt(
     file_kind = "header" if path.suffix.lower() in HEADER_SUFFIXES else "source"
     mode = "update_existing_docs" if has_doxygen(code) else "document_full_file"
     template = header_template if file_kind == "header" else main_template if is_entrypoint_or_test(path, code) else source_template
+    source_file_guidance = ""
+
+    if file_kind == "source" and not is_entrypoint_or_test(path, code):
+        source_file_guidance = """Additional source-file guidance:
+- Keep public function documentation in source files brief when the paired header already documents the public API contract.
+- For public non-static functions in source files, prefer a short implementation-oriented @brief and, when appropriate, a sentence such as: See header for full contract documentation.
+- Do not repeat full @param, @return, @note, @warning, @pre, or @post blocks for public source-file functions unless they describe implementation-specific behavior that is not already documented in the header.
+- Internal or static helper functions may include additional tags, but only when they add meaningful, non-obvious information.
+"""
 
     system_prompt = f"""You are a documentation-only refactoring assistant for a C/C++ repository.
 
@@ -204,6 +214,8 @@ Relevant template:
 
 Paired module file context:
 {paired_file_context}
+
+{source_file_guidance}
 """
 
     user_prompt = f"""Task mode: {mode}
@@ -382,6 +394,14 @@ def write_file(path: Path, text: str) -> None:
     path.write_text(normalized, encoding="utf-8", newline="\n")
 
 
+def write_rejected_output(path: Path, text: str) -> Path:
+    REJECTED_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    relative_name = path.relative_to(REPO_ROOT).as_posix().replace("/", "__")
+    output_path = REJECTED_OUTPUT_DIR / f"{relative_name}.rejected.txt"
+    output_path.write_text(text if text.endswith("\n") else f"{text}\n", encoding="utf-8", newline="\n")
+    return output_path
+
+
 def process_files(
     files: Iterable[Path],
     model: str,
@@ -458,8 +478,10 @@ def process_files(
             continue
 
         if code_changed(original, updated):
+            rejected_path = write_rejected_output(path, updated)
             raise RuntimeError(
                 f"Rejected model output for {rel}: non-comment code changed. "
+                f"Saved rejected output to {rejected_path.relative_to(REPO_ROOT).as_posix()}. "
                 "The prompt or model behavior needs review."
             )
 
