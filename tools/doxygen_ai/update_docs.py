@@ -180,6 +180,15 @@ def build_prompt(
     file_kind = "header" if path.suffix.lower() in HEADER_SUFFIXES else "source"
     mode = "update_existing_docs" if has_doxygen(code) else "document_full_file"
     template = header_template if file_kind == "header" else main_template if is_entrypoint_or_test(path, code) else source_template
+    source_file_guidance = ""
+
+    if file_kind == "source" and not is_entrypoint_or_test(path, code):
+        source_file_guidance = """Additional source-file guidance:
+- Keep public function documentation in source files brief when the paired header already documents the public API contract.
+- For public non-static functions in source files, prefer a short implementation-oriented @brief and, when appropriate, a sentence such as: See header for full contract documentation.
+- Do not repeat full @param, @return, @note, @warning, @pre, or @post blocks for public source-file functions unless they describe implementation-specific behavior that is not already documented in the header.
+- Internal or static helper functions may include additional tags, but only when they add meaningful, non-obvious information.
+"""
 
     system_prompt = f"""You are a documentation-only refactoring assistant for a C/C++ repository.
 
@@ -204,6 +213,8 @@ Relevant template:
 
 Paired module file context:
 {paired_file_context}
+
+{source_file_guidance}
 """
 
     user_prompt = f"""Task mode: {mode}
