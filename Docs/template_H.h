@@ -5,17 +5,18 @@
 
 /**
  * @file Template.h
- * @brief Public API for the <MODULENAME> module.
+ * @brief Public API template for a module.
  *
- * Provides the public types and functions for <short module purpose>.
+ * This file demonstrates the repository's header documentation standard for
+ * public types and functions.
  */
 
 /**
- * @defgroup <MODULENAME> <MODULENAME>
- * @brief <Short module description>
+ * @defgroup TEMPLATE TEMPLATE
+ * @brief Template documentation group.
  *
- * <Longer description of what the module manages, key dependencies, and
- * important limitations if needed.>
+ * Example group for documenting a module's public API, including its types,
+ * functions, and any relevant ownership or lifecycle constraints.
  *
  * @note Add notes only when they communicate meaningful ownership, blocking,
  * thread, or lifecycle behavior.
@@ -23,7 +24,7 @@
  */
 
 /**
- * @brief Example struct representing <what the struct models>.
+ * @brief Example struct representing a simple data record.
  *
  * @note Describe ownership or lifetime only when it matters.
  */
