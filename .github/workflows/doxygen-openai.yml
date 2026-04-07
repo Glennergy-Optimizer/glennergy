@@ -14,6 +14,10 @@ on:
         description: "OpenAI model to use for this run"
         required: false
         default: "gpt-5.4-mini"
+      rerun_mode:
+        description: "Process all selected files or only remaining rejected/deferred files"
+        required: false
+        default: "all"
       test_label:
         description: "Optional free-text label for comparing runs"
         required: false
@@ -26,6 +30,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: read
 
 jobs:
   update-doxygen:
@@ -34,27 +39,112 @@ jobs:
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       OPENAI_MODEL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.model || 'gpt-5.4-mini' }}
-      MAX_FILES_PER_RUN: "2"
+      MAX_FILES_PER_RUN: "10"
       MAX_CHARS_PER_FILE: "18000"
-      OPENAI_MAX_OUTPUT_TOKENS: "12000"
+      OPENAI_MAX_OUTPUT_TOKENS: "50000"
       GITHUB_EVENT_BEFORE: ${{ github.event.before }}
       TARGET_REF: ${{ github.event.inputs.target_ref }}
+      RERUN_MODE: ${{ github.event.inputs.rerun_mode }}
       TEST_LABEL: ${{ github.event.inputs.test_label }}
       MANUAL_FILE_PATHS: ${{ github.event.inputs.file_paths }}
+      MANIFEST_PATH: tools/doxygen_ai/state/run_manifest.json
     steps:
+      - name: Derive PR metadata
+        run: |
+          if [ -n "${TEST_LABEL}" ]; then
+            SAFE_LABEL=$(printf '%s' "${TEST_LABEL}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g' | sed 's/-\{2,\}/-/g' | sed 's/^-//' | sed 's/-$//')
+            if [ -z "${SAFE_LABEL}" ]; then
+              SAFE_LABEL="test-${GITHUB_RUN_ID}"
+            fi
+            echo "PR_BRANCH=docs/doxygen-ai-${SAFE_LABEL}" >> "$GITHUB_ENV"
+            echo "PR_TITLE=docs: AI Doxygen updates [${TEST_LABEL}]" >> "$GITHUB_ENV"
+            echo "PR_KEY=${SAFE_LABEL}" >> "$GITHUB_ENV"
+          else
+            echo "PR_BRANCH=docs/doxygen-ai" >> "$GITHUB_ENV"
+            echo "PR_TITLE=docs: AI Doxygen updates" >> "$GITHUB_ENV"
+            echo "PR_KEY=default" >> "$GITHUB_ENV"
+          fi
+
       - name: Check out repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target_ref || github.ref }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.rerun_mode == 'remaining_only' && env.PR_BRANCH || github.event_name == 'workflow_dispatch' && github.event.inputs.target_ref || github.ref }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
+      - name: Download latest manifest for remaining-only rerun
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.rerun_mode == 'remaining_only'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          MANIFEST_ARTIFACT_NAME: doxygen-ai-manifest-${{ env.PR_KEY }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import pathlib
+          import urllib.request
+          import zipfile
+
+          token = os.environ["GH_TOKEN"]
+          repository = os.environ["REPOSITORY"]
+          artifact_name = os.environ["MANIFEST_ARTIFACT_NAME"]
+          manifest_path = pathlib.Path(os.environ["MANIFEST_PATH"])
+          api_url = f"https://api.github.com/repos/{repository}/actions/artifacts?per_page=100"
+
+          request = urllib.request.Request(
+              api_url,
+              headers={
+                  "Authorization": f"Bearer {token}",
+                  "Accept": "application/vnd.github+json",
+              },
+          )
+
+          with urllib.request.urlopen(request, timeout=60) as response:
+              payload = json.loads(response.read().decode("utf-8"))
+
+          artifacts = [
+              artifact for artifact in payload.get("artifacts", [])
+              if artifact.get("name") == artifact_name and not artifact.get("expired", False)
+          ]
+
+          if not artifacts:
+              raise SystemExit(f"No manifest artifact found for {artifact_name}")
+
+          artifacts.sort(key=lambda item: item.get("created_at", ""), reverse=True)
+          download_url = artifacts[0]["archive_download_url"]
+          download_request = urllib.request.Request(
+              download_url,
+              headers={
+                  "Authorization": f"Bearer {token}",
+                  "Accept": "application/vnd.github+json",
+              },
+          )
+
+          zip_path = manifest_path.parent / "manifest_artifact.zip"
+          manifest_path.parent.mkdir(parents=True, exist_ok=True)
+
+          with urllib.request.urlopen(download_request, timeout=60) as response:
+              zip_path.write_bytes(response.read())
+
+          with zipfile.ZipFile(zip_path, "r") as archive:
+              archive.extractall(manifest_path.parent)
+
+          zip_path.unlink(missing_ok=True)
+          print(f"Downloaded manifest artifact to {manifest_path}")
+          PY
+
       - name: Update Doxygen comments for changed files
-        run: python tools/doxygen_ai/update_docs.py --files "${MANUAL_FILE_PATHS}" --model "${OPENAI_MODEL}" --test-label "${TEST_LABEL}"
+        run: |
+          if [ "${RERUN_MODE}" = "remaining_only" ]; then
+            python tools/doxygen_ai/update_docs.py --remaining-only --manifest "${MANIFEST_PATH}" --model "${OPENAI_MODEL}" --test-label "${TEST_LABEL}"
+          else
+            python tools/doxygen_ai/update_docs.py --files "${MANUAL_FILE_PATHS}" --manifest "${MANIFEST_PATH}" --model "${OPENAI_MODEL}" --test-label "${TEST_LABEL}"
+          fi
 
       - name: Upload rejected outputs
         if: always()
@@ -64,19 +154,29 @@ jobs:
           path: tools/doxygen_ai/rejected
           if-no-files-found: ignore
 
+      - name: Upload run manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: doxygen-ai-manifest-${{ env.PR_KEY }}
+          path: ${{ env.MANIFEST_PATH }}
+          if-no-files-found: error
+
       - name: Create draft pull request with documentation updates
+        if: always()
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "docs: update doxygen comments"
-          branch: "docs/doxygen-ai"
+          branch: ${{ env.PR_BRANCH }}
           delete-branch: true
-          title: "docs: AI Doxygen updates${{ github.event.inputs.test_label != '' && format(' [{0}]', github.event.inputs.test_label) || '' }}"
+          title: ${{ env.PR_TITLE }}
           body: |
             This draft PR contains automated Doxygen documentation updates generated for changed files.
 
             Requested model: `${{ env.OPENAI_MODEL }}`
             Test label: `${{ env.TEST_LABEL }}`
+            Rerun mode: `${{ env.RERUN_MODE }}`
             Target ref: `${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target_ref || github.ref_name }}`
 
             Please review carefully before merging:

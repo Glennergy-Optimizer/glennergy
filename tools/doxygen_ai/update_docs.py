@@ -28,6 +28,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 DOCS_DIR = REPO_ROOT / "Docs"
 AI_CONTEXT_PATH = REPO_ROOT / "AI_CONTEXT.md"
 REJECTED_OUTPUT_DIR = REPO_ROOT / "tools" / "doxygen_ai" / "rejected"
+STATE_DIR = REPO_ROOT / "tools" / "doxygen_ai" / "state"
+DEFAULT_MANIFEST_PATH = STATE_DIR / "run_manifest.json"
 ALLOWED_SUFFIXES = {".c", ".h", ".cpp", ".hpp", ".cc", ".hh"}
 HEADER_SUFFIXES = {".h", ".hpp", ".hh"}
 SOURCE_SUFFIXES = {".c", ".cpp", ".cc"}
@@ -234,6 +236,8 @@ def build_prompt(
 You must obey these rules:
 - Only add or update Doxygen comments and normal comments.
 - Do not change code logic, control flow, initialization, signatures, includes, ordering, or formatting unless required to insert comments.
+- Do not change string literals, identifiers, macro names, enum values, struct field names, function names, JSON keys, URLs, constants, or any other code tokens.
+- Treat all existing code tokens as immutable, including case-sensitive text inside string literals.
 - Preserve all existing comments, TODOs, debug prints, commented-out code, and commented-out includes.
 - Return the full updated file content only.
 - Do not wrap the result in Markdown fences.
@@ -488,6 +492,58 @@ def append_github_summary(
         handle.write("\n".join(lines) + "\n")
 
 
+def write_manifest(
+    manifest_path: Path,
+    requested_model: str,
+    test_label: str,
+    file_results: list[FileResult],
+) -> None:
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "requested_model": requested_model,
+        "test_label": test_label,
+        "files": [
+            {
+                "path": result.path,
+                "status": result.status,
+                "model": result.model,
+                "input_tokens": result.input_tokens,
+                "output_tokens": result.output_tokens,
+                "total_tokens": result.total_tokens,
+                "estimated_cost_usd": result.estimated_cost_usd,
+                "estimated_cost_sek": result.estimated_cost_sek,
+                "details": result.details,
+            }
+            for result in file_results
+        ],
+    }
+    manifest_path.write_text(json.dumps(payload, indent=2), encoding="utf-8", newline="\n")
+
+
+def load_remaining_files_from_manifest(manifest_path: Path) -> list[Path]:
+    if not manifest_path.exists():
+        raise RuntimeError(f"Manifest file does not exist: {manifest_path}")
+
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    files: list[Path] = []
+    seen: set[Path] = set()
+
+    for entry in payload.get("files", []):
+        status = str(entry.get("status") or "")
+        if status not in {"rejected", "deferred"}:
+            continue
+
+        rel = Path(str(entry.get("path") or "")).as_posix()
+        abs_path = (REPO_ROOT / rel).resolve()
+        if not abs_path.exists():
+            continue
+        if abs_path not in seen:
+            seen.add(abs_path)
+            files.append(abs_path)
+
+    return files
+
+
 def process_files(
     files: Iterable[Path],
     model: str,
@@ -496,6 +552,8 @@ def process_files(
     input_cost_per_million: float,
     output_cost_per_million: float,
     usd_to_sek: float,
+    deferred_files: list[Path],
+    manifest_path: Path,
 ) -> int:
     docs_rules = load_text(DOCS_DIR / "README_Doxygen.md")
     header_template = load_text(DOCS_DIR / "template_H.h")
@@ -507,6 +565,16 @@ def process_files(
     changed_count = 0
     file_results: list[FileResult] = []
     rejection_messages: list[str] = []
+
+    for path in deferred_files:
+        rel = path.relative_to(REPO_ROOT).as_posix()
+        file_results.append(
+            FileResult(
+                path=rel,
+                status="deferred",
+                details="Deferred by MAX_FILES_PER_RUN",
+            )
+        )
 
     for path in files:
         original = load_text(path)
@@ -655,6 +723,12 @@ def process_files(
         requested_model=model,
         test_label=os.getenv("DOXYGEN_AI_TEST_LABEL", "").strip(),
     )
+    write_manifest(
+        manifest_path=manifest_path,
+        requested_model=model,
+        test_label=os.getenv("DOXYGEN_AI_TEST_LABEL", "").strip(),
+        file_results=file_results,
+    )
 
     if rejection_messages:
         raise RuntimeError(
@@ -669,6 +743,8 @@ def main() -> int:
     parser.add_argument("--base", default=None)
     parser.add_argument("--head", default=None)
     parser.add_argument("--files", default="")
+    parser.add_argument("--manifest", default=str(DEFAULT_MANIFEST_PATH))
+    parser.add_argument("--remaining-only", action="store_true")
     parser.add_argument("--max-files", type=int, default=DEFAULT_MAX_FILES)
     parser.add_argument("--max-chars", type=int, default=DEFAULT_MAX_CHARS)
     parser.add_argument("--max-output-tokens", type=int, default=DEFAULT_MAX_OUTPUT_TOKENS)
@@ -679,24 +755,37 @@ def main() -> int:
     parser.add_argument("--usd-to-sek", type=float, default=DEFAULT_USD_TO_SEK)
     args = parser.parse_args()
     os.environ["DOXYGEN_AI_TEST_LABEL"] = args.test_label.strip()
+    manifest_path = Path(args.manifest).resolve()
+
+    if args.remaining_only:
+        files = load_remaining_files_from_manifest(manifest_path)
+        print(f"Remaining-only mode enabled for {len(files)} file(s)")
+    else:
+        explicit_files = args.files.strip()
+        if explicit_files:
+            files = parse_explicit_files(explicit_files)
+            files = expand_module_files(files)
+            print(f"Manual file selection enabled for {len(files)} file(s) after module expansion")
+        else:
+            base, head = resolve_diff_range(args.base, args.head)
+            files = changed_files(base, head)
 
     explicit_files = args.files.strip()
-    if explicit_files:
-        files = parse_explicit_files(explicit_files)
-        files = expand_module_files(files)
-        print(f"Manual file selection enabled for {len(files)} file(s) after module expansion")
-    else:
+    if not args.remaining_only and not explicit_files:
         base, head = resolve_diff_range(args.base, args.head)
         files = changed_files(base, head)
 
     if not files:
-        if explicit_files:
+        if args.remaining_only:
+            print("No rejected or deferred files found in the manifest")
+        elif explicit_files:
             print("No valid explicit files were provided")
         else:
             print(f"No changed C/C++ files found in diff {base}..{head}")
         return 0
 
     limited_files = files[: args.max_files]
+    deferred_files = files[args.max_files :]
     if len(files) > args.max_files:
         print(f"Limiting run to first {args.max_files} files out of {len(files)} changed files")
 
@@ -708,6 +797,8 @@ def main() -> int:
         input_cost_per_million=args.input_cost_per_million,
         output_cost_per_million=args.output_cost_per_million,
         usd_to_sek=args.usd_to_sek,
+        deferred_files=deferred_files,
+        manifest_path=manifest_path,
     )
     return 0 if changed_count >= 0 else 1
 
