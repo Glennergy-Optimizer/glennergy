@@ -20,6 +20,7 @@ import sys
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
+from difflib import unified_diff
 from pathlib import Path
 from typing import Iterable
 
@@ -238,6 +239,7 @@ You must obey these rules:
 - Do not change code logic, control flow, initialization, signatures, includes, ordering, or formatting unless required to insert comments.
 - Do not change string literals, identifiers, macro names, enum values, struct field names, function names, JSON keys, URLs, constants, or any other code tokens.
 - Treat all existing code tokens as immutable, including case-sensitive text inside string literals.
+- External/API-facing strings are especially sensitive. Copy JSON keys, URLs, protocol strings, log format strings, and other string literals byte-for-byte.
 - Preserve all existing comments, TODOs, debug prints, commented-out code, and commented-out includes.
 - Return the full updated file content only.
 - Do not wrap the result in Markdown fences.
@@ -387,6 +389,23 @@ def code_changed(original: str, updated: str) -> bool:
     return normalize_code_without_comments(original) != normalize_code_without_comments(updated)
 
 
+def code_diff_excerpt(original: str, updated: str, max_lines: int = 12) -> str:
+    original_lines = normalize_code_without_comments(original).splitlines()
+    updated_lines = normalize_code_without_comments(updated).splitlines()
+    diff_lines = list(
+        unified_diff(
+            original_lines,
+            updated_lines,
+            fromfile="original",
+            tofile="updated",
+            lineterm="",
+        )
+    )
+    if not diff_lines:
+        return "No normalized code diff available."
+    return "\n".join(diff_lines[:max_lines])
+
+
 def call_openai(system_prompt: str, user_prompt: str, model: str, max_output_tokens: int) -> OpenAIResult:
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
@@ -429,6 +448,38 @@ def call_openai(system_prompt: str, user_prompt: str, model: str, max_output_tok
     )
     actual_model = str(data.get("model") or model)
     return OpenAIResult(text=text, usage=usage, model=actual_model)
+
+
+def call_openai_with_retry(
+    system_prompt: str,
+    user_prompt: str,
+    model: str,
+    max_output_tokens: int,
+    original: str,
+) -> tuple[OpenAIResult, bool]:
+    first_result = call_openai(system_prompt, user_prompt, model, max_output_tokens)
+    if not code_changed(original, first_result.text):
+        return first_result, False
+
+    diff_excerpt = code_diff_excerpt(original, first_result.text)
+    retry_user_prompt = f"""{user_prompt}
+
+Previous attempt was rejected because non-comment code changed.
+
+You must regenerate the file with comments/documentation changes only.
+Do not alter any code tokens, including:
+- string literals
+- JSON keys
+- identifiers
+- constants
+- URLs
+- macro names
+
+Normalized code diff excerpt from the rejected attempt:
+{diff_excerpt}
+"""
+    retry_result = call_openai(system_prompt, retry_user_prompt, model, max_output_tokens)
+    return retry_result, True
 
 
 def write_file(path: Path, text: str) -> None:
@@ -615,7 +666,13 @@ def process_files(
 
         print(f"Processing {rel} with model {model}")
         try:
-            result = call_openai(system_prompt, user_prompt, model, max_output_tokens)
+            result, retried = call_openai_with_retry(
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                model=model,
+                max_output_tokens=max_output_tokens,
+                original=original,
+            )
         except urllib.error.HTTPError as exc:
             body = exc.read().decode("utf-8", errors="replace")
             file_results.append(FileResult(path=rel, status="rejected", details=f"HTTP {exc.code}"))
@@ -643,7 +700,7 @@ def process_files(
 
         if code_changed(original, updated):
             rejected_path = write_rejected_output(path, updated)
-            details = f"Non-comment code changed; saved to {rejected_path.relative_to(REPO_ROOT).as_posix()}"
+            details = f"Non-comment code changed after retry={retried}; saved to {rejected_path.relative_to(REPO_ROOT).as_posix()}"
             file_results.append(
                 FileResult(
                     path=rel,
@@ -696,7 +753,7 @@ def process_files(
         print(
             f"Updated {rel} "
             f"(model={actual_model}, input_tokens={usage.input_tokens}, output_tokens={usage.output_tokens}, "
-            f"total_tokens={usage.total_tokens}, estimated_cost_usd=${estimated_cost:.6f}, "
+            f"total_tokens={usage.total_tokens}, retried={retried}, estimated_cost_usd=${estimated_cost:.6f}, "
             f"estimated_cost_sek={estimated_cost_sek:.6f} kr)"
         )
 
