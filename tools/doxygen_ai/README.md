@@ -34,6 +34,15 @@ Add this repository secret before enabling the workflow:
 3. Review the generated comments carefully.
 4. Tune prompts and limits before enabling more files or more branches.
 
+## Rerunning failed files
+
+Use the GitHub `Run workflow` form with:
+
+- `rerun_mode = all` for a normal run
+- `rerun_mode = remaining_only` to retry only previously rejected or deferred files
+
+Do not use GitHub's built-in `Re-run failed jobs` button for this purpose. That reruns the original job configuration and does not trigger the workflow's custom `remaining_only` logic.
+
 ## Useful local test command
 
 From the repository root:
