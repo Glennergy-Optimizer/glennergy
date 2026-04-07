@@ -15,15 +15,15 @@ on:
         required: false
         default: "gpt-5.4-mini"
       rerun_mode:
-        description: "Process all selected files or only remaining rejected/deferred files"
+        description: "Use 'all' to process selected file_paths, or 'remaining_only' to rerun previously rejected/deferred files"
         required: false
         default: "all"
       test_label:
-        description: "Optional free-text label for comparing runs"
+        description: "Optional label for comparing runs. Reuse the same label when rerunning 'remaining_only' for a labeled run"
         required: false
         default: ""
       file_paths:
-        description: "Optional comma-separated file paths to process manually"
+        description: "Comma-separated file paths for 'all' mode. Leave empty in 'remaining_only' mode"
         required: false
         default: ""
 
@@ -69,7 +69,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.rerun_mode == 'remaining_only' && env.PR_BRANCH || github.event_name == 'workflow_dispatch' && github.event.inputs.target_ref || github.ref }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target_ref || github.ref }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -138,6 +138,23 @@ jobs:
           print(f"Downloaded manifest artifact to {manifest_path}")
           PY
 
+      - name: Restore successful files from existing PR branch
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.rerun_mode == 'remaining_only'
+        run: |
+          if git ls-remote --exit-code --heads origin "${PR_BRANCH}" >/dev/null 2>&1; then
+            git fetch origin "${PR_BRANCH}"
+            mapfile -t RESTORE_FILES < <(git diff --name-only "origin/${TARGET_REF}" "origin/${PR_BRANCH}" -- . ':(exclude).github/workflows/*' ':(exclude)tools/doxygen_ai/*')
+
+            if [ "${#RESTORE_FILES[@]}" -gt 0 ]; then
+              git checkout "origin/${PR_BRANCH}" -- "${RESTORE_FILES[@]}"
+              echo "Restored ${#RESTORE_FILES[@]} file(s) from ${PR_BRANCH}"
+            else
+              echo "No prior documentation files to restore from ${PR_BRANCH}"
+            fi
+          else
+            echo "No existing remote PR branch found for ${PR_BRANCH}; continuing without restore"
+          fi
+
       - name: Update Doxygen comments for changed files
         run: |
           if [ "${RERUN_MODE}" = "remaining_only" ]; then
@@ -160,7 +177,7 @@ jobs:
         with:
           name: doxygen-ai-manifest-${{ env.PR_KEY }}
           path: ${{ env.MANIFEST_PATH }}
-          if-no-files-found: error
+          if-no-files-found: ignore
 
       - name: Create draft pull request with documentation updates
         if: always()
