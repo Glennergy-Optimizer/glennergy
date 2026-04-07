@@ -160,7 +160,7 @@ jobs:
         with:
           name: doxygen-ai-manifest-${{ env.PR_KEY }}
           path: ${{ env.MANIFEST_PATH }}
-          if-no-files-found: error
+          if-no-files-found: ignore
 
       - name: Create draft pull request with documentation updates
         if: always()
