@@ -2,8 +2,10 @@
  * @file Spotpris.h
  * @brief Public API for the Spotpris module.
  *
- * Provides data structures and functions for fetching and handling
- * electricity spot prices from an external API.
+ * Provides data structures and functions for fetching, storing, and
+ * optionally printing electricity spot prices from an external API.
+ *
+ * @ingroup SPOTPRIS
  */
 
 #ifndef SPOTPRIS_H
