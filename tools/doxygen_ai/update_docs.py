@@ -234,6 +234,8 @@ def build_prompt(
 You must obey these rules:
 - Only add or update Doxygen comments and normal comments.
 - Do not change code logic, control flow, initialization, signatures, includes, ordering, or formatting unless required to insert comments.
+- Do not change string literals, identifiers, macro names, enum values, struct field names, function names, JSON keys, URLs, constants, or any other code tokens.
+- Treat all existing code tokens as immutable, including case-sensitive text inside string literals.
 - Preserve all existing comments, TODOs, debug prints, commented-out code, and commented-out includes.
 - Return the full updated file content only.
 - Do not wrap the result in Markdown fences.
