@@ -15,15 +15,15 @@ on:
         required: false
         default: "gpt-5.4-mini"
       rerun_mode:
-        description: "Process all selected files or only remaining rejected/deferred files"
+        description: "Use 'all' to process selected file_paths, or 'remaining_only' to rerun previously rejected/deferred files"
         required: false
         default: "all"
       test_label:
-        description: "Optional free-text label for comparing runs"
+        description: "Optional label for comparing runs. Reuse the same label when rerunning 'remaining_only' for a labeled run"
         required: false
         default: ""
       file_paths:
-        description: "Optional comma-separated file paths to process manually"
+        description: "Comma-separated file paths for 'all' mode. Leave empty in 'remaining_only' mode"
         required: false
         default: ""
 
