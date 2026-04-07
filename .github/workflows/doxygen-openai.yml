@@ -34,9 +34,9 @@ jobs:
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       OPENAI_MODEL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.model || 'gpt-5.4-mini' }}
-      MAX_FILES_PER_RUN: "2"
+      MAX_FILES_PER_RUN: "10"
       MAX_CHARS_PER_FILE: "18000"
-      OPENAI_MAX_OUTPUT_TOKENS: "12000"
+      OPENAI_MAX_OUTPUT_TOKENS: "50000"
       GITHUB_EVENT_BEFORE: ${{ github.event.before }}
       TARGET_REF: ${{ github.event.inputs.target_ref }}
       TEST_LABEL: ${{ github.event.inputs.test_label }}
