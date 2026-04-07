@@ -4,6 +4,8 @@
  *
  * Provides data structures and functions for fetching and handling
  * electricity spot prices from an external API.
+ *
+ * @ingroup SPOTPRIS
  */
 
 #ifndef SPOTPRIS_H
