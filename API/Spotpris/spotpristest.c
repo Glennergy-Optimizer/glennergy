@@ -55,6 +55,19 @@
 #define FIFO_SPOTPRIS_WRITE "/tmp/fifo_spotpris"
 
 /**
+ * @file spotpristest.c
+ * @brief Test entry point for the Spotpris module.
+ *
+ * @ingroup SPOTPRIS
+ *
+ * Initializes logging, fetches spot prices, and writes the resulting
+ * structure to the configured FIFO for integration with the consumer.
+ *
+ * @note Performs network I/O and blocking FIFO I/O.
+ * @warning The FIFO open call blocks until a reader connects.
+ */
+
+/**
  * @brief Program entry point.
  *
  * Coordinates initialization, data fetching, and IPC pipeline.
