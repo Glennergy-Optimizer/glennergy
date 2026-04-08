@@ -27,6 +27,49 @@ This document explains the current GitHub setup and where to look for the active
 - generated output is rejected if non-comment code changed
 - rejected outputs and run manifests are saved as artifacts
 
+## How The Workflow Runs
+
+At a high level:
+
+1. GitHub shows the workflow UI from the default branch, usually `main`
+2. The run checks out the selected `target_ref`, usually `ny-dev`
+3. The script selects changed files or manually specified files
+4. Matching header/source pairs are added automatically when names match
+5. The script loads the active documentation standard and templates
+6. The selected model generates full-file documentation updates
+7. Output is rejected if non-comment code changed
+8. Successful files are written to the workflow branch and summarized in GitHub Actions
+9. Rejected outputs and manifests are uploaded as artifacts for troubleshooting or reruns
+
+## Manual Run Examples
+
+### Normal run
+
+Use:
+
+- `target_ref = ny-dev`
+- `model = gpt-5.4-mini` or another allowed model
+- `rerun_mode = all`
+- `file_paths = API/Spotpris/Spotpris.h, API/Spotpris/Spotpris.c, API/Spotpris/spotpristest.c`
+
+This processes the selected files and creates or updates the draft PR branch with successful results.
+
+### Rerun only remaining files
+
+Use this after an earlier run where one or more files were rejected or deferred.
+
+Use:
+
+- same `target_ref`
+- same `model` unless you intentionally want to compare models
+- same `test_label` if you used one earlier
+- `rerun_mode = remaining_only`
+- leave `file_paths` empty
+
+This tells the workflow to restore earlier successful files and process only the remaining rejected or deferred files.
+
+Do not use GitHub's built-in `Re-run failed jobs` button for this purpose. That repeats the old job and does not trigger the workflow's custom remaining-only logic.
+
 ## Recommended Usage
 
 - use [`tools/doxygen_ai/README.md`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/tools/doxygen_ai/README.md) for day-to-day workflow usage
