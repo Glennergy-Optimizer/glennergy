@@ -274,6 +274,8 @@ Before finalizing internally, validate that:
 - every required file/function/struct tag is present
 - the documentation matches the repository rules
 - the documentation style matches the target style examples, including reducing unnecessary boilerplate where appropriate
+- simple debug/print helper declarations in headers remain lightweight unless extra tags add real value
+- struct field comments stay short by default unless a field is subtle or safety-critical
 - code behavior is unchanged
 
 Return only the full updated file.

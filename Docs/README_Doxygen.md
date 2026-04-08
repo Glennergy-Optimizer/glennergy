@@ -130,6 +130,15 @@ Typical reasons to include `@note`, `@warning`, `@pre`, or `@post`:
 - side effects that are not obvious from the signature
 - real misuse risks
 
+Simple debug, print, dump, or trace helper declarations in headers should usually stay lightweight.
+
+For these functions, prefer:
+
+- `@brief`
+- `@param` when applicable
+
+Do not add `@pre`, `@post`, `@warning`, or `@note` to simple debug helpers unless they communicate something non-obvious or important.
+
 ---
 
 ## Source File Standard
@@ -187,6 +196,7 @@ Public structs should include:
 - array size or valid element notes when relevant
 
 Do not invent ownership notes when the code does not imply a meaningful ownership rule.
+Keep individual field comments short by default. Prefer putting the main explanation at the struct level and using concise field comments unless a field is subtle, safety-critical, or easy to misuse.
 
 ---
 
