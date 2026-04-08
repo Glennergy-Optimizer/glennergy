@@ -241,7 +241,9 @@ You must obey these rules:
 - Treat all existing code tokens as immutable, including case-sensitive text inside string literals.
 - External/API-facing strings are especially sensitive. Copy JSON keys, URLs, protocol strings, log format strings, and other string literals byte-for-byte.
 - Never change string arguments passed to parser, lookup, formatting, or protocol functions such as `json_object_get(...)`, `json_string_value(...)`, `snprintf(...)`, logging calls, or similar APIs. These values must remain byte-for-byte identical.
-- Preserve all existing comments, TODOs, debug prints, commented-out code, and commented-out includes.
+- Preserve TODOs, debug prints, commented-out code, commented-out includes, and ordinary developer comments.
+- Existing Doxygen comments may be rewritten, simplified, merged, or trimmed as needed to match the repository standard.
+- Do not remove or rewrite ordinary non-Doxygen comments unless needed to place equivalent documentation directly above the documented item.
 - Return the full updated file content only.
 - Do not wrap the result in Markdown fences.
 - All Doxygen text must be in English.
@@ -267,12 +269,18 @@ Paired module file context:
 Path: {path.relative_to(REPO_ROOT).as_posix()}
 
 Interpret the task mode as follows:
-- update_existing_docs: bring the file's documentation up to the repository standard, while preserving existing comments and code.
+- update_existing_docs: bring the file's documentation up to the repository standard, while preserving existing comments and code. This includes simplifying or trimming existing documentation when it is more verbose than the repository's target style examples.
 - document_full_file: add complete repository-standard Doxygen coverage for the file, while preserving existing comments and code.
 
 Before finalizing internally, validate that:
 - every required file/function/struct tag is present
 - the documentation matches the repository rules
+- the documentation style matches the target style examples, including reducing unnecessary boilerplate where appropriate
+- simple debug/print helper declarations in headers stay lightweight by default, usually using only `@brief` and `@param` when applicable
+- do not expand simple debug/print helper declarations into full contract-style blocks unless extra tags add real value
+- struct field comments stay short by default unless a field is subtle or safety-critical
+- prefer short inline field comments over full multi-line field documentation blocks for ordinary struct fields
+- keep most explanatory detail at the struct level instead of repeating mini-sections for each field
 - code behavior is unchanged
 
 Return only the full updated file.
@@ -607,7 +615,7 @@ def process_files(
     deferred_files: list[Path],
     manifest_path: Path,
 ) -> int:
-    docs_rules = load_text(DOCS_DIR / "README_Doxygen.md")
+    docs_rules = load_text(DOCS_DIR / "Doxygen_Standard.md")
     header_template = load_text(DOCS_DIR / "template_H.h")
     source_template = load_text(DOCS_DIR / "template_C.c")
     main_template = load_text(DOCS_DIR / "template_Main.C")

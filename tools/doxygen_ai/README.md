@@ -1,49 +1,97 @@
 # Doxygen AI Workflow
 
-This folder contains the first test version of an OpenAI-powered Doxygen updater.
+This folder contains the OpenAI-powered Doxygen updater used by the GitHub Actions workflow.
 
-## What it does
+## What It Does
 
-- Looks at changed C/C++ files in the current Git diff
-- Detects whether a file already appears to have Doxygen documentation
-- Uses the repository's Doxygen rules and templates as prompt context
-- Asks the OpenAI API to return the full updated file
-- Rejects the result if non-comment code changed
-- Commits the documentation update from GitHub Actions
+- selects changed or manually chosen C/C++ files
+- expands matching `.h` and `.c/.cpp` pairs automatically
+- loads the repository Doxygen standard and target-style examples
+- asks the OpenAI API to return the full updated file
+- rejects output if non-comment code changed
+- writes a GitHub Actions summary with token usage and estimated cost
+- uploads rejected outputs and run manifests as workflow artifacts
+- creates or updates a draft PR branch with successful documentation changes
 
-## Current safety limits
+## Current Behavior
 
-- Restricted to the `ny-dev` branch in GitHub Actions
-- Manual trigger available through `workflow_dispatch`
-- Only processes the first 2 changed C/C++ files per run
-- Skips files larger than 18,000 characters
+- GitHub workflow UI is defined from the default branch, currently `main`
+- workflow runs can still check out and process `ny-dev`
+- default everyday model is `gpt-5.4-mini`
+- manual file selection supports comma-separated paths
+- selecting `Module.h` also processes the matching `Module.c` or `Module.cpp`, and vice versa
+- a run can continue processing files even if one later file is rejected
+- reruns can target only previously rejected or deferred files
 
-## Required GitHub secret
+## Manual Workflow Inputs
 
-Add this repository secret before enabling the workflow:
+Use the `Run workflow` form in GitHub Actions.
 
-- `OPENAI_API_KEY`
+| Input | Purpose |
+| --- | --- |
+| `target_ref` | Branch to check out and process, usually `ny-dev` |
+| `model` | OpenAI model to use for the run |
+| `test_label` | Optional label for comparison runs and separate PR branches |
+| `rerun_mode` | `all` for a normal run, `remaining_only` for rejected/deferred files from an earlier run |
+| `file_paths` | Comma-separated file paths for `all` mode; leave empty for `remaining_only` |
 
-## Recommended first tests
+## Recommended Manual Flow
 
-1. Push a small documentation-only code change to `ny-dev`.
-2. Check the workflow logs for:
-   - which files were selected
-   - token usage per file
-   - whether a commit was created
-3. Review the generated comments carefully.
-4. Tune prompts and limits before enabling more files or more branches.
+### Normal successful run
 
-## Rerunning failed files
+1. Open `Actions -> Doxygen AI -> Run workflow`
+2. Set:
+   - `target_ref = ny-dev`
+   - `model = gpt-5.4-mini` or another allowed model
+   - `rerun_mode = all`
+   - `file_paths = API/Spotpris/Spotpris.h, API/Spotpris/Spotpris.c, API/Spotpris/spotpristest.c`
+3. Start the run
+4. Review:
+   - the `Summary` tab
+   - any draft PR that was created or updated
+   - any rejected-output artifact if the run failed
 
-Use the GitHub `Run workflow` form with:
+### Partial failure, then rerun only remaining files
 
-- `rerun_mode = all` for a normal run
-- `rerun_mode = remaining_only` to retry only previously rejected or deferred files
+Example:
+- first run processes 3 files
+- 2 files succeed
+- 1 file is rejected or deferred
 
-Do not use GitHub's built-in `Re-run failed jobs` button for this purpose. That reruns the original job configuration and does not trigger the workflow's custom `remaining_only` logic.
+Then:
+1. Fix the prompt/standard/workflow if needed
+2. Push the fix
+3. Start a new manual run
+4. Set:
+   - `target_ref = ny-dev`
+   - same `model` as before unless you intentionally want to compare models
+   - same `test_label` if you used one before
+   - `rerun_mode = remaining_only`
+   - leave `file_paths` empty
+5. Review whether the rerun restored the already successful files and processed only the remaining files
 
-## Useful local test command
+Important:
+- use the workflow's manual `remaining_only` mode for this
+- do not use GitHub's built-in `Re-run failed jobs` button for this purpose
+- GitHub's rerun button repeats the old job; it does not use the workflow's custom rerun logic
+
+## What To Check In A Run
+
+- whether a file was `updated`, `no_change`, `skipped`, or `rejected`
+- whether the generated docs match the repository standard
+- whether code-token safety was preserved
+- input, output, and total tokens
+- estimated USD and SEK cost
+- whether the draft PR branch was created or updated as expected
+
+## Common Notes
+
+- If the workflow form is missing a new input, the workflow YAML probably has not been merged to `main` yet.
+- If a model was just enabled in the OpenAI project, access may take a little time to propagate.
+- Current cost summaries are estimate-only and still use a single configured pricing baseline.
+- The actual selected model is shown in the run summary.
+
+## Local Test Command
 
 From the repository root:
 

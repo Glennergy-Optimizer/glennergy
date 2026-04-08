@@ -13,10 +13,10 @@ When an AI agent processes any file in this project, it MUST:
 1. Follow the rules in this document
 2. Never modify logic, control flow, initialization, or signatures
 3. Only add or update documentation and comments
-4. Preserve existing comments and developer intent
+4. Preserve developer intent and non-Doxygen comments
 5. Prefer concise, useful documentation over repetitive boilerplate
 
-If a rule conflicts with code preservation, preserve the code and existing comments.
+If a rule conflicts with code preservation, preserve the code and ordinary developer comments.
 
 ---
 
@@ -69,7 +69,7 @@ Suggestions must:
 
 AI MUST preserve:
 
-- All existing comments in any language
+- All existing non-Doxygen comments in any language
 - All debug prints (`printf`, `fprintf`, logs)
 - All TODOs and notes
 - All commented-out includes
@@ -77,15 +77,18 @@ AI MUST preserve:
 
 AI MUST NOT:
 
-- Remove existing comments
-- Rewrite comments unnecessarily
-- Translate original comments
+- Remove ordinary developer comments
+- Rewrite ordinary developer comments unnecessarily
+- Translate original non-Doxygen comments
 - Relocate comments unless needed to place documentation directly above the documented item
+
+AI MAY rewrite, simplify, merge, or trim existing Doxygen comments when needed to match this repository standard.
+When an existing Doxygen block conflicts with the target style examples, prefer the target style examples.
 
 ### 4. Language Rules
 
 - All new Doxygen documentation must be in English
-- Original comments must remain unchanged
+- Original non-Doxygen comments must remain unchanged
 
 ---
 
@@ -129,6 +132,16 @@ Typical reasons to include `@note`, `@warning`, `@pre`, or `@post`:
 - thread-safety assumptions
 - side effects that are not obvious from the signature
 - real misuse risks
+
+Simple debug, print, dump, or trace helper declarations in headers should usually stay lightweight.
+
+For these functions, prefer:
+
+- `@brief`
+- `@param` when applicable
+
+Do not add `@pre`, `@post`, `@warning`, or `@note` to simple debug helpers unless they communicate something non-obvious or important.
+Do not expand simple debug helper declarations into full contract-style blocks by default.
 
 ---
 
@@ -187,6 +200,9 @@ Public structs should include:
 - array size or valid element notes when relevant
 
 Do not invent ownership notes when the code does not imply a meaningful ownership rule.
+Keep individual field comments short by default. Prefer putting the main explanation at the struct level and using concise field comments unless a field is subtle, safety-critical, or easy to misuse.
+For ordinary fields, prefer short inline comments such as `/**< Number of valid entries. */` over full multi-line Doxygen blocks.
+Do not turn each struct field into a mini documentation section unless the field truly needs that level of explanation.
 
 ---
 
@@ -296,10 +312,12 @@ void ModuleEntry_Print(const ModuleEntry *e);
 ```
 
 Avoid adding `@pre`, `@post`, `@warning`, or `@note` to simple debug helpers unless they communicate something truly non-obvious.
+Do not expand simple debug helper declarations into full contract-style documentation by default.
 
 ### Struct Documentation
 
 Document important struct semantics, but keep individual field comments short.
+Prefer short inline field comments over full multi-line field blocks unless the field is subtle or safety-critical.
 
 ```c
 /**
