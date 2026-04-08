@@ -2,37 +2,13 @@
  * @file spotpristest.c
  * @brief Entry point for the Spotpris module test harness.
  *
- * This program:
- * 1. Initializes logging and global dependencies (libcurl)
- * 2. Fetches spot price data using Spotpris module
- * 3. Sends the data via FIFO to another process (InputCache)
- *
  * @ingroup SPOTPRIS
  *
- * --- Runtime Behavior
- * - Fetches spot prices for all SE areas (SE1–SE4)
- * - Combines today + tomorrow data
- * - Serializes and sends full struct via binary pipe
+ * Fetches spot prices, then sends the resulting data through a FIFO to the
+ * consumer process used by the integration test path.
  *
- * --- Side Effects
- * - Creates FIFO at `/tmp/fifo_spotpris`
- * - Performs blocking I/O (FIFO write)
- * - Performs network requests (via Spotpris module)
- * - Writes logs to `spotpris.log`
- *
- * --- Dependencies
- * - libcurl (requires curl_global_init / cleanup)
- * - FIFO consumer must exist (reader process)
- * - Spotpris module must be functional
- *
- * --- Error Handling
- * - Returns -4 if fetch fails
- * - Returns -3 if FIFO open fails
- * - Returns -1 if FIFO creation fails
- *
- * @note This file is intended for testing and integration.
- * @note Not part of core business logic.
- * @warning Blocking behavior occurs if no FIFO reader is connected.
+ * @note Intended for testing and integration.
+ * @warning The FIFO write blocks until a reader connects.
  */
 
 #define MODULE_NAME "MAIN"
@@ -57,25 +33,14 @@
 /**
  * @brief Program entry point.
  *
- * Coordinates initialization, data fetching, and IPC pipeline.
- *
- * Execution flow:
- * - Initialize logging
- * - Initialize libcurl
- * - Fetch spot price data
- * - Create/open FIFO
- * - Send data via pipe
- * - Cleanup resources
+ * Initializes logging, fetches spot price data, creates the FIFO if needed,
+ * and writes the full structure to the pipe.
  *
  * @return
  * - 0 on success
  * - Negative error code on failure
  *
- * @pre Logging system must be functional.
- * @pre Spotpris module must be functional.
- * @post Spot price data is sent via FIFO to consumer.
- * @warning This function performs blocking I/O when writing to FIFO.
- * @note Intended for testing; does not affect core business logic.
+ * @note Performs network I/O and blocking FIFO I/O.
  */
 int main(void)
 {
