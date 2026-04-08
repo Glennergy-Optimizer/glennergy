@@ -4,7 +4,7 @@
  *
  * This program:
  * 1. Initializes logging and global dependencies (libcurl)
- * 2. Fetches spot price data using Spotpris module
+ * 2. Fetches spot price data using the Spotpris module
  * 3. Sends the data via FIFO to another process (InputCache)
  *
  * @ingroup SPOTPRIS
