@@ -12,7 +12,7 @@ When answering questions or making changes, use this order of authority:
 
 1. Current source code in the repository
 2. Doxygen comments in the source files
-3. Project docs such as [README.md](README.md) and [Docs/README_Doxygen.md](Docs/README_Doxygen.md)
+3. Project docs such as [README.md](README.md) and [Docs/Doxygen_Standard.md](Docs/Doxygen_Standard.md)
 4. Generated Doxygen output in `html/` and `latex/`
 
 If documentation conflicts with code, trust the code and call out the mismatch.
@@ -33,7 +33,7 @@ If documentation conflicts with code, trust the code and call out the mismatch.
 
 - Prefer reading code and Doxygen comments before answering architecture or behavior questions.
 - The repository uses Doxygen heavily. Side effects, ownership, warnings, and pre/postconditions are important and should be included in explanations when relevant.
-- For documentation-only tasks, follow the rules in [Docs/README_Doxygen.md](Docs/README_Doxygen.md).
+- For documentation-only tasks, follow the rules in [Docs/Doxygen_Standard.md](Docs/Doxygen_Standard.md).
 - For code changes, do not assume generated docs are up to date unless regenerated.
 
 ## Build and Run Notes

@@ -7,8 +7,8 @@ This document explains the current GitHub setup and where to look for the active
 - GitHub Actions workflow: [`.github/workflows/doxygen-openai.yml`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/.github/workflows/doxygen-openai.yml)
 - Update script: [`tools/doxygen_ai/update_docs.py`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/tools/doxygen_ai/update_docs.py)
 - Workflow usage guide: [`tools/doxygen_ai/README.md`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/tools/doxygen_ai/README.md)
-- Active documentation standard: [`Docs/README_Doxygen.md`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/Docs/README_Doxygen.md)
-- Future follow-ups and open questions: [`Docs/README_Doxygen_TODO.md`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/Docs/README_Doxygen_TODO.md)
+- Active documentation standard: [`Docs/Doxygen_Standard.md`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/Docs/Doxygen_Standard.md)
+- Future follow-ups and open questions: [`Docs/Doxygen_TODO.md`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/Docs/Doxygen_TODO.md)
 
 ## First-Time Setup
 
@@ -30,8 +30,8 @@ This document explains the current GitHub setup and where to look for the active
 ## Recommended Usage
 
 - use [`tools/doxygen_ai/README.md`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/tools/doxygen_ai/README.md) for day-to-day workflow usage
-- use [`Docs/README_Doxygen.md`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/Docs/README_Doxygen.md) as the source of truth for documentation style
-- use [`Docs/README_Doxygen_TODO.md`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/Docs/README_Doxygen_TODO.md) for active concerns and future improvements
+- use [`Docs/Doxygen_Standard.md`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/Docs/Doxygen_Standard.md) as the source of truth for documentation style
+- use [`Docs/Doxygen_TODO.md`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/Docs/Doxygen_TODO.md) for active concerns and future improvements
 
 ## Budget Notes
 

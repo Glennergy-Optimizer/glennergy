@@ -615,7 +615,7 @@ def process_files(
     deferred_files: list[Path],
     manifest_path: Path,
 ) -> int:
-    docs_rules = load_text(DOCS_DIR / "README_Doxygen.md")
+    docs_rules = load_text(DOCS_DIR / "Doxygen_Standard.md")
     header_template = load_text(DOCS_DIR / "template_H.h")
     source_template = load_text(DOCS_DIR / "template_C.c")
     main_template = load_text(DOCS_DIR / "template_Main.C")
