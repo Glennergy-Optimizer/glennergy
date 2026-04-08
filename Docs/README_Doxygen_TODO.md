@@ -10,6 +10,7 @@ These notes are not part of the active documentation rules used by the automatio
 - Revisit optional small-module support where a module may also include a closely related `main` or test file when that relationship is explicit and low-risk.
 - Evaluate whether explicit per-module mapping would be useful for a few special cases, for example modules with one header, one source file, and one tightly coupled test harness.
 - Revisit remaining-only rerun behavior so it can resume from the most relevant failed/deferred state when newer successful runs have happened in between.
+- Add per-model pricing support so workflow token-cost summaries reflect the actual selected model instead of a single default pricing rate.
 
 ## Documentation Style Questions
 
