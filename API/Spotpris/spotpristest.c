@@ -2,37 +2,13 @@
  * @file spotpristest.c
  * @brief Entry point for the Spotpris module test harness.
  *
- * This program:
- * 1. Initializes logging and global dependencies (libcurl)
- * 2. Fetches spot price data using Spotpris module
- * 3. Sends the data via FIFO to another process (InputCache)
+ * Initializes logging, fetches spot price data, and forwards the result
+ * through a FIFO to the consumer process.
  *
  * @ingroup SPOTPRIS
  *
- * --- Runtime Behavior
- * - Fetches spot prices for all SE areas (SE1–SE4)
- * - Combines today + tomorrow data
- * - Serializes and sends full struct via binary pipe
- *
- * --- Side Effects
- * - Creates FIFO at `/tmp/fifo_spotpris`
- * - Performs blocking I/O (FIFO write)
- * - Performs network requests (via Spotpris module)
- * - Writes logs to `spotpris.log`
- *
- * --- Dependencies
- * - libcurl (requires curl_global_init / cleanup)
- * - FIFO consumer must exist (reader process)
- * - Spotpris module must be functional
- *
- * --- Error Handling
- * - Returns -4 if fetch fails
- * - Returns -3 if FIFO open fails
- * - Returns -1 if FIFO creation fails
- *
- * @note This file is intended for testing and integration.
- * @note Not part of core business logic.
- * @warning Blocking behavior occurs if no FIFO reader is connected.
+ * @note Intended for testing and integration, not core business logic.
+ * @warning Writing to the FIFO blocks until a reader connects.
  */
 
 #define MODULE_NAME "MAIN"
@@ -55,27 +31,16 @@
 #define FIFO_SPOTPRIS_WRITE "/tmp/fifo_spotpris"
 
 /**
- * @brief Program entry point.
+ * @brief Program entry point for the Spotpris test harness.
  *
- * Coordinates initialization, data fetching, and IPC pipeline.
- *
- * Execution flow:
- * - Initialize logging
- * - Initialize libcurl
- * - Fetch spot price data
- * - Create/open FIFO
- * - Send data via pipe
- * - Cleanup resources
+ * Initializes logging, performs the fetch, creates or opens the FIFO,
+ * and sends the fetched data to the consumer.
  *
  * @return
  * - 0 on success
- * - Negative error code on failure
- *
- * @pre Logging system must be functional.
- * @pre Spotpris module must be functional.
- * @post Spot price data is sent via FIFO to consumer.
- * @warning This function performs blocking I/O when writing to FIFO.
- * @note Intended for testing; does not affect core business logic.
+ * - -4 if fetching spot prices fails
+ * - -3 if opening the FIFO fails
+ * - -1 if FIFO creation fails
  */
 int main(void)
 {
