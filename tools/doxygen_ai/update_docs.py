@@ -267,12 +267,13 @@ Paired module file context:
 Path: {path.relative_to(REPO_ROOT).as_posix()}
 
 Interpret the task mode as follows:
-- update_existing_docs: bring the file's documentation up to the repository standard, while preserving existing comments and code.
+- update_existing_docs: bring the file's documentation up to the repository standard, while preserving existing comments and code. This includes simplifying or trimming existing documentation when it is more verbose than the repository's target style examples.
 - document_full_file: add complete repository-standard Doxygen coverage for the file, while preserving existing comments and code.
 
 Before finalizing internally, validate that:
 - every required file/function/struct tag is present
 - the documentation matches the repository rules
+- the documentation style matches the target style examples, including reducing unnecessary boilerplate where appropriate
 - code behavior is unchanged
 
 Return only the full updated file.

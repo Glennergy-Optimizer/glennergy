@@ -9,6 +9,7 @@ These notes are not part of the active documentation rules used by the automatio
 - Decide whether matching `.h` and `.c/.cpp` pairing should remain the only automatic context expansion rule.
 - Revisit optional small-module support where a module may also include a closely related `main` or test file when that relationship is explicit and low-risk.
 - Evaluate whether explicit per-module mapping would be useful for a few special cases, for example modules with one header, one source file, and one tightly coupled test harness.
+- Revisit remaining-only rerun behavior so it can resume from the most relevant failed/deferred state when newer successful runs have happened in between.
 
 ## Documentation Style Questions
 
