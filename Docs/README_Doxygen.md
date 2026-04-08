@@ -239,6 +239,133 @@ Optional, only when useful:
 
 ---
 
+## Target Style Examples
+
+Use the examples below as the preferred style reference when multiple valid documentation styles are possible.
+
+### Public Header Function
+
+Public header functions should carry the main contract documentation.
+
+```c
+/**
+ * @brief Fetches data for all configured sources.
+ *
+ * @param[out] output Structure to populate with fetched data.
+ *
+ * @return
+ * - 0 on success
+ * - -1 on critical failure
+ *
+ * @note Performs blocking network I/O.
+ * @pre output != NULL
+ * @post output contains fetched data for all successfully processed sources.
+ */
+int Module_FetchAll(ModuleData *output);
+```
+
+### Public Source Function
+
+Public functions in source files should usually remain brief and defer full contract details to the header.
+
+```c
+/**
+ * @brief Implementation of Module_FetchAll.
+ *
+ * See header for full contract documentation.
+ */
+int Module_FetchAll(ModuleData *output)
+{
+    ...
+}
+```
+
+This is the preferred default for public non-static functions in `.c` or `.cpp` files.
+
+### Debug Helper Function
+
+Simple debug or print helpers should stay lightweight.
+
+```c
+/**
+ * @brief Prints an entry for debugging.
+ *
+ * @param e Pointer to entry to print.
+ */
+void ModuleEntry_Print(const ModuleEntry *e);
+```
+
+Avoid adding `@pre`, `@post`, `@warning`, or `@note` to simple debug helpers unless they communicate something truly non-obvious.
+
+### Struct Documentation
+
+Document important struct semantics, but keep individual field comments short.
+
+```c
+/**
+ * @brief Data set for one logical source.
+ *
+ * Contains parsed entries and the raw upstream response.
+ *
+ * @note Owns all nested data.
+ */
+typedef struct
+{
+    char name[16];               /**< Source identifier. */
+    size_t count;                /**< Number of valid entries in `entries`. */
+    ModuleEntry entries[128];    /**< Parsed entries; only first `count` are valid. */
+    char raw_data[32000];        /**< Raw upstream response, possibly truncated. */
+} ModuleData;
+```
+
+Prefer this style over multi-line field-level explanations unless a field is subtle, safety-critical, or easy to misuse.
+
+### Main, Test, and Demo File
+
+Main or test files should use a practical middle ground: helpful context without becoming a design document.
+
+```c
+/**
+ * @file moduletest.c
+ * @brief Test entry point for the module.
+ *
+ * Fetches module data and sends it through the IPC path used by the consumer.
+ *
+ * @ingroup MODULE
+ *
+ * @note Performs upstream requests and blocking IPC I/O.
+ * @warning The IPC write path may block until a reader connects.
+ */
+```
+
+And for `main`:
+
+```c
+/**
+ * @brief Runs the module test flow.
+ *
+ * Initializes dependencies, fetches module data, and writes the
+ * resulting structure to the configured IPC path.
+ *
+ * @return
+ * - 0 on success
+ * - Negative error code on failure
+ *
+ * @note Intended for testing and integration rather than core business logic.
+ */
+int main(void)
+{
+    ...
+}
+```
+
+Prefer this balanced style over both extremes:
+
+- overly minimal comments that omit operationally important context
+- overly long file headers that read like a mini specification
+
+---
+
 ## Validation Checklist
 
 Before returning a file, verify:
