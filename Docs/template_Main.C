@@ -1,12 +1,15 @@
 /**
  * @file TemplateMain.c
- * @brief Entry point / test for <MODULENAME> module.
+ * @brief Test entry point for the <MODULENAME> module.
  *
  * @ingroup <MODULENAME>
  *
- * Demonstrates usage of <MODULENAME> functions and structures.
+ * Demonstrates fetching or preparing module data and passing it through the
+ * integration path used by the consumer process.
  *
- * @note Only used for testing or demo.
+ * @note Intended for testing and integration rather than core business logic.
+ * @warning Mention blocking I/O or similar runtime caveats only when they are
+ * truly relevant to the file.
  */
 
 #define MODULE_NAME "MAIN"
@@ -15,6 +18,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * @brief Runs the <MODULENAME> test flow.
+ *
+ * Initializes dependencies, executes the module test path, and reports the
+ * result.
+ *
+ * @return
+ * - 0 on success
+ * - Negative error code on failure
+ */
 int main(void)
 {
     log_Init("example.log");

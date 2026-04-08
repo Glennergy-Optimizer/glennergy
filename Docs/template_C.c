@@ -45,4 +45,19 @@ int ExampleFunction(ExampleStruct *output, int param)
     return 0;
 }
 
+/**
+ * @brief Prints an ExampleStruct for debugging.
+ *
+ * @param value Pointer to struct to print.
+ */
+void ExampleStruct_Print(const ExampleStruct *value)
+{
+    if (!value)
+    {
+        return;
+    }
+
+    printf("ExampleStruct: name=%s, value=%d\n", value->name, value->value);
+}
+
 // Additional internal or public functions here

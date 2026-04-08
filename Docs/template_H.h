@@ -14,8 +14,8 @@
  * @defgroup <MODULENAME> <MODULENAME>
  * @brief <Short module description>
  *
- * <Longer description of what the module manages, key dependencies, and
- * important limitations if needed.>
+ * <Longer description of what the module manages and important limitations
+ * if needed.>
  *
  * @note Add notes only when they communicate meaningful ownership, blocking,
  * thread, or lifecycle behavior.
@@ -25,7 +25,8 @@
 /**
  * @brief Example struct representing <what the struct models>.
  *
- * @note Describe ownership or lifetime only when it matters.
+ * Describe key semantics at the struct level and keep individual field
+ * comments short unless a field is subtle or safety-critical.
  */
 typedef struct {
     char name[32]; /**< Example string field. */
@@ -48,6 +49,13 @@ typedef struct {
  * @post Add only if there is a meaningful postcondition to communicate.
  */
 int ExampleFunction(ExampleStruct *output, int param);
+
+/**
+ * @brief Prints an ExampleStruct for debugging.
+ *
+ * @param value Pointer to struct to print.
+ */
+void ExampleStruct_Print(const ExampleStruct *value);
 
 /** @} */
 
