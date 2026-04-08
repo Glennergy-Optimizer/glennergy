@@ -1,38 +1,14 @@
 /**
  * @file spotpristest.c
- * @brief Entry point for the Spotpris module test harness.
- *
- * This program:
- * 1. Initializes logging and global dependencies (libcurl)
- * 2. Fetches spot price data using Spotpris module
- * 3. Sends the data via FIFO to another process (InputCache)
+ * @brief Entry point / test for Spotpris module.
  *
  * @ingroup SPOTPRIS
  *
- * --- Runtime Behavior
- * - Fetches spot prices for all SE areas (SE1–SE4)
- * - Combines today + tomorrow data
- * - Serializes and sends full struct via binary pipe
+ * Fetches spot price data using the Spotpris module and sends it via a named
+ * pipe to the InputCache consumer for testing and integration purposes.
  *
- * --- Side Effects
- * - Creates FIFO at `/tmp/fifo_spotpris`
- * - Performs blocking I/O (FIFO write)
- * - Performs network requests (via Spotpris module)
- * - Writes logs to `spotpris.log`
- *
- * --- Dependencies
- * - libcurl (requires curl_global_init / cleanup)
- * - FIFO consumer must exist (reader process)
- * - Spotpris module must be functional
- *
- * --- Error Handling
- * - Returns -4 if fetch fails
- * - Returns -3 if FIFO open fails
- * - Returns -1 if FIFO creation fails
- *
- * @note This file is intended for testing and integration.
- * @note Not part of core business logic.
- * @warning Blocking behavior occurs if no FIFO reader is connected.
+ * @note Performs network requests, blocking FIFO I/O, and writes logs to file.
+ * @warning Blocks on FIFO open and write if no reader is connected.
  */
 
 #define MODULE_NAME "MAIN"
@@ -50,32 +26,25 @@
 #include <sys/stat.h>
 
 /**
- * @brief Named pipe used for IPC between Spotpris module and InputCache.
+ * @brief Named pipe path used for IPC between Spotpris module and InputCache.
  */
 #define FIFO_SPOTPRIS_WRITE "/tmp/fifo_spotpris"
 
 /**
- * @brief Program entry point.
+ * @brief Runs the Spotpris test flow.
  *
- * Coordinates initialization, data fetching, and IPC pipeline.
- *
- * Execution flow:
- * - Initialize logging
- * - Initialize libcurl
- * - Fetch spot price data
- * - Create/open FIFO
- * - Send data via pipe
- * - Cleanup resources
+ * Initializes logging and libcurl, fetches spot prices for all SE areas,
+ * ensures the FIFO exists, opens it for writing, and sends the complete
+ * AllaSpotpriser structure over the pipe before cleaning up resources.
  *
  * @return
  * - 0 on success
- * - Negative error code on failure
+ * - -4 if fetching spot prices fails
+ * - -3 if FIFO open fails
+ * - -1 if FIFO creation fails
  *
- * @pre Logging system must be functional.
- * @pre Spotpris module must be functional.
- * @post Spot price data is sent via FIFO to consumer.
- * @warning This function performs blocking I/O when writing to FIFO.
- * @note Intended for testing; does not affect core business logic.
+ * @note Intended for testing and integration; not part of core business logic.
+ * @warning Performs blocking I/O on FIFO operations and network I/O via libcurl.
  */
 int main(void)
 {
@@ -129,10 +98,6 @@ int main(void)
 
     /**
      * Write binary struct to pipe.
-     *
-     * @param spotpris_fd_write File descriptor of FIFO.
-     * @param &spotpriser Pointer to data structure.
-     * @param sizeof(spotpriser) Size of data structure.
      *
      * @note Writes entire AllaSpotpriser struct in one operation.
      * @warning Receiver must use identical struct layout (ABI-sensitive).
