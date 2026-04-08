@@ -13,10 +13,10 @@ When an AI agent processes any file in this project, it MUST:
 1. Follow the rules in this document
 2. Never modify logic, control flow, initialization, or signatures
 3. Only add or update documentation and comments
-4. Preserve existing comments and developer intent
+4. Preserve developer intent and non-Doxygen comments
 5. Prefer concise, useful documentation over repetitive boilerplate
 
-If a rule conflicts with code preservation, preserve the code and existing comments.
+If a rule conflicts with code preservation, preserve the code and ordinary developer comments.
 
 ---
 
@@ -69,7 +69,7 @@ Suggestions must:
 
 AI MUST preserve:
 
-- All existing comments in any language
+- All existing non-Doxygen comments in any language
 - All debug prints (`printf`, `fprintf`, logs)
 - All TODOs and notes
 - All commented-out includes
@@ -77,15 +77,18 @@ AI MUST preserve:
 
 AI MUST NOT:
 
-- Remove existing comments
-- Rewrite comments unnecessarily
-- Translate original comments
+- Remove ordinary developer comments
+- Rewrite ordinary developer comments unnecessarily
+- Translate original non-Doxygen comments
 - Relocate comments unless needed to place documentation directly above the documented item
+
+AI MAY rewrite, simplify, merge, or trim existing Doxygen comments when needed to match this repository standard.
+When an existing Doxygen block conflicts with the target style examples, prefer the target style examples.
 
 ### 4. Language Rules
 
 - All new Doxygen documentation must be in English
-- Original comments must remain unchanged
+- Original non-Doxygen comments must remain unchanged
 
 ---
 

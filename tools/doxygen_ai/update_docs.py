@@ -241,7 +241,9 @@ You must obey these rules:
 - Treat all existing code tokens as immutable, including case-sensitive text inside string literals.
 - External/API-facing strings are especially sensitive. Copy JSON keys, URLs, protocol strings, log format strings, and other string literals byte-for-byte.
 - Never change string arguments passed to parser, lookup, formatting, or protocol functions such as `json_object_get(...)`, `json_string_value(...)`, `snprintf(...)`, logging calls, or similar APIs. These values must remain byte-for-byte identical.
-- Preserve all existing comments, TODOs, debug prints, commented-out code, and commented-out includes.
+- Preserve TODOs, debug prints, commented-out code, commented-out includes, and ordinary developer comments.
+- Existing Doxygen comments may be rewritten, simplified, merged, or trimmed as needed to match the repository standard.
+- Do not remove or rewrite ordinary non-Doxygen comments unless needed to place equivalent documentation directly above the documented item.
 - Return the full updated file content only.
 - Do not wrap the result in Markdown fences.
 - All Doxygen text must be in English.
