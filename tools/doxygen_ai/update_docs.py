@@ -274,8 +274,11 @@ Before finalizing internally, validate that:
 - every required file/function/struct tag is present
 - the documentation matches the repository rules
 - the documentation style matches the target style examples, including reducing unnecessary boilerplate where appropriate
-- simple debug/print helper declarations in headers remain lightweight unless extra tags add real value
+- simple debug/print helper declarations in headers stay lightweight by default, usually using only `@brief` and `@param` when applicable
+- do not expand simple debug/print helper declarations into full contract-style blocks unless extra tags add real value
 - struct field comments stay short by default unless a field is subtle or safety-critical
+- prefer short inline field comments over full multi-line field documentation blocks for ordinary struct fields
+- keep most explanatory detail at the struct level instead of repeating mini-sections for each field
 - code behavior is unchanged
 
 Return only the full updated file.

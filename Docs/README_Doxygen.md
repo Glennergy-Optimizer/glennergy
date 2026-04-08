@@ -138,6 +138,7 @@ For these functions, prefer:
 - `@param` when applicable
 
 Do not add `@pre`, `@post`, `@warning`, or `@note` to simple debug helpers unless they communicate something non-obvious or important.
+Do not expand simple debug helper declarations into full contract-style blocks by default.
 
 ---
 
@@ -197,6 +198,8 @@ Public structs should include:
 
 Do not invent ownership notes when the code does not imply a meaningful ownership rule.
 Keep individual field comments short by default. Prefer putting the main explanation at the struct level and using concise field comments unless a field is subtle, safety-critical, or easy to misuse.
+For ordinary fields, prefer short inline comments such as `/**< Number of valid entries. */` over full multi-line Doxygen blocks.
+Do not turn each struct field into a mini documentation section unless the field truly needs that level of explanation.
 
 ---
 
@@ -306,10 +309,12 @@ void ModuleEntry_Print(const ModuleEntry *e);
 ```
 
 Avoid adding `@pre`, `@post`, `@warning`, or `@note` to simple debug helpers unless they communicate something truly non-obvious.
+Do not expand simple debug helper declarations into full contract-style documentation by default.
 
 ### Struct Documentation
 
 Document important struct semantics, but keep individual field comments short.
+Prefer short inline field comments over full multi-line field blocks unless the field is subtle or safety-critical.
 
 ```c
 /**
