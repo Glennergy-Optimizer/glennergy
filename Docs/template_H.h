@@ -5,28 +5,21 @@
 
 /**
  * @file Template.h
- * @brief Public API for the <MODULENAME> module.
- *
- * Provides the public types and functions for <short module purpose>.
+ * @brief Public API for the TEMPLATE module.
  */
 
 /**
- * @defgroup <MODULENAME> <MODULENAME>
- * @brief <Short module description>
+ * @defgroup TEMPLATE TEMPLATE
+ * @brief Example module API.
  *
- * <Longer description of what the module manages and important limitations
- * if needed.>
- *
- * @note Add notes only when they communicate meaningful ownership, blocking,
- * thread, or lifecycle behavior.
+ * Demonstrates the repository documentation style for a small public header.
  * @{
  */
 
 /**
- * @brief Example struct representing <what the struct models>.
+ * @brief Example struct representing a simple data pair.
  *
- * Describe key semantics at the struct level and keep individual field
- * comments short unless a field is subtle or safety-critical.
+ * Keeps a name and an integer value together.
  */
 typedef struct {
     char name[32]; /**< Example string field. */
@@ -42,11 +35,6 @@ typedef struct {
  * @return
  * - 0 on success
  * - -1 on error
- *
- * @note Add ownership, blocking, or lifecycle notes only when useful.
- * @warning Add warnings only when misuse or side effects are meaningful.
- * @pre Add only if the requirement is not obvious from the signature.
- * @post Add only if there is a meaningful postcondition to communicate.
  */
 int ExampleFunction(ExampleStruct *output, int param);
 

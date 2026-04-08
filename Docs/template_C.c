@@ -12,16 +12,10 @@
 #include <string.h>
 
 /**
- * @brief Internal helper function (example).
+ * @brief Internal helper used by ExampleFunction.
  *
- * Performs <short description of the helper>.
- *
- * @param[in] input Some input parameter.
+ * @param input Input value.
  * @return Computed result.
- *
- * @note Add internal notes only when they communicate real side effects,
- * assumptions, or ownership behavior.
- * @warning Add warnings only when there is an actual internal risk.
  */
 static int InternalHelper(int input)
 {
@@ -30,7 +24,7 @@ static int InternalHelper(int input)
 }
 
 /**
- * @brief ExampleFunction implementation.
+ * @brief Implementation of ExampleFunction.
  *
  * See header for full contract documentation.
  */
