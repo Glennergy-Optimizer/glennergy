@@ -41,6 +41,7 @@ typedef struct
 {
     int id;                       /**< Unique identifier */
     double recommendation[96];       /**< Recommendations per quarter-hour */
+    int recommendation_type[96]; // 1 = BUY, 2 = HOLD, 3 = SELL, 4 = INVALID, -1 = ERROR
     time_start time[96];           /**< Corresponding timestamps */
 } AlgoritmResult;
 

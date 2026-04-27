@@ -148,12 +148,14 @@ int Connection_Handle(Connection *_Connection)
 
             printf("Recommendation: %.3f\n", memory->result[i].recommendation[j]);
             double rec = memory->result[i].recommendation[j];
+            int recommendation_type = memory->result[i].recommendation_type[j];
 
             const char *type = NULL;
 
             json_t *obj = json_object();
             json_object_set_new(obj, "id", json_integer(memory->result[i].id));
-            json_object_set_new(obj, "type", json_real(rec));
+            json_object_set_new(obj, "normalized", json_real(rec));
+            json_object_set_new(obj, "recommendation", json_integer(recommendation_type));
             json_object_set_new(obj, "timestamp", json_string(memory->result[i].time[j].time));
             json_array_append_new(arr, obj);
 
@@ -173,7 +175,7 @@ int Connection_Handle(Connection *_Connection)
 
     printf("size of json data: %zu\n", strlen(json_data));
 
-    char response[12000];
+    char response[18000];
     // snprintf(response, sizeof(response), RESPONSE_HEADER, strlen(json_data), json_data);
     int actualLength = snprintf(response, sizeof(response), RESPONSE_HEADER, strlen(json_data), json_data);
     if (actualLength >= sizeof(response))

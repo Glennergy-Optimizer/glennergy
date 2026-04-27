@@ -43,6 +43,38 @@
  */
 // gcc -Wall -Wextra -std=c11 -g testreader.c ../Sockets.c ../../Server/Log/Logger.c -I../../ -o testreader
 
+
+static ssize_t recv_all(int fd, void *buf, size_t size)
+{
+    size_t total = 0;
+    char *buffer = buf;
+
+    while (total < size)
+    {
+        ssize_t bytes = recv(fd, buffer + total, size - total, 0);
+
+        if (bytes == 0)
+        {
+            break;
+        }
+
+        if (bytes < 0)
+        {
+            if (errno == EINTR)
+            {
+                continue;
+            }
+
+            return -1;
+        }
+
+        total += bytes;
+    }
+
+    return (ssize_t)total;
+}
+
+
 int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
 {
     if (!data_out || expected_size == 0)
@@ -71,9 +103,10 @@ int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
     }
 
     // Receive response header
-    ssize_t bytes_read = recv(sock_fd, &resp, sizeof(resp), 0);
+    ssize_t bytes_read = recv_all(sock_fd, &resp, sizeof(resp));
     if (bytes_read != sizeof(resp))
     {
+        LOG_ERROR("Payload size mismatch: cache says %u, expected %zu", resp.data_size, expected_size);
         LOG_ERROR("Failed to receive response (got %zd bytes)", bytes_read);
         close(sock_fd);
         return -1;
@@ -201,10 +234,12 @@ int main()
                             {
                                 shm->result[i].id = cache->meteo[i].id;
                                 double temp = average_WindowLow_percent(&cache->spotpris.data[area_idx][entry], stats.area[area_idx].min, stats.area[area_idx].max);
+                                int recommendation_type = average_WindowLow_test(&cache->spotpris.data[area_idx][entry], stats.area[area_idx].q25, stats.area[area_idx].q75);
 
                                 printf("TEMP: %.2f", temp);
 
                                 shm->result[i].recommendation[j] = temp;
+                                shm->result[i].recommendation_type[j] = recommendation_type;
                                 snprintf(shm->result[i].time[j].time, sizeof(shm->result[i].time[j].time), "%s", cache->spotpris.data[area_idx][entry].time_start);
 
                                 printf("  Matched time: %s, temp: %.2f °C, GHI: %.2f W/m², City: %s id: %d\n",
