@@ -54,29 +54,9 @@
 // }
 
 /**
- * @brief Fetches spot price data and populates AllaSpotpriser.
+ * @brief Implementation of Spotpris_FetchAll.
  *
- * For each electricity area:
- * - Builds API URL
- * - Performs HTTP GET request
- * - Parses JSON response
- * - Stores both structured data and raw JSON
- *
- * @param[out] _AllaSpotpriser Output structure to populate.
- *
- * @return
- * - 0 on success (partial data possible)
- * - -1 on critical failure (NULL input)
- *
- * @note Performs blocking HTTP requests.
- * @note Up to 8 HTTP calls (4 areas × 2 days).
- * @note Uses Jansson for JSON parsing.
- * @note Logs errors via Logger module.
- *
- * @warning Raw JSON buffer may truncate large responses.
- *
- * @pre _AllaSpotpriser must not be NULL.
- * @post Structure contains fetched and parsed data.
+ * See header for full contract documentation.
  */
 int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
 {
