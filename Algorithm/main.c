@@ -43,6 +43,26 @@
  */
 // gcc -Wall -Wextra -std=c11 -g testreader.c ../Sockets.c ../../Server/Log/Logger.c -I../../ -o testreader
 
+ssize_t recv_all(int fd, void *buf, size_t size)
+{
+    size_t total = 0;
+
+    while (total < size)
+    {
+        ssize_t n = recv(fd,
+                         (char*)buf + total,
+                         size - total,
+                         0);
+
+        if (n <= 0)
+            return -1;
+
+        total += n;
+    }
+
+    return total;
+}
+
 int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
 {
     if (!data_out || expected_size == 0)
@@ -71,7 +91,7 @@ int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
     }
 
     // Receive response header
-    ssize_t bytes_read = recv(sock_fd, &resp, sizeof(resp), 0);
+    ssize_t bytes_read = recv_all(sock_fd, &resp, sizeof(resp));
     if (bytes_read != sizeof(resp))
     {
         LOG_ERROR("Failed to receive response (got %zd bytes)", bytes_read);
@@ -87,7 +107,7 @@ int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
     }
 
     // Receive actual data
-    bytes_read = recv(sock_fd, data_out, expected_size, 0);
+    bytes_read = recv_all(sock_fd, data_out, expected_size);
     close(sock_fd);
 
     if (bytes_read != (ssize_t)expected_size)
@@ -99,6 +119,8 @@ int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
 
     return 0;
 }
+
+
 
 /**
  * @brief Main loop for the Algorithm module.
@@ -141,7 +163,6 @@ int main()
     }
 
     memset(cache, 0, sizeof(InputCache_t));
-
     while (1)
     {
         if (cache_request(CMD_GET_ALL, cache, sizeof(InputCache_t)) < 0)
@@ -205,12 +226,16 @@ int main()
                                 printf("TEMP: %.2f", temp);
 
                                 shm->result[i].recommendation[j] = temp;
+                                shm->result[i].weather.temp[j] = cache->meteo[i].sample[j].temp;
+                                shm->result[i].weather.weather_code[j] = cache->meteo[i].sample[j].weather_code;
+                                shm->result[i].weather.uv_index[j] = cache->meteo[i].sample[j].uv_index;
+                                shm->result[i].price[j] = cache->spotpris.data[area_idx][entry].sek_per_kwh;
+                                
                                 snprintf(shm->result[i].time[j].time, sizeof(shm->result[i].time[j].time), "%s", cache->spotpris.data[area_idx][entry].time_start);
 
                                 printf("  Matched time: %s, temp: %.2f °C, GHI: %.2f W/m², City: %s id: %d\n",
                                        cache->meteo[i].sample[j].time_start,
                                        cache->meteo[i].sample[j].temp,
-                                       cache->meteo[i].sample[j].ghi,
                                        cache->meteo[i].city,
                                        cache->meteo[i].id);
                             }

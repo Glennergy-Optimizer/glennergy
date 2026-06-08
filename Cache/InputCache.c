@@ -149,6 +149,29 @@ int inputcache_OpenFIFOs(int *meteo_fd, int *spotpris_fd)
     return 0;
 }
 
+
+
+
+ssize_t send_all(int fd, const void *buf, size_t size)
+{
+    size_t total = 0;
+
+    while (total < size)
+    {
+        ssize_t n = send(fd,
+                         (const char*)buf + total,
+                         size - total,
+                         0);
+
+        if (n <= 0)
+            return -1;
+
+        total += n;
+    }
+
+    return total;
+}
+
 /**
  * @brief Handle incoming client request over socket.
  *
@@ -181,8 +204,8 @@ void inputcache_HandleRequest(InputCache_t *cache, int client_fd)
         resp.status = 0;
         resp.data_size = sizeof(InputCache_t);
 
-        send(client_fd, &resp, sizeof(resp), 0);
-        send(client_fd, cache, sizeof(InputCache_t), 0);
+        send_all(client_fd, &resp, sizeof(resp));
+        send_all(client_fd, cache, sizeof(InputCache_t));
         LOG_INFO("Sent complete InputCache data to client");
         break;
 

@@ -44,12 +44,12 @@
 typedef struct
 {
     char time_start[32];        /**< ISO8601 timestamp */
-    float temp;                /**< Temperature in Celsius */
-    float ghi;                 /**< Global Horizontal Irradiance (W/m²) */
-    float dni;                 /**< Direct Normal Irradiance (W/m²) */
+    float temp;                /**< Temperature in Celsius */              /**< Direct Normal Irradiance (W/m²) */
     float diffuse_radiation;   /**< Diffuse radiation (W/m²) */
     float cloud_cover;         /**< Cloud cover (0–100%) */
     int is_day;                /**< Daylight flag (1 = day, 0 = night) */
+    int weather_code;
+    int uv_index;
     bool valid;                /**< Valid sample (typically same as is_day) */
 } Samples;
 

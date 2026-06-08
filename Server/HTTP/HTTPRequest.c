@@ -159,10 +159,37 @@ int HTTPRequest_ParseHeader(HTTPRequest *http_request)
         return -1;
     }
     size_t url_length = (size_t)(path_end - path_start);
-    http_request->url[url_length] = '\0';
+    //http_request->url[url_length] = '\0';
 
     return 0;
 }
+
+HTTPRequestData parse_request(const char *path)
+{
+    HTTPRequestData data;
+
+    data.id = -1;
+    strcpy(data.command, "");
+
+    char *id_start = path;
+
+    if (id_start != NULL)
+    {
+        data.id = atoi(id_start);
+    }
+
+    char *question = strchr(path, '?');
+
+    if (question != NULL)
+    {
+        question++;
+
+        strcpy(data.command, question);
+    }
+
+    return data;
+}
+
 
 /**
  * @brief Frees resources associated with an HTTPRequest.
