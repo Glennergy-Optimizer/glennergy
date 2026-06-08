@@ -1,0 +1,167 @@
+{
+    "systems": [
+{
+  "id": 1,
+  "city": "stockholm",
+  "lat": 59.33,
+  "lon": 18.07,
+  "panel_capacitykwh": 6.0,
+  "panel_tiltdegrees": 35.0,
+  "panel_azimuthdegrees": 180.0,
+  "electricity_area": "SE3"
+},
+{
+  "id": 2,
+  "city": "göteborg",
+  "lat": 57.72,
+  "lon": 12.01,
+  "panel_capacitykwh": 8.5,
+  "panel_tiltdegrees": 35.0,
+  "panel_azimuthdegrees": 180.0,
+  "electricity_area": "SE3"
+},
+{
+  "id": 3,
+  "city": "malmö",
+  "lat": 55.61,
+  "lon": 13.02,
+  "panel_capacitykwh": 6.0,
+  "panel_tiltdegrees": 35.0,
+  "panel_azimuthdegrees": 180.0,
+  "electricity_area": "SE4"
+},
+{
+  "id": 4,
+  "city": "uppsala",
+  "lat": 59.86,
+  "lon": 17.64,
+  "panel_capacitykwh": 6.0,
+  "panel_tiltdegrees": 35.0,
+  "panel_azimuthdegrees": 180.0,
+  "electricity_area": "SE3"
+},
+{
+  "id": 5,
+  "city": "jönköping",
+  "lat": 57.78,
+  "lon": 14.17,
+  "panel_capacitykwh": 6.0,
+  "panel_tiltdegrees": 35.0,
+  "panel_azimuthdegrees": 180.0,
+  "electricity_area": "SE3"
+},
+{
+  "id": 6,
+  "city": "norrköping",
+  "lat": 58.60,
+  "lon": 16.17,
+  "panel_capacitykwh": 6.0,
+  "panel_tiltdegrees": 35.0,
+  "panel_azimuthdegrees": 180.0,
+  "electricity_area": "SE3"
+},
+{
+  "id": 7,
+  "city": "umeå",
+  "lat": 63.83,
+  "lon": 20.24,
+  "panel_capacitykwh": 6.0,
+  "panel_tiltdegrees": 35.0,
+  "panel_azimuthdegrees": 180.0,
+  "electricity_area": "SE2"
+},
+{
+  "id": 8,
+  "city": "gävle",
+  "lat": 60.69,
+  "lon": 17.13,
+  "panel_capacitykwh": 6.0,
+  "panel_tiltdegrees": 35.0,
+  "panel_azimuthdegrees": 180.0,
+  "electricity_area": "SE2"
+},
+{
+  "id": 9,
+  "city": "karlstad",
+  "lat": 59.38,
+  "lon": 13.51,
+  "panel_capacitykwh": 6.0,
+  "panel_tiltdegrees": 35.0,
+  "panel_azimuthdegrees": 180.0,
+  "electricity_area": "SE3"
+},
+{
+  "id": 10,
+  "city": "halmstad",
+  "lat": 56.67,
+  "lon": 12.86,
+  "panel_capacitykwh": 6.0,
+  "panel_tiltdegrees": 35.0,
+  "panel_azimuthdegrees": 180.0,
+  "electricity_area": "SE4"
+},
+{
+  "id": "växjö_11",
+  "panel_capacitykwh": 6.0,
+  "panel_tiltdegrees": 35.0,
+  "panel_azimuthdegrees": 180.0,
+  "lat": 56.88,
+  "lon": 14.80,
+  "electricity_area": "SE4"
+},
+{
+  "id": "sundsvall_12",
+  "panel_capacitykwh": 6.0,
+  "panel_tiltdegrees": 35.0,
+  "panel_azimuthdegrees": 180.0,
+  "lat": 62.40,
+  "lon": 17.33,
+  "electricity_area": "SE2"
+},
+{
+  "id": "luleå_13",
+  "panel_capacitykwh": 6.0,
+  "panel_tiltdegrees": 35.0,
+  "panel_azimuthdegrees": 180.0,
+  "lat": 65.60,
+  "lon": 22.16,
+  "electricity_area": "SE1"
+},
+{
+  "id": "östersund_14",
+  "panel_capacitykwh": 6.0,
+  "panel_tiltdegrees": 35.0,
+  "panel_azimuthdegrees": 180.0,
+  "lat": 63.18,
+  "lon": 14.65,
+  "electricity_area": "SE2"
+},
+{
+  "id": "kalmar_15",
+  "panel_capacitykwh": 6.0,
+  "panel_tiltdegrees": 35.0,
+  "panel_azimuthdegrees": 180.0,
+  "lat": 56.67,
+  "lon": 16.36,
+  "electricity_area": "SE4"
+},
+{
+  "id": "skellefteå_16",
+  "panel_capacitykwh": 6.0,
+  "panel_tiltdegrees": 35.0,
+  "panel_azimuthdegrees": 180.0,
+  "lat": 64.76,
+  "lon": 20.99,
+  "electricity_area": "SE1"
+},
+{
+  "id": "visby_17",
+  "panel_capacitykwh": 6.0,
+  "panel_tiltdegrees": 35.0,
+  "panel_azimuthdegrees": 180.0,
+  "lat": 57.64,
+  "lon": 18.30,
+  "electricity_area": "SE3"
+}
+    ]
+}

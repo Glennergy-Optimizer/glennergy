@@ -81,6 +81,7 @@ xoxoldAPI/*
 # Cache files
 *.json
 !API/Meteo/Glennergy-Fastigheter.json
+!API/Glennergy-Fastigheter.json
 
 # debug information files
 *.dwo
