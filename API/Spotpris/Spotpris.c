@@ -1,9 +1,13 @@
-/**
+/**********************************************************//**
  * @file Spotpris.c
  * @brief Implementation of the Spotpris module.
  *
+ * Fetches spot price data for Swedish electricity areas (SE1–SE4)
+ * for the current and next day, then stores both parsed entries and
+ * a raw JSON copy in the output structure.
+ *
  * @ingroup SPOTPRIS
- */
+ **************************************************************/
 
 #define MODULE_NAME "SPOTPRIS"
 #include "../../Server/Log/Logger.h"
@@ -15,9 +19,9 @@
 #include "../../Libs/Utils/utils.h"
 
 /**
- * @brief Number of days to fetch.
+ * @brief Number of days to fetch from the upstream API.
  *
- * @note Fetches both current and next day.
+ * Current behavior fetches both today's and tomorrow's data.
  */
 #define NUM_DAYS 2 // Vi hämtar både dagens och morgondagens data
 
@@ -54,29 +58,13 @@
 // }
 
 /**
- * @brief Fetches spot price data and populates AllaSpotpriser.
+ * @brief Implementation of Spotpris_FetchAll.
  *
- * For each electricity area:
- * - Builds API URL
- * - Performs HTTP GET request
- * - Parses JSON response
- * - Stores both structured data and raw JSON
+ * See header for full contract documentation.
  *
- * @param[out] _AllaSpotpriser Output structure to populate.
- *
- * @return
- * - 0 on success (partial data possible)
- * - -1 on critical failure (NULL input)
- *
- * @note Performs blocking HTTP requests.
- * @note Up to 8 HTTP calls (4 areas × 2 days).
- * @note Uses Jansson for JSON parsing.
- * @note Logs errors via Logger module.
- *
- * @warning Raw JSON buffer may truncate large responses.
- *
- * @pre _AllaSpotpriser must not be NULL.
- * @post Structure contains fetched and parsed data.
+ * @note This implementation aggregates the two day-responses into a single
+ * JSON array per area and stores a pretty-printed JSON dump in
+ * `raw_json_data` (may be truncated by the destination buffer).
  */
 int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
 {

@@ -1,38 +1,15 @@
 /**
  * @file spotpristest.c
- * @brief Entry point for the Spotpris module test harness.
- *
- * This program:
- * 1. Initializes logging and global dependencies (libcurl)
- * 2. Fetches spot price data using Spotpris module
- * 3. Sends the data via FIFO to another process (InputCache)
+ * @brief Test entry point for the Spotpris module IPC flow.
  *
  * @ingroup SPOTPRIS
  *
- * --- Runtime Behavior
- * - Fetches spot prices for all SE areas (SE1–SE4)
- * - Combines today + tomorrow data
- * - Serializes and sends full struct via binary pipe
+ * Initializes logging and libcurl, fetches spot price data via the Spotpris
+ * module, then writes the resulting binary struct to a named FIFO for
+ * consumption by another process (e.g., InputCache).
  *
- * --- Side Effects
- * - Creates FIFO at `/tmp/fifo_spotpris`
- * - Performs blocking I/O (FIFO write)
- * - Performs network requests (via Spotpris module)
- * - Writes logs to `spotpris.log`
- *
- * --- Dependencies
- * - libcurl (requires curl_global_init / cleanup)
- * - FIFO consumer must exist (reader process)
- * - Spotpris module must be functional
- *
- * --- Error Handling
- * - Returns -4 if fetch fails
- * - Returns -3 if FIFO open fails
- * - Returns -1 if FIFO creation fails
- *
- * @note This file is intended for testing and integration.
- * @note Not part of core business logic.
- * @warning Blocking behavior occurs if no FIFO reader is connected.
+ * @note Intended for testing/integration; not part of core business logic.
+ * @warning Opening and writing the FIFO may block until a reader is connected.
  */
 
 #define MODULE_NAME "MAIN"
@@ -49,33 +26,20 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-/**
- * @brief Named pipe used for IPC between Spotpris module and InputCache.
- */
+/** Named pipe used for IPC between Spotpris module and its consumer. */
 #define FIFO_SPOTPRIS_WRITE "/tmp/fifo_spotpris"
 
 /**
- * @brief Program entry point.
+ * @brief Runs the Spotpris test harness.
  *
- * Coordinates initialization, data fetching, and IPC pipeline.
+ * Fetches all spot prices into an AllaSpotpriser struct and writes the raw
+ * binary representation to @ref FIFO_SPOTPRIS_WRITE.
  *
- * Execution flow:
- * - Initialize logging
- * - Initialize libcurl
- * - Fetch spot price data
- * - Create/open FIFO
- * - Send data via pipe
- * - Cleanup resources
+ * @return 0 on success, otherwise a negative error code.
  *
- * @return
- * - 0 on success
- * - Negative error code on failure
- *
- * @pre Logging system must be functional.
- * @pre Spotpris module must be functional.
- * @post Spot price data is sent via FIFO to consumer.
- * @warning This function performs blocking I/O when writing to FIFO.
- * @note Intended for testing; does not affect core business logic.
+ * @note See the Spotpris module for fetch semantics and data population rules.
+ * @warning The FIFO transfer is ABI-sensitive; reader and writer must agree on
+ *          the struct layout.
  */
 int main(void)
 {
@@ -98,12 +62,8 @@ int main(void)
     // Debug helper (disabled in production)
     // AllaSpotpriser_Print(&spotpriser);
 
-    /**
-     * Create FIFO if it does not exist.
-     *
-     * @note mkfifo will fail with EEXIST if already created (expected case).
-     * @warning Fails if permissions prevent creation.
-     */
+    // Create FIFO if it does not exist.
+    // mkfifo will fail with EEXIST if already created (expected case).
     if (mkfifo(FIFO_SPOTPRIS_WRITE, 0666) < 0 && errno != EEXIST)
     {
         LOG_ERROR("Failed to create FIFO: %s", FIFO_SPOTPRIS_WRITE);
@@ -112,11 +72,8 @@ int main(void)
 
     LOG_INFO("FIFO ready: %s\n", FIFO_SPOTPRIS_WRITE);
 
-    /**
-     * Open FIFO for writing.
-     *
-     * @warning This call will BLOCK until a reader connects.
-     */
+    // Open FIFO for writing.
+    // This call will BLOCK until a reader connects.
     int spotpris_fd_write = open(FIFO_SPOTPRIS_WRITE, O_WRONLY);
 
     if (spotpris_fd_write < 0)
@@ -127,16 +84,7 @@ int main(void)
 
     LOG_INFO("Sending spotpris data to cache...\n");
 
-    /**
-     * Write binary struct to pipe.
-     *
-     * @param spotpris_fd_write File descriptor of FIFO.
-     * @param &spotpriser Pointer to data structure.
-     * @param sizeof(spotpriser) Size of data structure.
-     *
-     * @note Writes entire AllaSpotpriser struct in one operation.
-     * @warning Receiver must use identical struct layout (ABI-sensitive).
-     */
+    // Write binary struct to pipe.
     ssize_t bytesWritten =
         Pipes_WriteBinary(spotpris_fd_write, &spotpriser, sizeof(spotpriser));
 
