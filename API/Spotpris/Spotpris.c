@@ -2,6 +2,9 @@
  * @file Spotpris.c
  * @brief Implementation of the Spotpris module.
  *
+ * Fetches spot price data from the external API and populates
+ * the Spotpris data structures.
+ *
  * @ingroup SPOTPRIS
  */
 
@@ -17,7 +20,7 @@
 /**
  * @brief Number of days to fetch.
  *
- * @note Fetches both current and next day.
+ * Currently fetches both current and next day.
  */
 #define NUM_DAYS 2 // Vi hämtar både dagens och morgondagens data
 
@@ -54,29 +57,12 @@
 // }
 
 /**
- * @brief Fetches spot price data and populates AllaSpotpriser.
+ * @brief Implementation of Spotpris_FetchAll.
  *
- * For each electricity area:
- * - Builds API URL
- * - Performs HTTP GET request
- * - Parses JSON response
- * - Stores both structured data and raw JSON
+ * Aggregates data from the external API for all configured areas and
+ * days, parses the JSON response, and fills the provided structure.
  *
- * @param[out] _AllaSpotpriser Output structure to populate.
- *
- * @return
- * - 0 on success (partial data possible)
- * - -1 on critical failure (NULL input)
- *
- * @note Performs blocking HTTP requests.
- * @note Up to 8 HTTP calls (4 areas × 2 days).
- * @note Uses Jansson for JSON parsing.
- * @note Logs errors via Logger module.
- *
- * @warning Raw JSON buffer may truncate large responses.
- *
- * @pre _AllaSpotpriser must not be NULL.
- * @post Structure contains fetched and parsed data.
+ * See Spotpris.h for full contract documentation.
  */
 int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
 {
