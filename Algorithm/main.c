@@ -160,16 +160,22 @@ int main()
     }
 
     AlgoritmShared *shm;
-    int shm_fd = -1;
+    //int shm_fd = -1;
     sem_t *mutex;
 
-    if (SHM_InitializeWriter(&shm, ALGORITM_SHARED, shm_fd) != 0)
+    //if (SHM_InitializeWriter(&shm, ALGORITM_SHARED, shm_fd) != 0)
+    if (SHM_InitializeWriter(&shm, ALGORITM_SHARED) != 0)
     {
+        free(cache); //Free our earlier malloc
+        log_Cleanup(); // Close logging 
         return -1;
     }
 
     if (SHM_CreateSemaphore(&mutex, ALGORITM_MUTEX) != 0)
     {
+        SHM_DisposeWriter(&shm); //Unmap the shared memory if failed to create a semaphore
+        free(cache); 
+        log_Cleanup();
         return -2;
     }
 
@@ -260,7 +266,7 @@ int main()
     }
     printf("Free cache\n");
     SHM_CloseSemaphore(&mutex);
-    SHM_DisposeWriter(&shm, ALGORITM_SHARED, shm_fd);
+    SHM_DisposeWriter(&shm);
     free(cache);
     log_Cleanup();
     return 0;

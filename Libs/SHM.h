@@ -36,7 +36,7 @@
  * @warning Overwrites existing shared memory if it already exists.
  * @note Caller is responsible for synchronization (e.g., semaphores).
  */
-int SHM_InitializeWriter(AlgoritmShared **shared, const char *name, int shm_fd);
+int SHM_InitializeWriter(AlgoritmShared **shared, const char *name);
 
 /**
  * @brief Initializes shared memory for reading.
@@ -56,7 +56,7 @@ int SHM_InitializeWriter(AlgoritmShared **shared, const char *name, int shm_fd);
  * @post `*shared` points to mapped read-only region.
  * @warning No validation is performed on the size or structure of shared memory.
  */
-int SHM_InitializeReader(AlgoritmShared **shared, const char *name, int shm_fd);
+int SHM_InitializeReader(AlgoritmShared **shared, const char *name);
 
 /**
  * @brief Creates a named semaphore.
@@ -117,7 +117,7 @@ void SHM_DestroySemaphore(sem_t **sem, const char *name);
  * @post Memory unmapped and file descriptor closed.
  * @note Does not unlink shared memory.
  */
-void SHM_DisposeReader(AlgoritmShared **shared, const char *name, int shm_fd);
+void SHM_DisposeReader(AlgoritmShared **shared);
 
 /**
  * @brief Releases resources for shared memory writer.
@@ -129,7 +129,7 @@ void SHM_DisposeReader(AlgoritmShared **shared, const char *name, int shm_fd);
  * @post Memory unmapped and file descriptor closed.
  * @note Does not unlink shared memory.
  */
-void SHM_DisposeWriter(AlgoritmShared **shared, const char *name, int shm_fd);
+void SHM_DisposeWriter(AlgoritmShared **shared);
 
 /**
  * @brief Removes shared memory object from the system.

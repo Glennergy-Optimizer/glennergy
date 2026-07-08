@@ -24,9 +24,9 @@
  * @post Shared memory is created and mapped.
  * @warning Overwrites existing shared memory if exists.
  */
-int SHM_InitializeWriter(AlgoritmShared **shared, const char *name, int shm_fd)
+int SHM_InitializeWriter(AlgoritmShared **shared, const char *name)
 {
-    shm_fd = shm_open(name, O_CREAT | O_RDWR, 0666);
+    int shm_fd = shm_open(name, O_CREAT | O_RDWR, 0666);
 
     if (shm_fd < 0)
     {
@@ -36,6 +36,7 @@ int SHM_InitializeWriter(AlgoritmShared **shared, const char *name, int shm_fd)
 
     if (ftruncate(shm_fd, sizeof(AlgoritmShared)) < 0)
     {
+        close(shm_fd);
         LOG_ERROR("ftruncate failed");
         return -2;
     }
@@ -44,8 +45,10 @@ int SHM_InitializeWriter(AlgoritmShared **shared, const char *name, int shm_fd)
     if (*shared == MAP_FAILED)
     {
         LOG_ERROR("Failed to create mapping");
+        close(shm_fd);
         return -3;
     }
+    close(shm_fd);
 
     LOG_INFO("Successfully created shared memory region");
 
@@ -65,9 +68,10 @@ int SHM_InitializeWriter(AlgoritmShared **shared, const char *name, int shm_fd)
  * @pre Shared memory must exist.
  * @post *shared points to mapped read-only memory.
  */
-int SHM_InitializeReader(AlgoritmShared **shared, const char *name, int shm_fd)
+//int SHM_InitializeReader(AlgoritmShared **shared, const char *name, int shm_fd)
+int SHM_InitializeReader(AlgoritmShared **shared, const char *name)
 {
-    shm_fd = shm_open(name, O_RDONLY, 0);
+    int shm_fd = shm_open(name, O_RDONLY, 0);
 
     if (shm_fd < 0)
     {
@@ -79,8 +83,10 @@ int SHM_InitializeReader(AlgoritmShared **shared, const char *name, int shm_fd)
     if (*shared == MAP_FAILED)
     {
         LOG_ERROR("Failed to create mapping");
+        close(shm_fd);
         return -3;
     }
+    close(shm_fd);
 
     LOG_INFO("Successfully opened shared memory region");
 
@@ -159,12 +165,14 @@ void SHM_DestroySemaphore(sem_t **sem, const char *name)
 /**
  * @brief Disposes shared memory reader resources.
  */
-void SHM_DisposeReader(AlgoritmShared **shared, const char *name, int shm_fd)
+//void SHM_DisposeReader(AlgoritmShared **shared, const char *name, int shm_fd)
+void SHM_DisposeReader(AlgoritmShared **shared)
 {
-    (void)name; // Unused parameter, can be used for logging if needed
-
+    //(void)name; // Unused parameter, can be used for logging if needed
+    
     munmap(*shared, sizeof(AlgoritmShared));
-    close(shm_fd);
+    //close(shm_fd);
+    //close(shm_fd);
 
     // Suggestion: Set *shared = NULL after munmap
 }
@@ -172,12 +180,12 @@ void SHM_DisposeReader(AlgoritmShared **shared, const char *name, int shm_fd)
 /**
  * @brief Disposes shared memory writer resources.
  */
-void SHM_DisposeWriter(AlgoritmShared **shared, const char *name, int shm_fd)
+void SHM_DisposeWriter(AlgoritmShared **shared)
 {
-    (void)name; // Unused parameter, can be used for logging if needed
+    //(void)name; // Unused parameter, can be used for logging if needed
 
     munmap(*shared, sizeof(AlgoritmShared));
-    close(shm_fd);
+    //close(shm_fd);
 
     // Suggestion: Set *shared = NULL after munmap
 }

@@ -59,7 +59,14 @@ int Connection_Handle(Connection *_Connection)
 
     HTTPRequest request;
     int result = 9999;
-    char *json_data;
+    char *json_data = NULL;
+
+    // Init stuff all stuff here at start of function
+    sem_t *mutex = NULL;
+    AlgoritmShared *memory = NULL;
+    // And add status
+    int status = 0;
+
 
     HTTPRequest_Initialize(&request);
 
@@ -124,15 +131,25 @@ int Connection_Handle(Connection *_Connection)
     // int client_id = strtol(request.url + 1, NULL, 10);
     printf("id: %d\n", client_id);
 
-    int shm_fd = -1;
-    sem_t *mutex;
-    AlgoritmShared *memory;
+    //int shm_fd = -1;
+    // sem_t *mutex;
+    // AlgoritmShared *memory;
 
-    if (SHM_InitializeReader(&memory, ALGORITM_SHARED, shm_fd) != 0)
-        return -1;
-
+    //if (SHM_InitializeReader(&memory, ALGORITM_SHARED, shm_fd) != 0)
+    // if (SHM_InitializeReader(&memory, ALGORITM_SHARED) != 0)
+    //     return -1;
+    if (SHM_InitializeReader(&memory, ALGORITM_SHARED) != 0)
+    { 
+        status = -1;
+        goto cleanup;
+    }
+    // if (SHM_OpenSemaphore(&mutex, ALGORITM_MUTEX) != 0)
+    //     return -2;
     if (SHM_OpenSemaphore(&mutex, ALGORITM_MUTEX) != 0)
-        return -2;
+    {
+        status = -2;
+        goto cleanup;
+    }
 
     sem_wait(mutex);
 
@@ -181,21 +198,39 @@ int Connection_Handle(Connection *_Connection)
     if (actualLength >= sizeof(response))
     {
         LOG_ERROR("Response truncated: actual length %d exceeds buffer size %zu", actualLength, sizeof(response));
-        return -1; // TODO - Free här vid error?
+        //return -1; // TODO - Free här vid error?
+        status = -1;
+        goto cleanup;
     }
 
+    status = 0;
+    
+    
     printf("data %s\n", response);
     send(_Connection->socket, response, actualLength, MSG_NOSIGNAL);
-
-    free(json_data); // Don't forget to free the data after we sent the response
+    
+    //free(json_data); // Don't forget to free the data after we sent the response
     LOG_DEBUG("Response sent");
-
-    SHM_CloseSemaphore(&mutex);
-    SHM_DisposeReader(&memory, ALGORITM_SHARED, shm_fd);
-    HTTPRequest_Dispose(&request);
+    
+    // SHM_CloseSemaphore(&mutex);
+    // //SHM_DisposeReader(&memory, ALGORITM_SHARED, shm_fd);
+    // SHM_DisposeReader(&memory, ALGORITM_SHARED);
+    // HTTPRequest_Dispose(&request);
+    cleanup:
+        free(json_data);
+    
+        if (mutex != NULL)
+        {
+            SHM_CloseSemaphore(&mutex);
+        }
+        if (memory != NULL)
+        {
+            SHM_DisposeReader(&memory);
+        }
+        HTTPRequest_Dispose(&request);
 
     LOG_DEBUG("Response sent");
-    return 0;
+    return status;
 }
 
 void Connection_Dispose(Connection **_Connection)
