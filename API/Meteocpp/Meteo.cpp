@@ -127,13 +127,19 @@ static bool parseSamplesDirect(PropertyInfo& prop, const json& root)
     const auto &h = root["minutely_15"];
     const auto &times   = h["time"];
     const auto &temps   = h["temperature_2m"];
-    const auto &ghi     = h["shortwave_radiation"];
-    const auto &dni     = h["direct_normal_irradiance"];
     const auto &diffuse = h["diffuse_radiation"];
     const auto &cloud   = h["cloud_cover"];
     const auto &day     = h["is_day"];
+    const auto &weather = h["weather_code"];
+    const auto &uv_idx  = h["uv_index"];
 
     size_t count = std::min(temps.size(), static_cast<size_t>(KVARTAR_TOTALT));
+
+    std::cout << "sizes: "
+          << times.size() << " "
+          << temps.size() << " "
+          << weather.size() << " "
+          << uv_idx.size() << "\n";
 
     // Suggestion: Validate all arrays have equal size before accessing
 
@@ -143,12 +149,12 @@ static bool parseSamplesDirect(PropertyInfo& prop, const json& root)
         prop.sample[j].time_start[sizeof(prop.sample[j].time_start) - 1] = '\0';
 
         prop.sample[j].temp = temps[j].get<float>();
-        prop.sample[j].ghi = ghi[j].get<float>();
-        prop.sample[j].dni = dni[j].get<float>();
         prop.sample[j].diffuse_radiation = diffuse[j].get<float>();
         prop.sample[j].cloud_cover = cloud[j].get<float>();
         prop.sample[j].is_day = day[j].get<int>() != 0;
         prop.sample[j].valid = prop.sample[j].is_day;
+        prop.sample[j].weather_code = weather[j].get<int>();
+        prop.sample[j].uv_index = uv_idx[j].get<int>();
     }
 
     std::string dumped = root.dump();

@@ -17,6 +17,8 @@
 #define ALGORITM_SHARED "/algoritm_shm" /**< Shared memory name */
 #define ALGORITM_MUTEX "/algoritm_mutex" /**< Semaphore name for shared memory */
 
+#include "../API/Meteo/Meteo.h"
+
 /**
  * @brief Placeholder function for testing reader
  *
@@ -33,6 +35,12 @@ typedef struct
     char time[32]; /**< Timestamp string (YYYY-MM-DD HH:MM) */
 } time_start;
 
+typedef struct{
+    float temp[128];
+    int weather_code[128];
+    int uv_index[128];
+}Weather;
+
 /**
  * @brief Result per ID in Algorithm module
  * @note `recommendation` array stores values for 96 quarters
@@ -41,9 +49,12 @@ typedef struct
 {
     int id;                       /**< Unique identifier */
     double recommendation[96];       /**< Recommendations per quarter-hour */
-    int recommendation_type[96]; // 1 = BUY, 2 = HOLD, 3 = SELL, 4 = INVALID, -1 = ERROR
+    double price[96];
+    Weather weather;
     time_start time[96];           /**< Corresponding timestamps */
 } AlgoritmResult;
+
+
 
 /**
  * @brief Shared memory structure for Algorithm module

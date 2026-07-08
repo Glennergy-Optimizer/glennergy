@@ -21,7 +21,7 @@ constexpr std::string_view METEO_LINK =
     "https://api.open-meteo.com/v1/forecast?"
     "latitude={}&longitude={}"
     "&minutely_15=temperature_2m,shortwave_radiation,direct_normal_irradiance,"
-    "diffuse_radiation,cloud_cover,is_day"
+    "diffuse_radiation,cloud_cover,is_day,weather_code,uv_index"
     "&forecast_days=3&forecast_minutely_15=128&timezone=Europe/Stockholm";
 
 /**

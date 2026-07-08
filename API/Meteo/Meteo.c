@@ -16,7 +16,7 @@
 #include <math.h>
 #include <jansson.h>
 
-#define METEO_LINK "https://api.open-meteo.com/v1/forecast?latitude=%2.f&longitude=%2f&minutely_15=temperature_2m,shortwave_radiation,direct_normal_irradiance,diffuse_radiation,cloud_cover,is_day&forecast_days=3&forecast_minutely_15=128&timezone=Europe/Stockholm"
+#define METEO_LINK "https://api.open-meteo.com/v1/forecast?latitude=%2.f&longitude=%2f&minutely_15=temperature_2m,shortwave_radiation,direct_normal_irradiance,diffuse_radiation,cloud_cover,is_day,weather_code,uv_index&forecast_days=3&forecast_minutely_15=128&timezone=Europe/Stockholm"
 
 /**
  * @brief Initialize MeteoData structure.
@@ -145,6 +145,8 @@ int Meteo_Parse(PropertyInfo *_PropertyInfo, const char *_JsonRaw)
     json_t *diffuse = json_object_get(hourly, "diffuse_radiation");
     json_t *cloud_cover = json_object_get(hourly, "cloud_cover");
     json_t *is_day = json_object_get(hourly, "is_day");
+    json_t *weather_code = json_object_get(hourly, "weather_code");
+    json_t *uv_index = json_object_get(hourly, "uv_index");
 
     size_t array_size = json_array_size(temps);
 
@@ -156,11 +158,11 @@ int Meteo_Parse(PropertyInfo *_PropertyInfo, const char *_JsonRaw)
                  sizeof(_PropertyInfo->sample[j].time_start), "%s", json_string_value(json_array_get(times, j)));
 
         _PropertyInfo->sample[j].temp = json_number_value(json_array_get(temps, j));
-        _PropertyInfo->sample[j].ghi = json_number_value(json_array_get(ghi, j));
-        _PropertyInfo->sample[j].dni = json_number_value(json_array_get(dni, j));
         _PropertyInfo->sample[j].diffuse_radiation = json_number_value(json_array_get(diffuse, j));
         _PropertyInfo->sample[j].cloud_cover = json_number_value(json_array_get(cloud_cover, j));
         _PropertyInfo->sample[j].is_day = json_integer_value(json_array_get(is_day, j)) != 0;
+        _PropertyInfo->sample[j].weather_code = json_integer_value(json_array_get(weather_code, j)) != 0;
+        _PropertyInfo->sample[j].uv_index = json_integer_value(json_array_get(uv_index, j)) != 0;
         _PropertyInfo->sample[j].valid = _PropertyInfo->sample[j].is_day;
 
         if (j < 2)
@@ -168,8 +170,6 @@ int Meteo_Parse(PropertyInfo *_PropertyInfo, const char *_JsonRaw)
             printf("Parsed sample %zu for property ID %d: time: %s, temp: %.2f, GHI: %.2f, DNI: %.2f, diffuse: %.2f, cloud: %.2f, is_day: %d\n",
                    j, _PropertyInfo->id, _PropertyInfo->sample[j].time_start,
                    _PropertyInfo->sample[j].temp,
-                   _PropertyInfo->sample[j].ghi,
-                   _PropertyInfo->sample[j].dni,
                    _PropertyInfo->sample[j].diffuse_radiation,
                    _PropertyInfo->sample[j].cloud_cover,
                    _PropertyInfo->sample[j].is_day);

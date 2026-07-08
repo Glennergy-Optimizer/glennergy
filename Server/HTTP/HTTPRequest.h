@@ -28,6 +28,12 @@ typedef enum{
   Connection_ReadResult_Error,   /**< Read failed due to error. */
 } Connection_ReadResult;
 
+
+typedef struct{
+  int id;
+  char command[32];
+}HTTPRequestData;
+
 /**
  * @brief Structure representing an HTTP request.
  *
@@ -41,7 +47,6 @@ typedef struct
   size_t recv_buffer_length; /**< Current length of valid data in buffer. */
 
   int content_length; /**< Content-Length header value. */
-
   char *request_body; /**< Optional HTTP request body. */
 } HTTPRequest;
 
@@ -83,6 +88,8 @@ int HTTPRequest_ReadHeaders(int socket, HTTPRequest *http_request, int* bytesRea
  * @warning Caller must free url using HTTPRequest_Dispose.
  */
 int HTTPRequest_ParseHeader(HTTPRequest* http_request);
+
+HTTPRequestData parse_request(const char *path);
 
 /**
  * @brief Frees resources associated with an HTTPRequest.

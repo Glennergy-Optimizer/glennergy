@@ -30,7 +30,7 @@
                         "Access-Control-Allow-Origin: *\r\n"             \
                         "Access-Control-Allow-Methods: GET, OPTIONS\r\n" \
                         "Access-Control-Allow-Headers: Content-Type\r\n" \
-                        "Connection: close\r\n"                    \
+                        "Connection: close\r\n"                          \
                         "\r\n"                                           \
                         "%s"
 
@@ -78,11 +78,11 @@ int Connection_Handle(Connection *_Connection)
         if (_Connection->timeout > 0)
         {
             if (monTime >= _Connection->timeout)
-        {
-            LOG_INFO("Client timed out");
-            HTTPRequest_Dispose(&request);
-            return -1;
-        }
+            {
+                LOG_INFO("Client timed out");
+                HTTPRequest_Dispose(&request);
+                return -1;
+            }
         }
         else
         {
@@ -125,11 +125,13 @@ int Connection_Handle(Connection *_Connection)
     // Now, if we have a get request we actually want to handle, i.e "/id=3", we continue handling it
 
     // OBS/TODO - I produktion måste den här vara aktiv för att HTTP requesten ska fungera direkt och få data
-    char *rec_offset = request.url + 1;
-    int client_id = strtol(request.url, &rec_offset, 10);
-    // Men den här behövs för att Håkan ska kunna kompilera. Raden ovanför verkar funka med ubuntu
-    // int client_id = strtol(request.url + 1, NULL, 10);
-    printf("id: %d\n", client_id);
+    HTTPRequestData request_data = parse_request(request.url);
+    printf("Parsed request ID: %d Command: %s\n", request_data.id, request_data.command);
+    // char *rec_offset = request.url + 1;
+    // int client_id = strtol(request.url, &rec_offset, 10);
+    // // Men den här behövs för att Håkan ska kunna kompilera. Raden ovanför verkar funka med ubuntu
+    // // int client_id = strtol(request.url + 1, NULL, 10);
+    //printf("id: %d\n", client_id); 
 
     //int shm_fd = -1;
     // sem_t *mutex;
@@ -156,30 +158,73 @@ int Connection_Handle(Connection *_Connection)
     json_t *arr = json_array();
     for (int i = 0; i < MAX_ID; i++)
     {
-        if (client_id != memory->result[i].id)
+        if (request_data.id != memory->result[i].id)
             continue;
 
         printf("Got the stuff: %d\n", memory->result[i].id);
-        for (int j = 0; j < 96; j++)
+
+        if (strncmp(request_data.command, "recommendation", 15) == 0)
         {
+            for (int j = 0; j < 96; j++)
+            {
 
-            printf("Recommendation: %.3f\n", memory->result[i].recommendation[j]);
-            double rec = memory->result[i].recommendation[j];
-            int recommendation_type = memory->result[i].recommendation_type[j];
+                // printf("Recommendation: %.f\n", memory->result[i].sample[j]);
+                double rec = memory->result[i].recommendation[j];
 
-            const char *type = NULL;
+                const char *type = NULL;
 
-            json_t *obj = json_object();
-            json_object_set_new(obj, "id", json_integer(memory->result[i].id));
-            json_object_set_new(obj, "normalized", json_real(rec));
-            json_object_set_new(obj, "recommendation", json_integer(recommendation_type));
-            json_object_set_new(obj, "timestamp", json_string(memory->result[i].time[j].time));
-            json_array_append_new(arr, obj);
+                json_t *obj = json_object();
+                json_object_set_new(obj, "id", json_integer(memory->result[i].id));
+                json_object_set_new(obj, "type", json_real(rec));
+                json_object_set_new(obj, "timestamp", json_string(memory->result[i].time[j].time));
+                json_object_set_new(obj, "temp", json_real(memory->result[i].weather.temp[j]));
+                json_array_append_new(arr, obj);
 
-            //if (strstr(memory->result[i].time[j].time, "23:45") != NULL)
-            //{
-            //    break;
-            //}
+                // if (strstr(memory->result[i].time[j].time, "23:45") != NULL)
+                //{
+                //     break;
+                // }
+            }
+        }
+        else if (strncmp(request_data.command, "weather", 8) == 0)
+        {
+            for (int j = 0; j < 96; j++)
+            {
+
+                // printf("Recommendation: %.f\n", memory->result[i].sample[j]);
+                double rec = memory->result[i].recommendation[j];
+
+                json_t *obj = json_object();
+                json_object_set_new(obj, "timestamp", json_string(memory->result[i].time[j].time));
+                json_object_set_new(obj, "temp", json_real(memory->result[i].weather.temp[j]));
+                json_object_set_new(obj, "weather_code", json_integer(memory->result[i].weather.weather_code[j]));
+                json_object_set_new(obj, "uv_index", json_real(memory->result[i].weather.uv_index[j]));
+                json_array_append_new(arr, obj);
+
+                // if (strstr(memory->result[i].time[j].time, "23:45") != NULL)
+                //{
+                //     break;
+                // }
+            }
+        }
+        else if (strncmp(request_data.command, "price", 6) == 0)
+        {
+            for (int j = 0; j < 96; j++)
+            {
+
+                // printf("Recommendation: %.f\n", memory->result[i].sample[j]);
+                double rec = memory->result[i].recommendation[j];
+
+                json_t *obj = json_object();
+                json_object_set_new(obj, "timestamp", json_string(memory->result[i].time[j].time));
+                json_object_set_new(obj, "price SEK", json_real(memory->result[i].price[j]));
+                json_array_append_new(arr, obj);
+
+                // if (strstr(memory->result[i].time[j].time, "23:45") != NULL)
+                //{
+                //     break;
+                // }
+            }
         }
     }
 
@@ -192,7 +237,7 @@ int Connection_Handle(Connection *_Connection)
 
     printf("size of json data: %zu\n", strlen(json_data));
 
-    char response[18000];
+    char response[30000];
     // snprintf(response, sizeof(response), RESPONSE_HEADER, strlen(json_data), json_data);
     int actualLength = snprintf(response, sizeof(response), RESPONSE_HEADER, strlen(json_data), json_data);
     if (actualLength >= sizeof(response))
@@ -207,12 +252,12 @@ int Connection_Handle(Connection *_Connection)
     
     
     printf("data %s\n", response);
+
     send(_Connection->socket, response, actualLength, MSG_NOSIGNAL);
     
     //free(json_data); // Don't forget to free the data after we sent the response
     LOG_DEBUG("Response sent");
-    
-    // SHM_CloseSemaphore(&mutex);
+        // SHM_CloseSemaphore(&mutex);
     // //SHM_DisposeReader(&memory, ALGORITM_SHARED, shm_fd);
     // SHM_DisposeReader(&memory, ALGORITM_SHARED);
     // HTTPRequest_Dispose(&request);
@@ -228,7 +273,8 @@ int Connection_Handle(Connection *_Connection)
             SHM_DisposeReader(&memory);
         }
         HTTPRequest_Dispose(&request);
-
+    printf("End of handler function!!!!!");
+    fflush(stdout);
     LOG_DEBUG("Response sent");
     return status;
 }
@@ -241,6 +287,7 @@ void Connection_Dispose(Connection **_Connection)
     Connection *connection = *_Connection;
 
     close(connection->socket);
+    printf("client disconnected!");
     free(connection);
-    connection = NULL; // Todo 
+    connection = NULL; // Todo
 }
