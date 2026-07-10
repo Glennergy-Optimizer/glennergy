@@ -85,6 +85,9 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
         return -1;
     }
 
+    // Reset data so we dont have old stale values that survives
+    memset(_AllaSpotpriser, 0, sizeof(*_AllaSpotpriser));
+
     char date_str[NUM_DAYS][16];
     for (int i = 0; i < NUM_DAYS; i++)
     {
@@ -99,13 +102,24 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
 
     CurlResponse resp;
     Curl_Initialize(&resp);
+    int successful_areas = 0;
 
     for (int i = 0; i < 4; i++)
     {
+        // But even if we crash, preserve the area names for diagnostics and ache state
+        strncpy(_AllaSpotpriser->areas[i].areaname, areas[i], sizeof(_AllaSpotpriser->areas[i].areaname) - 1);
+        _AllaSpotpriser->areas[i].areaname[sizeof(_AllaSpotpriser->areas[i].areaname) - 1] = '\0';
+
         json_t *total_data = json_array();
+        int area_complete = 1;
         for (int k = 0; k < NUM_DAYS; k++)
         {
             resp.size = 0;
+            
+            if (resp.data)
+            {
+                resp.data[0] = '\0';
+            }
 
             snprintf(url, sizeof(url),
                      "https://www.elprisetjustnu.se/api/v1/prices/%s_%s.json",
@@ -114,6 +128,8 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
             int rc = Curl_HTTPGet(&resp, url);
             if (rc != 0)
             {
+                LOG_ERROR("HTTP request failed for %s with rc=%d", url, rc);
+                area_complete = 0;
                 break;
             }
 
@@ -124,6 +140,7 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
             if (!root)
             {
                 LOG_ERROR("JSON parse error: %s\n", error.text);
+                area_complete = 0;
                 break;
             }
 
@@ -131,6 +148,7 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
             {
                 LOG_ERROR("JSON is not an array\n");
                 json_decref(root);
+                area_complete = 0;
                 break;
             }
 
@@ -147,14 +165,22 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
 
         char *raw_data = json_dumps(total_data, JSON_INDENT(4));
         size_t n = json_array_size(total_data);
+        if (n > sizeof(_AllaSpotpriser->areas[i].kvartar) / sizeof(_AllaSpotpriser->areas[i].kvartar[0]))
+        {
+            LOG_ERROR("Spot price response for area %s has too many entries (%zu), truncating", areas[i], n);
+            n = sizeof(_AllaSpotpriser->areas[i].kvartar) / sizeof(_AllaSpotpriser->areas[i].kvartar[0]);
+        }
 
         strncpy(_AllaSpotpriser->areas[i].areaname, areas[i], sizeof(_AllaSpotpriser->areas[i].areaname) - 1);
         _AllaSpotpriser->areas[i].areaname[sizeof(_AllaSpotpriser->areas[i].areaname) - 1] = '\0';
         _AllaSpotpriser->areas[i].count = n;
 
         // Lägg till råa JSON-datan så InputCache kan spara ner det. Glömm inte nullterminering
-        strncpy(_AllaSpotpriser->areas[i].raw_json_data, raw_data, sizeof(_AllaSpotpriser->areas[i].raw_json_data) - 1);
-        _AllaSpotpriser->areas[i].raw_json_data[sizeof(_AllaSpotpriser->areas[i].raw_json_data) - 1] = '\0';
+        if (raw_data)
+        {
+            strncpy(_AllaSpotpriser->areas[i].raw_json_data, raw_data, sizeof(_AllaSpotpriser->areas[i].raw_json_data) - 1);
+            _AllaSpotpriser->areas[i].raw_json_data[sizeof(_AllaSpotpriser->areas[i].raw_json_data) - 1] = '\0';
+        }
 
         // Todo - Kanske onödigt med hårdkodat att vi aldrig läser mer än 96 kvartar, eftersom SpotPris bara kommer leverera 96?
         for (size_t j = 0; j < n; j++)
@@ -168,6 +194,11 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
             }
 
             const char *start = json_string_value(json_object_get(obj, "time_start"));
+            if (!start)
+            {
+                LOG_ERROR("Spot price entry missing time_start for area %s", areas[i]);
+                continue;
+            }
 
             _AllaSpotpriser->areas[i].kvartar[j].sek_per_kwh = json_real_value(json_object_get(obj, "SEK_per_kWh"));
 
@@ -176,9 +207,13 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
             _AllaSpotpriser->areas[i].kvartar[j].time_start[sizeof(_AllaSpotpriser->areas[i].kvartar[j].time_start) - 1] = '\0';
         }
         LOG_INFO("TEST");
+        if (area_complete)
+        {
+            successful_areas++;
+        }
         free(raw_data);
         json_decref(total_data);
     }
     Curl_Dispose(&resp);
-    return 0;
+    return successful_areas == 4 ? 0 : -2;
 }

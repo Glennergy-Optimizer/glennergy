@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <string.h>
 
 /**
  * @brief Initializes shared memory for writing.
@@ -50,9 +51,10 @@ int SHM_InitializeWriter(AlgoritmShared **shared, const char *name)
     }
     close(shm_fd);
 
-    LOG_INFO("Successfully created shared memory region");
+    // Start shared memory in known empty state after we mapped so we don't have old values that survive restarts to our Reader
+    memset(*shared, 0, sizeof(AlgoritmShared));
 
-    // Suggestion: Initialize shared memory content to known state (e.g., memset)
+    LOG_INFO("Successfully created shared memory region");
 
     return 0;
 }

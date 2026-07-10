@@ -87,9 +87,10 @@ static inline void GetTodayDate(char *buffer, size_t size) {
  */
 static inline void GetTomorrowDate(char *buffer, size_t size) {
     time_t t = time(NULL);
+    t += 24 * 60 * 60;
     struct tm tm = *localtime(&t);
     snprintf(buffer, size, "%04d/%02d-%02d",
-             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday + 1);
+             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
 }
 
 /**

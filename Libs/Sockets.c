@@ -72,6 +72,25 @@ int socket_Bind(int socket_fd, const char *socket_path)
     strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
 
     if (bind(socket_fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+        // If binding fails, we check if socket belongs to live listener.
+        if (errno == EADDRINUSE) {
+            int probe_fd = socket(AF_UNIX, SOCK_STREAM, 0);
+            if (probe_fd >= 0) {
+                if (connect(probe_fd, (struct sockaddr *)&addr, sizeof(addr)) == 0) {
+                    close(probe_fd);
+                    fprintf(stderr, "Bind failed: socket path is already in use by a listener\n");
+                    return -1;
+                }
+                close(probe_fd);
+            }
+
+            // If not live, it means process crashed, so we unlink to clean it up
+            if (unlink(socket_path) == 0 &&
+                bind(socket_fd, (struct sockaddr *)&addr, sizeof(addr)) == 0) {
+                return 0;
+            }
+        }
+
         perror("Bind failed");
         return -1;
     }

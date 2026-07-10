@@ -23,6 +23,7 @@
 #include <string.h>
 #include "average.h"
 #include <errno.h>
+#include <stdbool.h>
 
 #include "../Cache/InputCache.h"
 #include "../Cache/CacheProtocol.h"
@@ -188,22 +189,27 @@ int main()
         {
             LOG_ERROR("Failed to get data from cache, retrying in 5 seconds...");
             sleep(5);
+            // If something fails, don't publish, just continue
+            continue;
         }
 
         // LOG_INFO("Received from cache Meteo: %zu HomeSystem: %zu price areas: %zu", cache->meteo_count, cache->home_count, sizeof(cache->spotpris.count) / sizeof(cache->spotpris.count[0]));
 
         const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"};
 
-        size_t spot_index = 0;
+        // Create a new snapshot every cycle and memset so old recommendation values doesnt survive
+        AlgoritmShared next_shm;
+        memset(&next_shm, 0, sizeof(next_shm));
 
         SpotStats_t stats;
         average_SpotprisStats(&stats, cache);
 
-        sem_wait(mutex);
-
         for (size_t area_idx = 0; area_idx < 4; area_idx++)
         {
             size_t show_count = cache->spotpris.count[area_idx];
+            // Now attempts to find the spotpris index of the first meteo timestamp
+            size_t spot_index = 0;
+            bool found_spot_index = false;
             // if (show_count > 96)
             // show_count = 96; // Show only first 10
 
@@ -212,7 +218,16 @@ int main()
                 if (strncmp(cache->meteo[0].sample[0].time_start, cache->spotpris.data[area_idx][entry].time_start, 16) == 0)
                 {
                     spot_index = entry; // Get the active index for spotpris
+                    found_spot_index = true;
+                    break;
                 }
+            }
+
+            // If not found, skip. TODO - Re-evaluate how we handle errors?
+            if (!found_spot_index)
+            {
+                LOG_ERROR("No matching spot price start index found for area %s", area_names[area_idx]);
+                continue;
             }
 
             size_t spot_iterator = (spot_index + 96); // Add 96 quarters to get accurate matched price 24 hrs forward
@@ -239,19 +254,20 @@ int main()
                         {
                             if (strncmp(cache->meteo[i].sample[j].time_start, cache->spotpris.data[area_idx][entry].time_start, 16) == 0)
                             {
-                                shm->result[i].id = cache->meteo[i].id;
+                                next_shm.result[i].id = cache->meteo[i].id;
                                 double temp = average_WindowLow_percent(&cache->spotpris.data[area_idx][entry], stats.area[area_idx].min, stats.area[area_idx].max);
                                 int recommendation_type = average_WindowLow_test(&cache->spotpris.data[area_idx][entry], stats.area[area_idx].q25, stats.area[area_idx].q75);
+                                (void)recommendation_type;
 
                                 printf("TEMP: %.2f", temp);
 
-                                shm->result[i].recommendation[j] = temp;
-                                shm->result[i].weather.temp[j] = cache->meteo[i].sample[j].temp;
-                                shm->result[i].weather.weather_code[j] = cache->meteo[i].sample[j].weather_code;
-                                shm->result[i].weather.uv_index[j] = cache->meteo[i].sample[j].uv_index;
-                                shm->result[i].price[j] = cache->spotpris.data[area_idx][entry].sek_per_kwh;
-                                
-                                snprintf(shm->result[i].time[j].time, sizeof(shm->result[i].time[j].time), "%s", cache->spotpris.data[area_idx][entry].time_start);
+                                next_shm.result[i].recommendation[j] = temp;
+                                next_shm.result[i].weather.temp[j] = cache->meteo[i].sample[j].temp;
+                                next_shm.result[i].weather.weather_code[j] = cache->meteo[i].sample[j].weather_code;
+                                next_shm.result[i].weather.uv_index[j] = cache->meteo[i].sample[j].uv_index;
+                                next_shm.result[i].price[j] = cache->spotpris.data[area_idx][entry].sek_per_kwh;
+
+                                snprintf(next_shm.result[i].time[j].time, sizeof(next_shm.result[i].time[j].time), "%s", cache->spotpris.data[area_idx][entry].time_start);
 
                                 printf("  Matched time: %s, temp: %.2f °C, GHI: %.2f W/m², City: %s id: %d\n",
                                        cache->meteo[i].sample[j].time_start,
@@ -265,6 +281,9 @@ int main()
             }
         }
 
+        //  publish completed snapshot for the readers
+        sem_wait(mutex);
+        memcpy(shm, &next_shm, sizeof(next_shm));
         sem_post(mutex);
         sleep(10);
     }
