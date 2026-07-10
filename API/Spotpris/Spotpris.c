@@ -111,11 +111,11 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
         _AllaSpotpriser->areas[i].areaname[sizeof(_AllaSpotpriser->areas[i].areaname) - 1] = '\0';
 
         json_t *total_data = json_array();
-        int area_complete = 1;
+        int area_has_required_data = 1;
         for (int k = 0; k < NUM_DAYS; k++)
         {
             resp.size = 0;
-            
+
             if (resp.data)
             {
                 resp.data[0] = '\0';
@@ -129,7 +129,11 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
             if (rc != 0)
             {
                 LOG_ERROR("HTTP request failed for %s with rc=%d", url, rc);
-                area_complete = 0;
+                // Today is required, but tomorrow may be unpublished until the afternoon.
+                if (k == 0)
+                {
+                    area_has_required_data = 0;
+                }
                 break;
             }
 
@@ -140,7 +144,7 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
             if (!root)
             {
                 LOG_ERROR("JSON parse error: %s\n", error.text);
-                area_complete = 0;
+                area_has_required_data = 0;
                 break;
             }
 
@@ -148,7 +152,7 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
             {
                 LOG_ERROR("JSON is not an array\n");
                 json_decref(root);
-                area_complete = 0;
+                area_has_required_data = 0;
                 break;
             }
 
@@ -207,7 +211,7 @@ int Spotpris_FetchAll(AllaSpotpriser *_AllaSpotpriser)
             _AllaSpotpriser->areas[i].kvartar[j].time_start[sizeof(_AllaSpotpriser->areas[i].kvartar[j].time_start) - 1] = '\0';
         }
         LOG_INFO("TEST");
-        if (area_complete)
+        if (area_has_required_data)
         {
             successful_areas++;
         }
