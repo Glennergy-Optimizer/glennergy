@@ -155,13 +155,13 @@ int HTTPRequest_ParseHeader(HTTPRequest *http_request)
     }
 
     //http_request->url = strndup(path_start, path_end - path_start);
-    http_request->url = strndup(path_start, (size_t)path_end - path_start);
+    http_request->url = strndup(path_start, (size_t)(path_end - path_start));
     if (http_request->url == NULL)
     {
         printf("HTTPServerConnection_ParseHeader: Failed to copy url\n");
         return -1;
     }
-    size_t url_length = (size_t)(path_end - path_start);
+    //size_t url_length = (size_t)(path_end - path_start);
     //http_request->url[url_length] = '\0';
 
     return 0;
@@ -178,12 +178,12 @@ int parse_request(const char* path, HTTPRequestData *data) {
 
     // Only accept requests targets in form:
     // /id=3?recommendation
-    if (strnncmp(path, "/id", 4) != 0)
+    if (strncmp(path, "/id=", 4) != 0)
     {
         return -1;
     }
 
-    const char *id_Start = path + 4;
+    const char *id_start = path + 4;
     errno = 0;
     char *id_end = NULL;
     long parsed_id = strtol(id_start, &id_end, 10);
@@ -213,31 +213,31 @@ int parse_request(const char* path, HTTPRequestData *data) {
     return 0;
 }
 
-HTTPRequestData parse_request(const char *path)
-{
-    HTTPRequestData data;
+// HTTPRequestData parse_request(const char *path)
+// {
+//     HTTPRequestData data;
 
-    data.id = -1;
-    strcpy(data.command, "");
+//     data.id = -1;
+//     strcpy(data.command, "");
 
-    char *id_start = path;
+//     char *id_start = path;
 
-    if (id_start != NULL)
-    {
-        data.id = atoi(id_start);
-    }
+//     if (id_start != NULL)
+//     {
+//         data.id = atoi(id_start);
+//     }
 
-    char *question = strchr(path, '?');
+//     char *question = strchr(path, '?');
 
-    if (question != NULL)
-    {
-        question++;
+//     if (question != NULL)
+//     {
+//         question++;
 
-        strcpy(data.command, question);
-    }
+//         strcpy(data.command, question);
+//     }
 
-    return data;
-}
+//     return data;
+// }
 
 
 /**

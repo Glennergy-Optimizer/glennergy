@@ -46,7 +46,7 @@ int Connection_Initialize(Connection **_Connection, int _Socket)
 
     connection->socket = _Socket;
     connection->timeout = 0;
-    connect->bytesReadOut = 0;
+    connection->bytesReadOut = 0;
     // Behöver vi "connection->bytesReadOut = 0;" här? Det sätts ju i Connection_Handle så kanske inte nödvändigt att initiera det här?
 
     *_Connection = connection;

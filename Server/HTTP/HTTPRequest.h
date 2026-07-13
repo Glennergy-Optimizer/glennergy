@@ -11,9 +11,9 @@
 
 #define _POSIX_C_SOURCE 200809L
 
-#define HTTP_MAX_HEADER_SIZE 2048
-#define HTTP_MAX_TARGET_SIZE 128
-#define HTTP_COMMAND_SIZE 32
+// #define HTTP_MAX_HEADER_SIZE 2048
+// #define HTTP_MAX_TARGET_SIZE 128
+// #define HTTP_COMMAND_SIZE 32
 
 
 #include <stddef.h>
