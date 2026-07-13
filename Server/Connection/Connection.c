@@ -46,6 +46,7 @@ int Connection_Initialize(Connection **_Connection, int _Socket)
 
     connection->socket = _Socket;
     connection->timeout = 0;
+    connect->bytesReadOut = 0;
     // Behöver vi "connection->bytesReadOut = 0;" här? Det sätts ju i Connection_Handle så kanske inte nödvändigt att initiera det här?
 
     *_Connection = connection;
@@ -95,7 +96,18 @@ int Connection_Handle(Connection *_Connection)
         }
     }
 
-    HTTPRequest_ParseHeader(&request);
+    // If parsed failed, also stop and dispose the request 
+    if (HTTPRequest_ParseHeader(&request) != 0)
+    {
+        const char *resp = "HTTP/1.1 400 Bad Request\r\n"
+                           "Content-Length: 0\r\n"
+                           "Connection: close\r\n"
+                           "\r\n";
+        send(-Connection->socket, resp, strlen(resp), MSG_NOSIGNAL);
+        HTTPRequest_Dispose(&request);
+        return -1;
+    }
+    //HTTPRequest_ParseHeader(&request);
 
     printf("Request: %s\n", request.url ? request.url : "NULL");
     // Browsers can automatically add a second get request with favicon.ico, which can cause issues if we try to parse it as an integer.
@@ -125,8 +137,29 @@ int Connection_Handle(Connection *_Connection)
     // Now, if we have a get request we actually want to handle, i.e "/id=3", we continue handling it
 
     // OBS/TODO - I produktion måste den här vara aktiv för att HTTP requesten ska fungera direkt och få data
-    HTTPRequestData request_data = parse_request(request.url);
+    HTTPRequestData request_data;
+    if (parse_request(request.url, &request_data) != 0) {
+        const char *resp =
+            "HTTP/1.1 400 Bad Request\r\n"
+            "Content-Length: 0\r\n"
+            "Connection: close\r\n"
+            "\r\n";
+
+        send(
+            _Connection->socket,
+            resp,
+            strlen(resp),
+            MSG_NOSIGNAL
+        );
+
+        HTTPRequest_Dispose(&request);
+        return -1;
+    }
+
     printf("Parsed request ID: %d Command: %s\n", request_data.id, request_data.command);
+
+    //HTTPRequestData request_data = parse_request(request.url);
+    // printf("Parsed request ID: %d Command: %s\n", request_data.id, request_data.command);
     // char *rec_offset = request.url + 1;
     // int client_id = strtol(request.url, &rec_offset, 10);
     // // Men den här behövs för att Håkan ska kunna kompilera. Raden ovanför verkar funka med ubuntu

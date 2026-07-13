@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/socket.h>
+#include <limits.h>
 
 /**
  * @brief Initializes an HTTPRequest structure.
@@ -139,7 +140,8 @@ int HTTPRequest_ParseHeader(HTTPRequest *http_request)
         return -1;
     }
 
-    char *path_start = strchr(http_request->recv_buffer, '=');
+    //char *path_start = strchr(http_request->recv_buffer, '=');
+    char *path_start = strchr(http_request->recv_buffer, ' ');
     if (path_start == NULL)
     {
         return -1;
@@ -147,12 +149,13 @@ int HTTPRequest_ParseHeader(HTTPRequest *http_request)
 
     path_start++;
     char *path_end = strchr(path_start, ' ');
-    if (path_end == NULL)
+    if (path_end == NULL || path_end == path_start)
     {
         return -1;
     }
 
-    http_request->url = strndup(path_start, path_end - path_start);
+    //http_request->url = strndup(path_start, path_end - path_start);
+    http_request->url = strndup(path_start, (size_t)path_end - path_start);
     if (http_request->url == NULL)
     {
         printf("HTTPServerConnection_ParseHeader: Failed to copy url\n");
@@ -161,6 +164,52 @@ int HTTPRequest_ParseHeader(HTTPRequest *http_request)
     size_t url_length = (size_t)(path_end - path_start);
     //http_request->url[url_length] = '\0';
 
+    return 0;
+}
+
+int parse_request(const char* path, HTTPRequestData *data) {
+    if (path == NULL || data == NULL)
+    {
+        return -1;
+    }
+
+    data->id = -1;
+    data->command[0] = '\0';
+
+    // Only accept requests targets in form:
+    // /id=3?recommendation
+    if (strnncmp(path, "/id", 4) != 0)
+    {
+        return -1;
+    }
+
+    const char *id_Start = path + 4;
+    errno = 0;
+    char *id_end = NULL;
+    long parsed_id = strtol(id_start, &id_end, 10);
+
+    if (errno == ERANGE || id_end == id_start || parsed_id < 0 || parsed_id > INT_MAX)
+    {
+        return -1;
+    }
+    // if must be followed by a '?'
+    if (*id_end != '?')
+    {
+        return -1;
+    }
+
+    const char *command = id_end + 1;
+
+    // Only accept currently implemented endpoints
+    if (strcmp(command, "recommendation") != 0 &&
+        strcmp(command, "weather") != 0 &&
+        strcmp(command, "price") != 0)
+    {
+        return -1;
+    }
+
+    snprintf(data->command, sizeof(data->command), "%s", command);
+    data->id = (int)parsed_id;
     return 0;
 }
 
