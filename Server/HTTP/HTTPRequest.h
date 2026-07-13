@@ -11,6 +11,11 @@
 
 #define _POSIX_C_SOURCE 200809L
 
+#define HTTP_MAX_HEADER_SIZE 2048
+#define HTTP_MAX_TARGET_SIZE 128
+#define HTTP_COMMAND_SIZE 32
+
+
 #include <stddef.h>
 
 /**
@@ -89,7 +94,7 @@ int HTTPRequest_ReadHeaders(int socket, HTTPRequest *http_request, int* bytesRea
  */
 int HTTPRequest_ParseHeader(HTTPRequest* http_request);
 
-HTTPRequestData parse_request(const char *path);
+int parse_request(const char *path, HTTPRequestData *data);
 
 /**
  * @brief Frees resources associated with an HTTPRequest.
