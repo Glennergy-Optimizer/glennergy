@@ -61,11 +61,11 @@ int TCPServer_Listen(TCPServer *_TCPServer)
     memset(&hints, 0, sizeof(hints));
     snprintf(port_str, sizeof(port_str), "%d", _TCPServer->port);
 
-    hints.ai_family = AF_UNSPEC;
+    hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
+    hints.ai_flags = 0;
 
-    if (getaddrinfo(NULL, port_str, &hints, &res) != 0)
+    if (getaddrinfo("127.0.0.1", port_str, &hints, &res) != 0)
     {
         LOG_ERROR("Failed to convert hostname");
         return -1;

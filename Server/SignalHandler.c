@@ -32,8 +32,13 @@ void SignalHandler_Handle(int sig)
  */
 void SignalHandler_Initialize()
 {
-    signal(SIGINT, SignalHandler_Handle);
-    signal(SIGTERM, SignalHandler_Handle);
+    struct sigaction action = {0};
+    action.sa_handler = SignalHandler_Handle;
+    sigemptyset(&action.sa_mask);
+    action.sa_flags = 0;
+
+    sigaction(SIGINT, &action, NULL);
+    sigaction(SIGTERM, &action, NULL);
     signal(SIGPIPE, SIG_IGN);
     signal(SIGCHLD, SIG_IGN);
 

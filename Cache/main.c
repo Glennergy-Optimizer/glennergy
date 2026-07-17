@@ -111,6 +111,9 @@ int main()
 
         int ready = select(max_fd + 1, &read_fds, NULL, NULL, NULL);
         if (ready < 0) {
+            if (errno == EINTR && SignalHandler_Stop())
+                break;
+
             LOG_ERROR("select() error: %s", strerror(errno));
             break;
         }

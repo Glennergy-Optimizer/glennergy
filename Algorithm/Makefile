@@ -7,7 +7,7 @@ TARGET = Glennergy-Algoritm
 
 # Default target
 all:
-	$(CC) $(CFLAGS) main.c average.c ../Libs/Sockets.c ../Libs/SHM.c ../Server/Log/Logger.c -o $(TARGET) -lcurl -ljansson
+	$(CC) $(CFLAGS) main.c average.c ../Libs/Sockets.c ../Libs/SHM.c ../Server/Log/Logger.c ../Server/SignalHandler.c -o $(TARGET) -lcurl -ljansson
 
 
 install uninstall:

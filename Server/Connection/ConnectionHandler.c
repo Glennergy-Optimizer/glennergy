@@ -48,11 +48,21 @@ int ConnectionHandler_Initialize(ConnectionHandler **_ConnectionHandler, int _Po
     if (cHandler == NULL)
         return -1;
 
-    TCPServer_Initialize(&cHandler->tcp_server, _Port, 100, ConnectionHandler_OnAccept, cHandler);
-    TCPServer_Listen(cHandler->tcp_server);
-
     cHandler->client_add = _Callback;
     // Suggestion: Could validate _Callback is not NULL before assignment
+
+    if (TCPServer_Initialize(&cHandler->tcp_server, _Port, 100, ConnectionHandler_OnAccept, cHandler) != 0)
+    {
+        free(cHandler);
+        return -1;
+    }
+
+    if (TCPServer_Listen(cHandler->tcp_server) != 0)
+    {
+        TCPServer_Dispose(&cHandler->tcp_server);
+        free(cHandler);
+        return -1;
+    }
 
     *_ConnectionHandler = cHandler;
     return 0;

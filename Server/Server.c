@@ -22,10 +22,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-
-extern char **environ;
 
 /**
  * @brief Initialize the Server structure with command-line arguments.
@@ -59,24 +55,6 @@ int Server_Initialize(Server **_Server, char **_Argv, int _Argc)
  */
 void Crontab_Add()
 {
-    pid_t pid = fork();
-    if (pid < 0)
-    {
-        exit(EXIT_FAILURE);
-    }
-    else if (pid == 0)
-    {
-        char path[1024];
-        realpath("./crontab_inst.sh", path); // resolves the absolute path at runtime
-        execlp("/bin/bash", "bash", path, "add", NULL);
-        perror("execl failed");
-        exit(EXIT_SUCCESS);
-    }
-    else
-    {
-        int status;
-        waitpid(pid, &status, 0);
-    }
 }
 
 /**
@@ -86,22 +64,6 @@ void Crontab_Add()
  */
 void Crontab_Remove()
 {
-    pid_t pid = fork();
-    if (pid < 0)
-    {
-        exit(EXIT_FAILURE);
-    }
-    else if (pid == 0)
-    {
-        execlp("./crontab_inst.sh", "crontab.sh", "remove", NULL);
-        perror("execl failed");
-        exit(EXIT_SUCCESS);
-    }
-    else
-    {
-        int status;
-        waitpid(pid, &status, 0);
-    }
 }
 
 /**
@@ -116,70 +78,35 @@ void Crontab_Remove()
 int Server_Run(Server *_Server)
 {
     SignalHandler_Initialize();
-    Crontab_Add();
 
-    int status_pid, status_cache, status_algoritm;
+    Threads threads[POOL_SIZE];
+    if (Threads_Initialize(threads) != 0)
+        return -1;
 
-    pid_t pid = fork();
-    if (pid < 0)
+    if (smw_init() != 0)
     {
-        exit(EXIT_FAILURE);
+        Threads_Dispose(threads);
+        return -1;
     }
-    else if (pid == 0)
+
+    ConnectionHandler *cHandler = NULL;
+    if (ConnectionHandler_Initialize(&cHandler, _Server->config.port, Threads_AddQueueItem) != 0)
     {
-        // Child process: main server work
-        Threads threads[POOL_SIZE];
-        Threads_Initialize(threads);
-
-        smw_init();
-
-        ConnectionHandler *cHandler = NULL;
-        ConnectionHandler_Initialize(&cHandler, _Server->config.port, Threads_AddQueueItem);
-
-        uint64_t monTime = 0;
-        while (SignalHandler_Stop() == 0)
-        {
-            monTime = SystemMonotonicMS();
-            smw_work(monTime);
-            usleep(100000); // Todo från compiler warning - Byta till använda "nanosleep" från "time.h" istället för "usleep" från "unistd.h"?
-        }
-
-        ConnectionHandler_Dispose(&cHandler);
         smw_dispose();
         Threads_Dispose(threads);
-
-        log_CloseWrite();
-        exit(EXIT_SUCCESS);
+        return -1;
     }
 
-    // Fork child for input cache process
-    pid_t pid_cache = fork();
-    if (pid_cache < 0)
-        exit(EXIT_FAILURE);
-    else if (pid_cache == 0)
+    while (SignalHandler_Stop() == 0)
     {
-        execlp("Glennergy-InputCache", "Glennergy-InputCache", NULL);
-        LOG_ERROR("Failed to execute Glennergy-InputCache");
-        exit(EXIT_SUCCESS);
+        uint64_t monTime = SystemMonotonicMS();
+        smw_work(monTime);
+        usleep(100000); // Todo från compiler warning - Byta till använda "nanosleep" från "time.h" istället för "usleep" från "unistd.h"?
     }
 
-    // Fork child for algorithm process
-    pid_t pid_algoritm = fork();
-    if (pid_algoritm < 0)
-        exit(EXIT_FAILURE);
-    else if (pid_algoritm == 0)
-    {
-        execlp("Glennergy-Algoritm", "Glennergy-Algoritm", NULL);
-        LOG_ERROR("Failed to execute Glennergy-Algoritm");
-        exit(EXIT_SUCCESS);
-    }
-
-    // Parent waits for all children to finish
-    wait(&status_pid);
-    wait(&status_cache);
-    wait(&status_algoritm);
-
-    Crontab_Remove();
+    ConnectionHandler_Dispose(&cHandler);
+    smw_dispose();
+    Threads_Dispose(threads);
 
     return 0;
 }

@@ -14,6 +14,7 @@
 #define MODULE_NAME "ALGORITM"
 
 #include "../Server/Log/Logger.h"
+#include "../Server/SignalHandler.h"
 #include "AlgoritmProtocol.h"
 #include "../Libs/SHM.h"
 #include <stdio.h>
@@ -152,6 +153,7 @@ int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
 int main()
 {
     log_Init("algoritm.log");
+    SignalHandler_Initialize();
 
     InputCache_t *cache = malloc(sizeof(InputCache_t));
     if (!cache)
@@ -181,7 +183,7 @@ int main()
     }
 
     memset(cache, 0, sizeof(InputCache_t));
-    while (1)
+    while (!SignalHandler_Stop())
     {
         if (cache_request(CMD_GET_ALL, cache, sizeof(InputCache_t)) < 0)
         {
@@ -280,7 +282,17 @@ int main()
         }
 
         //  publish completed snapshot for the readers
-        sem_wait(mutex);
+        if (SignalHandler_Stop())
+            break;
+
+        if (sem_wait(mutex) != 0)
+        {
+            if (errno == EINTR && SignalHandler_Stop())
+                break;
+
+            LOG_ERROR("Failed to lock algorithm shared memory: %s", strerror(errno));
+            continue;
+        }
         memcpy(shm, &next_shm, sizeof(next_shm));
         sem_post(mutex);
         sleep(10);
