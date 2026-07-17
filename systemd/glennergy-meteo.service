@@ -1,0 +1,38 @@
+[Unit]
+Description=Fetch Glennergy weather data
+Requires=glennergy-inputcache.service
+After=network-online.target glennergy-inputcache.service
+Wants=network-online.target
+PartOf=glennergy.target
+
+[Service]
+Type=oneshot
+User=glennergy
+Group=glennergy
+UMask=0007
+ExecStartPre=/usr/bin/test -r /etc/glennergy/fastigheter.json
+ExecStart=/usr/local/libexec/glennergy/Glennergy-Meteo
+TimeoutStartSec=45s
+
+StandardOutput=journal
+StandardError=journal
+SyslogLevelPrefix=true
+SyslogIdentifier=glennergy-meteo
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+SystemCallArchitectures=native

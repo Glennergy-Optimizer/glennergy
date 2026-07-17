@@ -1,0 +1,12 @@
+[Unit]
+Description=Fetch Glennergy spot-price data hourly
+PartOf=glennergy.target
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+AccuracySec=1min
+Unit=glennergy-spotpris.service
+
+[Install]
+WantedBy=glennergy.target

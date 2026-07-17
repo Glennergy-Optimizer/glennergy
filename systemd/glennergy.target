@@ -1,0 +1,8 @@
+[Unit]
+Description=Glennergy energy management stack
+Requires=glennergy-inputcache.service glennergy-algorithm.service glennergy-server.service
+Wants=glennergy-meteo.timer glennergy-spotpris.timer
+After=glennergy-inputcache.service glennergy-algorithm.service glennergy-server.service
+
+[Install]
+WantedBy=multi-user.target

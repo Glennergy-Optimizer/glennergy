@@ -1,0 +1,12 @@
+[Unit]
+Description=Fetch Glennergy weather data every 15 minutes
+PartOf=glennergy.target
+
+[Timer]
+OnCalendar=*:0/15
+Persistent=true
+AccuracySec=1min
+Unit=glennergy-meteo.service
+
+[Install]
+WantedBy=glennergy.target

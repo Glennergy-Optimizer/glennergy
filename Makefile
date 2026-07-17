@@ -36,6 +36,7 @@ SYSCONFDIR ?= /etc/glennergy
 LOCALSTATEDIR ?= /var
 STATEDIR ?= $(LOCALSTATEDIR)/lib/glennergy
 CACHEDIR ?= $(LOCALSTATEDIR)/cache/glennergy
+UNITDIR ?= /etc/systemd/system
 
 CONFIG_SOURCE := API/Glennergy-Fastigheter.json
 CONFIG_FILE := $(SYSCONFDIR)/fastigheter.json
@@ -47,6 +48,16 @@ PRODUCTION_BINARIES := \
 	Algorithm/Glennergy-Algoritm \
 	API/Meteocpp/Glennergy-Meteo \
 	API/Spotpris/Glennergy-Spotpris
+
+SYSTEMD_UNITS := \
+	systemd/glennergy.target \
+	systemd/glennergy-inputcache.service \
+	systemd/glennergy-algorithm.service \
+	systemd/glennergy-server.service \
+	systemd/glennergy-meteo.service \
+	systemd/glennergy-meteo.timer \
+	systemd/glennergy-spotpris.service \
+	systemd/glennergy-spotpris.timer
 
 all: $(TARGET) production-components
 
@@ -93,6 +104,16 @@ install:
 			echo "Build and validate the release before running make install." >&2; \
 			exit 1; \
 		fi; \
+	done; \
+	if [ ! -f "$(CONFIG_SOURCE)" ]; then \
+		echo "Missing configuration source: $(CONFIG_SOURCE)" >&2; \
+		exit 1; \
+	fi; \
+	for unit in $(SYSTEMD_UNITS); do \
+		if [ ! -f "$$unit" ]; then \
+			echo "Missing systemd unit: $$unit" >&2; \
+			exit 1; \
+		fi; \
 	done
 	install -d -m 0755 "$(DESTDIR)$(LIBEXECDIR)"
 	@set -e; \
@@ -108,6 +129,11 @@ install:
 	else \
 		echo "Preserving existing configuration: $(CONFIG_FILE)"; \
 	fi
+	install -d -m 0755 "$(DESTDIR)$(UNITDIR)"
+	@set -e; \
+	for unit in $(SYSTEMD_UNITS); do \
+		install -m 0644 "$$unit" "$(DESTDIR)$(UNITDIR)/"; \
+	done
 
 uninstall:
 	@set -e; \
@@ -115,6 +141,10 @@ uninstall:
 		rm -f "$(DESTDIR)$(LIBEXECDIR)/$$(basename "$$binary")"; \
 	done
 	rm -f "$(DESTDIR)$(CONFIG_EXAMPLE)"
+	@set -e; \
+	for unit in $(SYSTEMD_UNITS); do \
+		rm -f "$(DESTDIR)$(UNITDIR)/$$(basename "$$unit")"; \
+	done
 	-rmdir "$(DESTDIR)$(LIBEXECDIR)" 2>/dev/null
 	-rmdir "$(DESTDIR)$(DATADIR)" 2>/dev/null
 	@echo "Preserved configuration: $(CONFIG_FILE)"
