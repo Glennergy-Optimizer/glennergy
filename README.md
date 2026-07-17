@@ -38,6 +38,8 @@ The deployment first verifies that every required binary, unit, and configuratio
 
 The legacy cleanup is deliberately a manual operator procedure and is not part of the reusable installation script.
 
+Use the detailed [`Docs/VPS_CUTOVER_CHECKLIST.md`](Docs/VPS_CUTOVER_CHECKLIST.md) during the production migration. The summary below is not a substitute for its stop/go gates and rollback preparation.
+
 Before changing the running VPS:
 
 1. Back up `/etc/Glennergy-Fastigheter.json`, the current crontabs, and the Nginx configuration.
