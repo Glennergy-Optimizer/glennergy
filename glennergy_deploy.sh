@@ -6,6 +6,7 @@ LIBEXEC_DIR=/usr/local/libexec/glennergy
 UNIT_DIR=/etc/systemd/system
 CONFIG_DIR=/etc/glennergy
 CONFIG_FILE=$CONFIG_DIR/fastigheter.json
+CONFIG_SOURCE=$SCRIPT_DIR/API/Glennergy-Fastigheter.json
 BACKUP_ROOT=/var/backups/glennergy
 BACKUP_DIR=$BACKUP_ROOT/deploy-$(date -u +%Y%m%dT%H%M%SZ)
 
@@ -84,7 +85,7 @@ trap 'exit 130' HUP INT TERM
 
 [ "$(id -u)" -eq 0 ] || fail "run this script with sudo"
 
-for command_name in getent groupadd useradd install make systemctl systemd-analyze ss grep cp chown chmod date id awk flock sleep; do
+for command_name in getent groupadd useradd install make systemctl systemd-analyze ss grep cp chown chmod date id awk flock sleep python3; do
     require_command "$command_name"
 done
 
@@ -92,6 +93,14 @@ exec 9>/run/lock/glennergy-deploy.lock
 flock -n 9 || fail "another Glennergy deployment is already running"
 
 make -C "$SCRIPT_DIR" check-runtime-dependencies
+
+config_to_validate=$CONFIG_SOURCE
+if [ -e "$CONFIG_FILE" ]; then
+    config_to_validate=$CONFIG_FILE
+fi
+if ! python3 -m json.tool "$config_to_validate" >/dev/null; then
+    fail "invalid JSON configuration: $config_to_validate"
+fi
 
 if ! getent group glennergy >/dev/null 2>&1; then
     groupadd --system glennergy
