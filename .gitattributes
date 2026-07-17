@@ -1,0 +1,7 @@
+# Linux build and service files must remain executable/parser-compatible after
+# checkout from Windows development environments.
+Makefile text eol=lf
+**/Makefile text eol=lf
+*.sh text eol=lf
+*.service text eol=lf
+*.timer text eol=lf
