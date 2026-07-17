@@ -122,6 +122,29 @@ check-install-inputs:
 	done
 	@echo "Install inputs are complete."
 
+check-runtime-dependencies: check-install-inputs
+	@set -e; \
+	for command_name in ldd grep; do \
+		command -v "$$command_name" >/dev/null 2>&1 || { \
+			echo "Required command not found: $$command_name" >&2; \
+			exit 1; \
+		}; \
+	done
+	@set -e; \
+	for binary in $(PRODUCTION_BINARIES); do \
+		if ! dependencies=$$(LC_ALL=C ldd "$$binary" 2>&1); then \
+			echo "Unable to inspect shared-library dependencies: $$binary" >&2; \
+			echo "$$dependencies" >&2; \
+			exit 1; \
+		fi; \
+		if echo "$$dependencies" | grep -q 'not found'; then \
+			echo "Missing shared-library dependency for: $$binary" >&2; \
+			echo "$$dependencies" >&2; \
+			exit 1; \
+		fi; \
+	done
+	@echo "Runtime library dependencies are available."
+
 install: check-install-inputs
 	install -d -m 0755 "$(DESTDIR)$(LIBEXECDIR)"
 	@set -e; \
@@ -186,4 +209,4 @@ clean:
 	done
 	@echo "Clean complete"
 
-.PHONY: all production-components clean debug check-install-inputs install uninstall purge
+.PHONY: all production-components clean debug check-install-inputs check-runtime-dependencies install uninstall purge
