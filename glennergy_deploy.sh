@@ -84,7 +84,7 @@ trap 'exit 130' HUP INT TERM
 
 [ "$(id -u)" -eq 0 ] || fail "run this script with sudo"
 
-for command_name in getent groupadd useradd install make systemctl systemd-analyze ss grep cp chown chmod date id awk flock; do
+for command_name in getent groupadd useradd install make systemctl systemd-analyze ss grep cp chown chmod date id awk flock sleep; do
     require_command "$command_name"
 done
 
@@ -168,9 +168,29 @@ for active_unit in \
     systemctl is-active --quiet "$active_unit" || fail "unit is not active: $active_unit"
 done
 
-if ! ss -H -ltn 'sport = :8080' | grep -q '127.0.0.1:8080'; then
+http_ready=0
+attempt=1
+while [ "$attempt" -le 30 ]; do
+    if ss -H -ltn 'sport = :8080' | grep -q '127.0.0.1:8080'; then
+        http_ready=1
+        break
+    fi
+    sleep 1
+    attempt=$((attempt + 1))
+done
+
+if [ "$http_ready" -ne 1 ]; then
     fail "Glennergy is not listening on 127.0.0.1:8080"
 fi
+
+for active_unit in \
+    glennergy-inputcache.service \
+    glennergy-algorithm.service \
+    glennergy-server.service \
+    glennergy-meteo.timer \
+    glennergy-spotpris.timer; do
+    systemctl is-active --quiet "$active_unit" || fail "unit became inactive during health checks: $active_unit"
+done
 
 DEPLOY_SUCCEEDED=1
 echo "Glennergy deployment succeeded. Backup retained at $BACKUP_DIR"

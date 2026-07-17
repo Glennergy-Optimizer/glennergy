@@ -101,6 +101,14 @@ curl --fail --show-error http://127.0.0.1:8080/id=3
 
 Public requests should continue through Nginx rather than exposing port 8080 externally.
 
+Run the complete read-only host verification after deployment and maintenance:
+
+```bash
+sudo /bin/sh ./glennergy_verify.sh
+```
+
+It checks the service identity, configuration permissions, installed unit syntax, boot enablement, active services and timers, loopback-only port binding, and an HTTP request. It reports failures without starting, stopping, or modifying the deployment.
+
 ## Uninstall and purge
 
 Normal uninstall stops and disables the stack and removes installed binaries and units. It preserves configuration and state:
