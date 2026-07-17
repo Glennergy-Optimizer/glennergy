@@ -96,25 +96,28 @@ $(DEBUG_BUILD)/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-install:
+check-install-inputs:
 	@set -e; \
 	for binary in $(PRODUCTION_BINARIES); do \
-		if [ ! -f "$$binary" ]; then \
-			echo "Missing build artifact: $$binary" >&2; \
+		if [ ! -s "$$binary" ]; then \
+			echo "Missing or empty build artifact: $$binary" >&2; \
 			echo "Build and validate the release before running make install." >&2; \
 			exit 1; \
 		fi; \
 	done; \
-	if [ ! -f "$(CONFIG_SOURCE)" ]; then \
-		echo "Missing configuration source: $(CONFIG_SOURCE)" >&2; \
+	if [ ! -s "$(CONFIG_SOURCE)" ]; then \
+		echo "Missing or empty configuration source: $(CONFIG_SOURCE)" >&2; \
 		exit 1; \
 	fi; \
 	for unit in $(SYSTEMD_UNITS); do \
-		if [ ! -f "$$unit" ]; then \
-			echo "Missing systemd unit: $$unit" >&2; \
+		if [ ! -s "$$unit" ]; then \
+			echo "Missing or empty systemd unit: $$unit" >&2; \
 			exit 1; \
 		fi; \
 	done
+	@echo "Install inputs are complete."
+
+install: check-install-inputs
 	install -d -m 0755 "$(DESTDIR)$(LIBEXECDIR)"
 	@set -e; \
 	for binary in $(PRODUCTION_BINARIES); do \
@@ -124,7 +127,7 @@ install:
 	install -m 0644 "$(CONFIG_SOURCE)" "$(DESTDIR)$(CONFIG_EXAMPLE)"
 	install -d -m 0755 "$(DESTDIR)$(SYSCONFDIR)"
 	@if [ ! -e "$(DESTDIR)$(CONFIG_FILE)" ]; then \
-		install -m 0644 "$(CONFIG_SOURCE)" "$(DESTDIR)$(CONFIG_FILE)"; \
+		install -m 0600 "$(CONFIG_SOURCE)" "$(DESTDIR)$(CONFIG_FILE)"; \
 		echo "Installed initial configuration: $(CONFIG_FILE)"; \
 	else \
 		echo "Preserving existing configuration: $(CONFIG_FILE)"; \
@@ -178,4 +181,4 @@ clean:
 	done
 	@echo "Clean complete"
 
-.PHONY: all production-components clean debug install uninstall purge
+.PHONY: all production-components clean debug check-install-inputs install uninstall purge

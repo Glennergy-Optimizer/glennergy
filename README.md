@@ -33,7 +33,7 @@ Deploy the completed build as root:
 sudo ./glennergy_install.sh
 ```
 
-The deployment workflow creates the non-login `glennergy` service account, installs the binaries and systemd units, validates the units, starts the stack, and performs health checks. It preserves the existing production configuration and retains a deployment backup under `/var/backups/glennergy`.
+The deployment first verifies that every required binary, unit, and configuration source exists, before it stops an installed release. It then creates the non-login `glennergy` service account, installs the artifacts, validates the units, starts the stack, and performs health checks. It preserves the existing production configuration and retains a deployment backup under `/var/backups/glennergy`.
 
 ## One-time migration from tmux and cron
 

@@ -91,6 +91,8 @@ done
 exec 9>/run/lock/glennergy-deploy.lock
 flock -n 9 || fail "another Glennergy deployment is already running"
 
+make -C "$SCRIPT_DIR" check-install-inputs
+
 if ! getent group glennergy >/dev/null 2>&1; then
     groupadd --system glennergy
 fi
