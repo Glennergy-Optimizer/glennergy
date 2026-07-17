@@ -21,7 +21,6 @@ Build as the normal development user. Do not build as root:
 ```bash
 git clone https://github.com/keseboleliasteliacom/glennergy.git
 cd glennergy
-make clean
 make
 ```
 
@@ -65,10 +64,11 @@ The deployment script assigns the final `root:glennergy` ownership and `0640` pe
 Create and validate a complete build first, then deploy it:
 
 ```bash
-make clean
 make
 sudo ./glennergy_install.sh
 ```
+
+The Makefiles track included headers, so an ordinary `make` rebuilds targets affected by source or header changes. Use `make clean && make` only when you intentionally need a completely fresh rebuild or are diagnosing stale local artifacts.
 
 The deploy script serializes deployments, backs up the currently installed release, installs the new artifacts, reloads systemd, restarts the target, and checks service and HTTP health. If deployment fails after installation begins, it attempts to restore the previous installed binaries, units, and target state.
 

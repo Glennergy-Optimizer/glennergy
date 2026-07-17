@@ -1,5 +1,6 @@
 CC      := gcc
 CFLAGS  := -g -O0 -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L
+DEPFLAGS := -MMD -MP
 LDFLAGS := -lcurl -ljansson -lpthread
 BUILD   := build
 
@@ -23,6 +24,7 @@ CFLAGS += -ILibs \
 # Source files
 SRC := $(shell find Libs Server -name "*.c")
 OBJ := $(patsubst %.c,$(BUILD)/%.o,$(SRC))
+DEP := $(OBJ:.o=.d)
 
 # Main server target
 PREFIX ?= /usr/local
@@ -75,7 +77,7 @@ $(TARGET): $(OBJ)
 
 $(BUILD)/%.o: %.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(DEPFLAGS) -c $< -o $@
 
 # Debug build of the main server. Component-specific debug builds can be
 # introduced once their Makefiles expose matching debug targets.
@@ -83,6 +85,7 @@ DEBUG_BUILD := build_debug
 DEBUG_TARGET := gln_app_debug
 DEBUG_FLAGS := -g -O0 -DDEBUG
 DEBUG_OBJ := $(patsubst %.c,$(DEBUG_BUILD)/%.o,$(SRC))
+DEBUG_DEP := $(DEBUG_OBJ:.o=.d)
 
 debug: $(DEBUG_TARGET)
 
@@ -94,7 +97,9 @@ $(DEBUG_TARGET): $(DEBUG_OBJ)
 
 $(DEBUG_BUILD)/%.o: %.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(DEPFLAGS) -c $< -o $@
+
+-include $(DEP) $(DEBUG_DEP)
 
 check-install-inputs:
 	@set -e; \
