@@ -41,18 +41,18 @@
 #include "Spotpris.h"
 #include <stdio.h>
 #include "../../Libs/Pipes.h"
+#include "../../Libs/GlennergyPaths.h"
 #include <curl/curl.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/stat.h>
 
 /**
  * @brief Named pipe used for IPC between Spotpris module and InputCache.
  */
-#define FIFO_SPOTPRIS_WRITE "/tmp/fifo_spotpris"
+#define FIFO_SPOTPRIS_WRITE GLENNERGY_SPOTPRIS_FIFO_PATH
 
 /**
  * @brief Program entry point.
@@ -104,13 +104,7 @@ int main(void)
      * @note mkfifo will fail with EEXIST if already created (expected case).
      * @warning Fails if permissions prevent creation.
      */
-    if (mkfifo(FIFO_SPOTPRIS_WRITE, 0666) < 0 && errno != EEXIST)
-    {
-        LOG_ERROR("Failed to create FIFO: %s", FIFO_SPOTPRIS_WRITE);
-        return -1;
-    }
-
-    LOG_INFO("FIFO ready: %s\n", FIFO_SPOTPRIS_WRITE);
+    LOG_INFO("Using FIFO: %s\n", FIFO_SPOTPRIS_WRITE);
 
     /**
      * Open FIFO for writing.

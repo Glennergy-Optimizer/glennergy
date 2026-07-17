@@ -7,6 +7,7 @@
 #define MODULE_NAME "METEO"
 #include "../../Server/Log/Logger.h"
 #include "Meteo.h"
+#include "../../Libs/GlennergyPaths.h"
 #include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,7 +49,7 @@ int Meteo_Initialize(MeteoData *_MeteoData)
 int Meteo_LoadGlennergy(MeteoData *_MeteoData)
 {
     json_error_t err;
-    json_t *root = json_load_file("/etc/Glennergy-Fastigheter.json", 0, &err);
+    json_t *root = json_load_file(GLENNERGY_CONFIG_PATH, 0, &err);
 
     if (root == NULL)
     {

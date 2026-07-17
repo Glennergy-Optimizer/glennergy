@@ -14,6 +14,7 @@
 #include "../../Server/Log/Logger.h"
 #include "Meteo.h"
 #include "../../Libs/Pipes.h"
+#include "../../Libs/GlennergyPaths.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <jansson.h>
@@ -21,7 +22,7 @@
 #include <unistd.h>
 #include "../../Libs/Utils/utils.h"
 
-#define FIFO_METEO_WRITE "/tmp/fifo_meteo"
+#define FIFO_METEO_WRITE GLENNERGY_METEO_FIFO_PATH
 
 /**
  * @brief Main entry point for Meteo service.
@@ -41,11 +42,7 @@ int main()
     log_Init("meteo.log");
     LOG_INFO("Starting Meteo API...\n");
 
-    if (mkfifo(FIFO_METEO_WRITE, 0666) < 0 && errno != EEXIST) {
-        LOG_ERROR("Failed to create FIFO: %s", FIFO_METEO_WRITE);
-        return -1;
-    }
-    LOG_INFO("FIFO ready: %s\n", FIFO_METEO_WRITE);
+    LOG_INFO("Using FIFO: %s\n", FIFO_METEO_WRITE);
 
     setvbuf(stdout, NULL, _IONBF, 0);
     int meteo_fd_write = open(FIFO_METEO_WRITE, O_WRONLY);
@@ -65,7 +62,7 @@ int main()
     // Suggestion: Call Meteo_Initialize(&data) before usage for explicit initialization
     Meteo_LoadGlennergy(&data);
 
-    if (file_lastModified("/etc/Glennergy-Fastigheter.json", &last_modified) == 1)
+    if (file_lastModified(GLENNERGY_CONFIG_PATH, &last_modified) == 1)
     {
         Meteo_LoadGlennergy(&data);
         LOG_INFO("Info changed, reloaded file.\n");

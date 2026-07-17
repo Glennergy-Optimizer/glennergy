@@ -26,15 +26,16 @@
 #include "../API/Meteo/Meteo.h"
 #include "../API/Spotpris/Spotpris.h"
 #include "../Libs/Homesystem.h"
+#include "../Libs/GlennergyPaths.h"
 
 /** @brief FIFO path for Meteo input */
-#define FIFO_METEO_READ "/tmp/fifo_meteo"
+#define FIFO_METEO_READ GLENNERGY_METEO_FIFO_PATH
 
 /** @brief FIFO path for Spotpris input */
-#define FIFO_SPOTPRIS_READ "/tmp/fifo_spotpris"
+#define FIFO_SPOTPRIS_READ GLENNERGY_SPOTPRIS_FIFO_PATH
 
 /** @brief UNIX socket path for cache service */
-#define CACHE_SOCKET_PATH "/tmp/glennergy_cache.sock"
+#define CACHE_SOCKET_PATH GLENNERGY_CACHE_SOCKET_PATH
 
 /** @brief Maximum socket backlog */
 #define MAX_BACKLOG 5

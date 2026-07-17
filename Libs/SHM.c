@@ -27,7 +27,7 @@
  */
 int SHM_InitializeWriter(AlgoritmShared **shared, const char *name)
 {
-    int shm_fd = shm_open(name, O_CREAT | O_RDWR, 0666);
+    int shm_fd = shm_open(name, O_CREAT | O_RDWR, 0600);
 
     if (shm_fd < 0)
     {
@@ -102,7 +102,7 @@ int SHM_InitializeReader(AlgoritmShared **shared, const char *name)
  */
 int SHM_CreateSemaphore(sem_t **sem, const char *name)
 {
-    *sem = sem_open(name, O_CREAT, 0666, 1);
+    *sem = sem_open(name, O_CREAT, 0600, 1);
 
     if (*sem == SEM_FAILED)
     {

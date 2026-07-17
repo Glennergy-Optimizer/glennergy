@@ -70,7 +70,7 @@ int main()
     memset(cache, 0, sizeof(InputCache_t));
 
     // Initialize InputCache with configuration
-    if (inputcache_Init(cache, "/etc/Glennergy-Fastigheter.json") != 0) {
+    if (inputcache_Init(cache, GLENNERGY_CONFIG_PATH) != 0) {
         LOG_ERROR("Failed to initialize InputCache");
         free(cache);
         return -1;

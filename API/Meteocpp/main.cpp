@@ -6,18 +6,13 @@
  */
 
 #include "Meteo.hpp"
+#include "../../Libs/GlennergyPaths.h"
 #include <iostream>
 #include <string>
-#include <filesystem>
 #include <fcntl.h>
 #include <unistd.h>
 
-constexpr const char* FIFO_METEO_WRITE = "/tmp/fifo_meteo";
-// Todo - Install instruktions:
-
-/* 
-    Kör make i den här mappen, kopiera binären till Meteo-matten, kör sedan installations-skriptet och "Glennergy-Main" som vanligt.
-*/
+constexpr const char* FIFO_METEO_WRITE = GLENNERGY_METEO_FIFO_PATH;
 
 /**
  * @brief Main entry point.
@@ -45,24 +40,13 @@ int main()
     std::cout << "Start\n";
 
     meteocpp::meteo m;
-    std::string configPath = "/etc/Glennergy-Fastigheter.json";
+    std::string configPath = GLENNERGY_CONFIG_PATH;
 
-    // Fallback for local testing if /etc doesn't exist
-    if (!std::filesystem::exists(configPath)) {
-        configPath = "Glennergy-Fastigheter.json";
+    if (!m.load(configPath)) {
+        std::cerr << "Failed to load configuration: " << configPath << "\n";
+        close(meteo_fd_write);
+        return -2;
     }
-
-    m.load(configPath);
-
-    /*static std::filesystem::file_time_type last_modified;
-    if (std::filesystem::exists(configPath)) {
-        auto current_modified = std::filesystem::last_write_time(configPath);
-        if (current_modified > last_modified) {
-            m.load(configPath);
-            std::cout << "Info changed, reloaded file.\n";
-            last_modified = current_modified;
-        }
-    }*/
 
     if (!m.fetchAll()) {
         std::cerr << "Failed to fetch meteo data\n";

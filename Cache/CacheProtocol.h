@@ -19,13 +19,14 @@
 #define CACHE_PROTOCOL_H
 
 #include <stdint.h>
+#include "../Libs/GlennergyPaths.h"
 
 /**
  * @brief UNIX socket path used by cache service.
  *
  * @note Must be consistent between clients and server.
  */
-#define CACHE_SOCKET_PATH "/tmp/glennergy_cache.sock"
+#define CACHE_SOCKET_PATH GLENNERGY_CACHE_SOCKET_PATH
 
 /**
  * @brief Supported cache commands.

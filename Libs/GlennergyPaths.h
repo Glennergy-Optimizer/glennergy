@@ -1,0 +1,11 @@
+#ifndef GLENNERGY_PATHS_H
+#define GLENNERGY_PATHS_H
+
+#define GLENNERGY_CONFIG_PATH "/etc/glennergy/fastigheter.json"
+
+#define GLENNERGY_RUNTIME_DIR "/run/glennergy"
+#define GLENNERGY_METEO_FIFO_PATH GLENNERGY_RUNTIME_DIR "/meteo.fifo"
+#define GLENNERGY_SPOTPRIS_FIFO_PATH GLENNERGY_RUNTIME_DIR "/spotpris.fifo"
+#define GLENNERGY_CACHE_SOCKET_PATH GLENNERGY_RUNTIME_DIR "/cache.sock"
+
+#endif

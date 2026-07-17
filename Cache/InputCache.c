@@ -76,16 +76,16 @@ int inputcache_CreateSocket(void)
         return -1;
     }
 
-    unlink(CACHE_SOCKET_PATH);
+    unlink(GLENNERGY_CACHE_SOCKET_PATH);
 
-    if (socket_Bind(sock_fd, CACHE_SOCKET_PATH) < 0)
+    if (socket_Bind(sock_fd, GLENNERGY_CACHE_SOCKET_PATH) < 0)
     {
-        LOG_ERROR("Failed to bind socket to %s", CACHE_SOCKET_PATH);
+        LOG_ERROR("Failed to bind socket to %s", GLENNERGY_CACHE_SOCKET_PATH);
         close(sock_fd);
         return -1;
     }
 
-    chmod(CACHE_SOCKET_PATH, 0666);
+    chmod(GLENNERGY_CACHE_SOCKET_PATH, 0660);
 
     if (socket_Listen(sock_fd, MAX_BACKLOG) < 0)
     {
@@ -94,7 +94,7 @@ int inputcache_CreateSocket(void)
         return -1;
     }
 
-    LOG_INFO("Cache socket listening on %s", CACHE_SOCKET_PATH);
+    LOG_INFO("Cache socket listening on %s", GLENNERGY_CACHE_SOCKET_PATH);
     return sock_fd;
 }
 
@@ -117,30 +117,30 @@ int inputcache_OpenFIFOs(int *meteo_fd, int *spotpris_fd)
     }
 
     // Create FIFOs if they don't exist
-    if (mkfifo(FIFO_METEO_READ, 0666) < 0 && errno != EEXIST)
+    if (mkfifo(GLENNERGY_METEO_FIFO_PATH, 0660) < 0 && errno != EEXIST)
     {
-        LOG_WARNING("mkfifo %s: %s", FIFO_METEO_READ, strerror(errno));
+        LOG_WARNING("mkfifo %s: %s", GLENNERGY_METEO_FIFO_PATH, strerror(errno));
     }
-    if (mkfifo(FIFO_SPOTPRIS_READ, 0666) < 0 && errno != EEXIST)
+    if (mkfifo(GLENNERGY_SPOTPRIS_FIFO_PATH, 0660) < 0 && errno != EEXIST)
     {
-        LOG_WARNING("mkfifo %s: %s", FIFO_SPOTPRIS_READ, strerror(errno));
+        LOG_WARNING("mkfifo %s: %s", GLENNERGY_SPOTPRIS_FIFO_PATH, strerror(errno));
     }
 
     LOG_INFO("Opening FIFOs ...");
 
     // Open meteo FIFO
-    *meteo_fd = open(FIFO_METEO_READ, O_RDWR);
+    *meteo_fd = open(GLENNERGY_METEO_FIFO_PATH, O_RDWR);
     if (*meteo_fd < 0)
     {
-        LOG_ERROR("Failed to open FIFO: %s - %s", FIFO_METEO_READ, strerror(errno));
+        LOG_ERROR("Failed to open FIFO: %s - %s", GLENNERGY_METEO_FIFO_PATH, strerror(errno));
         return -1;
     }
 
     // Open spotpris FIFO
-    *spotpris_fd = open(FIFO_SPOTPRIS_READ, O_RDWR);
+    *spotpris_fd = open(GLENNERGY_SPOTPRIS_FIFO_PATH, O_RDWR);
     if (*spotpris_fd < 0)
     {
-        LOG_ERROR("Failed to open FIFO: %s - %s", FIFO_SPOTPRIS_READ, strerror(errno));
+        LOG_ERROR("Failed to open FIFO: %s - %s", GLENNERGY_SPOTPRIS_FIFO_PATH, strerror(errno));
         close(*meteo_fd);
         return -1;
     }

@@ -11,6 +11,7 @@
 #include <string_view>
 #include <optional>
 #include "meteo_types.hpp"
+#include "../../Libs/GlennergyPaths.h"
 
 namespace meteocpp {
 
@@ -49,7 +50,7 @@ public:
      * @pre File must exist and be valid JSON
      * @post Internal data populated
      */
-    bool load(std::string_view configPath = "Glennergy-Fastigheter.json");
+    bool load(std::string_view configPath = GLENNERGY_CONFIG_PATH);
 
     /**
      * @brief Fetch weather data for all properties.

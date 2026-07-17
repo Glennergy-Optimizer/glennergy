@@ -29,8 +29,6 @@
 #include "../Cache/CacheProtocol.h"
 #include "../Libs/Sockets.h"
 
-#define FIFO_ALGORITHM_READ "/tmp/fifo_algoritm"
-
 /**
  * @brief Sends a request to the cache and receives the expected data.
  *
@@ -85,7 +83,7 @@ int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
     }
 
     // Connect to cache socket
-    int sock_fd = socket_Connect(CACHE_SOCKET_PATH);
+    int sock_fd = socket_Connect(GLENNERGY_CACHE_SOCKET_PATH);
     if (sock_fd < 0)
     {
         LOG_ERROR("Failed to connect to cache socket: %s", strerror(errno));
