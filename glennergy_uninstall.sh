@@ -3,6 +3,34 @@ set -eu
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 MODE=${1:-uninstall}
+GLENNERGY_UNITS="
+glennergy.target
+glennergy-meteo.timer
+glennergy-spotpris.timer
+glennergy-server.service
+glennergy-algorithm.service
+glennergy-inputcache.service
+glennergy-meteo.service
+glennergy-spotpris.service
+"
+
+stop_installed_units()
+{
+    for unit in $GLENNERGY_UNITS; do
+        if systemctl cat "$unit" >/dev/null 2>&1; then
+            systemctl stop "$unit"
+        fi
+    done
+
+    if systemctl cat glennergy.target >/dev/null 2>&1; then
+        systemctl disable glennergy.target
+    fi
+}
+
+reset_glennergy_failures()
+{
+    systemctl reset-failed $GLENNERGY_UNITS >/dev/null 2>&1 || true
+}
 
 if [ "$(id -u)" -ne 0 ]; then
     echo "Removal writes to system directories." >&2
@@ -12,10 +40,10 @@ fi
 
 case "$MODE" in
     uninstall)
-        systemctl disable --now glennergy.target >/dev/null 2>&1 || true
+        stop_installed_units
         make -C "$SCRIPT_DIR" uninstall
         systemctl daemon-reload
-        systemctl reset-failed >/dev/null 2>&1 || true
+        reset_glennergy_failures
         echo "Glennergy programs removed; configuration and data were preserved."
         ;;
     purge)
@@ -24,10 +52,10 @@ case "$MODE" in
             echo "Run: sudo /bin/sh ./glennergy_uninstall.sh purge --confirm" >&2
             exit 2
         fi
-        systemctl disable --now glennergy.target >/dev/null 2>&1 || true
+        stop_installed_units
         make -C "$SCRIPT_DIR" CONFIRM_PURGE=YES purge
         systemctl daemon-reload
-        systemctl reset-failed >/dev/null 2>&1 || true
+        reset_glennergy_failures
 
         if getent passwd glennergy >/dev/null 2>&1; then
             userdel glennergy

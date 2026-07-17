@@ -133,13 +133,13 @@ if [ -f "$CONFIG_FILE" ]; then
     cp -a "$CONFIG_FILE" "$BACKUP_DIR/fastigheter.json"
 fi
 
+DEPLOY_STARTED=1
 if systemctl cat glennergy.target >/dev/null 2>&1; then
     systemctl stop glennergy.target
 fi
 
 install -d -o root -g glennergy -m 0750 "$CONFIG_DIR"
 
-DEPLOY_STARTED=1
 make -C "$SCRIPT_DIR" install
 
 chown root:glennergy "$CONFIG_FILE"
