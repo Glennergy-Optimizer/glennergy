@@ -1,201 +1,165 @@
-# glennergy
-Hämtar spotpris och optimerar elförbrukning.
+# Glennergy
 
-## Installation
+Glennergy fetches weather and electricity-price data and calculates optimized energy usage. The production stack runs on Ubuntu under systemd; Nginx proxies public HTTP traffic to the server on `127.0.0.1:8080`.
 
-1. Klona ner projektet:
+## Production components
+
+The stack consists of three long-running services and two scheduled jobs:
+
+- `glennergy-inputcache.service`
+- `glennergy-algorithm.service`
+- `glennergy-server.service`
+- `glennergy-meteo.timer` and `glennergy-meteo.service`
+- `glennergy-spotpris.timer` and `glennergy-spotpris.service`
+
+`glennergy.target` starts and stops the complete stack. Meteo uses the C++ implementation under `API/Meteocpp`.
+
+## Build and initial installation
+
+Build as the normal development user. Do not build as root:
+
 ```bash
 git clone https://github.com/keseboleliasteliacom/glennergy.git
 cd glennergy
-```
-2. Skapa en ny grupp för "glennergy" gruppen finns när installations-skriptet skapat och tilldelar permissions
-```
-newgrp glennergy
+make clean
+make
 ```
 
-3. Kör installationsskriptet:
+Review `API/Glennergy-Fastigheter.json` before the first installation. It is used only when `/etc/glennergy/fastigheter.json` does not already exist.
+
+Deploy the completed build as root:
+
 ```bash
-./glennergy_install.sh
+sudo ./glennergy_install.sh
 ```
 
+The deployment workflow creates the non-login `glennergy` service account, installs the binaries and systemd units, validates the units, starts the stack, and performs health checks. It preserves the existing production configuration and retains a deployment backup under `/var/backups/glennergy`.
 
-4.(bonus) Använda browser eller postman för att hämta algoritmens resultat för en fastighet med ID.
-I nuläget finns 5 garanterade ID
-```
-http://localhost:8080/id=3
+## One-time migration from tmux and cron
+
+The legacy cleanup is deliberately a manual operator procedure and is not part of the reusable installation script.
+
+Before changing the running VPS:
+
+1. Back up `/etc/Glennergy-Fastigheter.json`, the current crontabs, and the Nginx configuration.
+2. Record the running Glennergy processes and keep the previous release available.
+3. Build and validate the new release before stopping production.
+4. Stop the tmux-managed Glennergy processes gracefully.
+5. Remove the old Glennergy Meteo and Spotpris cron entries from both the deployment user's and root's crontabs.
+6. Run the legacy uninstaller and verify that no old Glennergy process remains.
+7. Remove only confirmed stale Glennergy IPC objects left under `/tmp` or `/dev/shm`.
+8. Copy the backed-up production JSON to `/etc/glennergy/fastigheter.json` before running the new installer.
+
+The new configuration can be prepared without depending on the service account:
+
+```bash
+sudo install -d -m 0750 /etc/glennergy
+sudo install -m 0600 /path/to/fastigheter.backup.json /etc/glennergy/fastigheter.json
+sudo ./glennergy_install.sh
 ```
 
-5. (bonus) Använda Doxyfile för att enkelt navigera tekniskt specifikation
+The deployment script assigns the final `root:glennergy` ownership and `0640` permissions.
+
+## Updating production
+
+Create and validate a complete build first, then deploy it:
+
+```bash
+make clean
+make
+sudo ./glennergy_install.sh
 ```
+
+The deploy script serializes deployments, backs up the currently installed release, installs the new artifacts, reloads systemd, restarts the target, and checks service and HTTP health. If deployment fails after installation begins, it attempts to restore the previous installed binaries, units, and target state.
+
+The deployment backup is not a source build. Keep the corresponding Git revision or release information so the installed state can be reproduced later.
+
+## Routine operation
+
+```bash
+sudo systemctl status glennergy.target
+sudo systemctl start glennergy.target
+sudo systemctl stop glennergy.target
+sudo systemctl restart glennergy.target
+systemctl list-timers 'glennergy-*'
+```
+
+Inspect logs through journald:
+
+```bash
+journalctl -u glennergy-server.service
+journalctl -f -u glennergy-inputcache.service
+journalctl -u glennergy-meteo.service --since today
+journalctl -u glennergy-spotpris.service --since today
+```
+
+Check the loopback HTTP endpoint directly on the VPS:
+
+```bash
+curl --fail --show-error http://127.0.0.1:8080/id=3
+```
+
+Public requests should continue through Nginx rather than exposing port 8080 externally.
+
+## Uninstall and purge
+
+Normal uninstall stops and disables the stack and removes installed binaries and units. It preserves configuration and state:
+
+```bash
+sudo /bin/sh ./glennergy_uninstall.sh uninstall
+```
+
+Purge permanently removes Glennergy configuration, state, and cache. It also removes the service account and removes the group only when no other account uses it:
+
+```bash
+sudo /bin/sh ./glennergy_uninstall.sh purge --confirm
+```
+
+Back up required production data before purging.
+
+## Troubleshooting
+
+Show the complete stack and recent errors:
+
+```bash
+sudo systemctl status glennergy.target
+systemctl --failed
+journalctl -u glennergy.target -u glennergy-inputcache.service -u glennergy-algorithm.service -u glennergy-server.service --since '-15 minutes'
+```
+
+Check scheduled jobs:
+
+```bash
+systemctl list-timers 'glennergy-*'
+systemctl status glennergy-meteo.timer glennergy-spotpris.timer
+journalctl -u glennergy-meteo.service -u glennergy-spotpris.service --since today
+```
+
+Do not use `kill -9`, broad `pkill` commands, or manual process spawning as routine recovery. Stop or restart the relevant systemd unit so systemd retains ownership of process state and records the result.
+
+If a deployment reports rollback, inspect its terminal output and the journal before retrying. Backups are stored under `/var/backups/glennergy`; restoration should use the exact backup path printed by that deployment.
+
+## Development documentation
+
+Generate the Doxygen documentation when Doxygen is installed:
+
+```bash
 doxygen Doxyfile
 ```
-Sedan öppnar index.html som genererats i /html/index.html för att navigera.
-OBS - installerad med "sudo apt install doxygen"
 
-Installationen skapar följande struktur(TODO):
+Open the generated `html/index.html` file. The project documentation standard is described in `Docs/Doxygen_Standard.md`.
 
-```
-/usr/local/bin/                 # Executable binaries
-/var/log/glennergy/             # Log files
-/etc/Glennergy-Fastigheter.json # System configuration
-/tmp                            # FIFO files
-```
+## Installation layout
 
-Visa loggar(TODO):
-
-```bash
-tail -f /var/log/glennergy/*.log
+```text
+/usr/local/libexec/glennergy/       Installed executables
+/usr/local/share/glennergy/         Example configuration
+/etc/glennergy/fastigheter.json     Production configuration
+/var/lib/glennergy/                 Persistent application state
+/var/cache/glennergy/               Application cache
+/run/glennergy/                     Runtime IPC
+/etc/systemd/system/glennergy*      Target, services, and timers
+/var/backups/glennergy/             Deployment backups
 ```
 
-
-Dokumentation(TODO)
-Documentation standard:
-- Doxygen
-- Modules via @defgroup
-- Memory ownership must be documented
-- Side effects must be documented
-
-
-
-
----
-
-# Usage
-
-Starta programmet genom att köra den installerade binären:
-
-```bash
-Glennergy-Main
-```
-
-OBS: Kör **inte** `./Glennergy-Main`. Kör den installerade binären `Glennergy-Main`.
-
-### Arguments(TODO)
-
-- `port` (optional): Server port number (default: `8080`)
-- `log_level` (optional): Logging level (default: `1`)
-
-Log levels:
-
-```
-0 - DEBUG    Detailed debug information
-1 - INFO     General information messages
-2 - WARNING  Warning messages
-3 - ERROR    Error messages only
-```
-
----
-
-# Development Notes
-
-### Vid kodändringar
-
-Om kod ändras ska **installationsskriptet köras igen**.
-
-```bash
-./glennergy_install.sh
-```
-
-Kör **inte** `make` manuellt.
-
----
-
-# Viktig information
-
-### Avsluta programmet korrekt
-
-När programmet ska avslutas:
-
-```
-Ctrl + C
-```
-
-Använd **inte**:
-
-```
-Ctrl + Z
-```
-
-Cronjobben tas endast bort när programmet avslutas med **Ctrl + C**.
-
----
-
-# Troubleshooting
-
-## HTTPRequesten som efterfrågar data med hjälp av ID via browser eller Postman väntar i evighet, dvs får aldrig något svar
-Detta sker på att cronjobben inte försvinnner.
-
-Om programmet inte avslutas korrekt kommer cronjobben ligga kvar.
-
-Varje minut startas då nya processer som väntar på att en läsarmodul (`InputCache`) ska ansluta. Detta leder till att läsare/skrivare hamnar i **desynk**, vilket gör att HTTP-requests slutar fungera.
-
-Lösning:
-
-```bash
-sudo pkill -9 glenn
-```
-
----
-
-## Fel permissions efter installation
-
-Om man råkat köra:
-
-- `make`
-- `sudo make`
-- `sudo ./glennergy_install.sh`
-
-kan permissions eller mappar ha skapats fel.
-
-Vanligaste problemet är:
-
-```
-/var/log/glennergy
-```
-
-Snabbaste lösningen:
-
-```bash
-cd /var/log
-sudo rm -rf glennergy
-```
-
-Kör sedan installationsskriptet igen:
-
-```bash
-./glennergy_install.sh
-```
-
----
-
-## Script körs inte / crontab_inst.sh ger error
-
-Detta kan bero på **line endings** (Windows vs Linux):
-
-- Windows: `CRLF`
-- Linux: `LF`
-
-### Lösning i VS Code
-
-1. Tryck `Ctrl + ,`
-2. Sök efter **"end of line"**
-3. Ändra:
-
-```
-Files: Eol → \n
-```
-
-### Alternativt ändra per fil
-
-1. Öppna filen i VS Code
-2. Klicka på `CRLF` nere till höger
-3. Ändra till `LF`
-4. Spara filen
-
-### Alternativ via terminal
-
-```bash
-dos2unix glennergy_install.sh
-```
-
-(kan kräva installation av `dos2unix`)
+See `SYSTEMD_MIGRATION_PLAN.md` for the architecture decisions, migration rationale, deferred reliability improvements, and acceptance criteria.
