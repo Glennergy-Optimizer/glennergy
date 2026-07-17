@@ -4,6 +4,7 @@
  */
 
 #include <signal.h>
+#include <stddef.h>
 #include <sys/types.h>
 #include "SignalHandler.h"
 
