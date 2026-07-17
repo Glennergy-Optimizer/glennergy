@@ -98,7 +98,7 @@ else
     pass "port 8080 has no wildcard listener"
 fi
 
-if curl --fail --silent --show-error --max-time 10 http://127.0.0.1:8080/id=3 >/dev/null; then
+if curl --fail --silent --show-error --max-time 10 'http://127.0.0.1:8080/id=3?recommendation' >/dev/null; then
     pass "loopback HTTP health request succeeded"
 else
     fail "loopback HTTP health request failed"

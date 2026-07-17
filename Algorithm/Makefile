@@ -1,6 +1,6 @@
 # Compiler
 CC = gcc
-CFLAGS = -pg -g -Wall -Wextra -std=c11 -g -D_POSIX_C_SOURCE=200112L
+CFLAGS = -g -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200112L
 
 # Körbar fil
 TARGET = Glennergy-Algoritm

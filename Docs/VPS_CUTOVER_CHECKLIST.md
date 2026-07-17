@@ -145,7 +145,7 @@ Validate the local listener and Nginx configuration:
 
 ```bash
 ss -ltnp 'sport = :8080'
-curl --fail --show-error http://127.0.0.1:8080/id=3
+curl --fail --show-error 'http://127.0.0.1:8080/id=3?recommendation'
 sudo nginx -t
 ```
 

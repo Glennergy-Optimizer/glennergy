@@ -98,7 +98,7 @@ journalctl -u glennergy-spotpris.service --since today
 Check the loopback HTTP endpoint directly on the VPS:
 
 ```bash
-curl --fail --show-error http://127.0.0.1:8080/id=3
+curl --fail --show-error 'http://127.0.0.1:8080/id=3?recommendation'
 ```
 
 Public requests should continue through Nginx rather than exposing port 8080 externally.
