@@ -1,50 +1,16 @@
 #!/bin/sh
-set -e
+set -eu
 
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
-if [ -f Makefile ]; then
-    echo "Building Server"
-    make
-    sudo make install
+if [ "$(id -u)" -ne 0 ]; then
+    echo "Installation writes to system directories." >&2
+    echo "Build and validate first, then run: sudo ./glennergy_install.sh" >&2
+    exit 1
 fi
 
-# Added excludes of the doxygen foldens
-find . -type f -name Makefile  \
-  -not -path "*/latex/*" \
-  -not -path "*/html/*" \
-  -not -path "*/Docs/*" \
-  -not -path "*/Client-CPP/*" \
-  | while read mf; do
-    dir=$(dirname "$mf")
-    echo "Processing $dir"
-    make -C "$dir"
-    sudo make -C "$dir" install
-done
+echo "Installing prebuilt Glennergy artifacts..."
+make -C "$SCRIPT_DIR" install
 
-APP_GROUP="glennergy"
-
-echo "Setting up glennergy system directories..."
-
-# Create group if missing
-if ! getent group "$APP_GROUP" >/dev/null; then
-  sudo groupadd "$APP_GROUP"
-fi
-
-# Add current user to group
-sudo usermod -aG "$APP_GROUP" "$USER"
-
-# Create directories
-sudo mkdir -p /var/log/glennergy
-sudo mkdir -p /var/cache/glennergy/meteo
-sudo mkdir -p /var/cache/glennergy/spotpris
-
-# Set ownership and permissions
-sudo chown root:"$APP_GROUP" /var/log/glennergy /var/cache/glennergy/meteo /var/cache/glennergy/spotpris
-sudo chmod 2775 /var/log/glennergy /var/cache/glennergy/meteo /var/cache/glennergy/spotpris
-
-echo "Installation complete."
-echo "You must activate the new group before running the program:"
-echo
-echo "    newgrp $APP_GROUP"
-echo
-echo "or log out and back in."
+echo "Static files installed."
+echo "Service-account creation and systemd activation are handled by the deployment workflow."

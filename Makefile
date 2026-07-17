@@ -25,9 +25,28 @@ SRC := $(shell find Libs Server -name "*.c")
 OBJ := $(patsubst %.c,$(BUILD)/%.o,$(SRC))
 
 # Main server target
-PREFIX ?= /usr/local/bin
+PREFIX ?= /usr/local
 TARGET := Glennergy-Main
-INSTALLDIR = $(PREFIX)
+
+# Installation layout. Runtime directories are created by systemd in a later
+# migration stage; make install owns only versioned/static files.
+LIBEXECDIR ?= $(PREFIX)/libexec/glennergy
+DATADIR ?= $(PREFIX)/share/glennergy
+SYSCONFDIR ?= /etc/glennergy
+LOCALSTATEDIR ?= /var
+STATEDIR ?= $(LOCALSTATEDIR)/lib/glennergy
+CACHEDIR ?= $(LOCALSTATEDIR)/cache/glennergy
+
+CONFIG_SOURCE := API/Glennergy-Fastigheter.json
+CONFIG_FILE := $(SYSCONFDIR)/fastigheter.json
+CONFIG_EXAMPLE := $(DATADIR)/fastigheter.example.json
+
+PRODUCTION_BINARIES := \
+	$(TARGET) \
+	Cache/Glennergy-InputCache \
+	Algorithm/Glennergy-Algoritm \
+	API/Meteocpp/Glennergy-Meteo \
+	API/Spotpris/Glennergy-Spotpris
 
 all: $(TARGET) production-components
 
@@ -66,14 +85,57 @@ $(DEBUG_BUILD)/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Install lifecycle orchestration is intentionally handled in migration stage
-# 3. These targets currently retain the existing main-binary behavior.
 install:
-	install -d $(DESTDIR)$(INSTALLDIR)
-	install -m 755 $(TARGET) $(DESTDIR)$(INSTALLDIR)
+	@set -e; \
+	for binary in $(PRODUCTION_BINARIES); do \
+		if [ ! -f "$$binary" ]; then \
+			echo "Missing build artifact: $$binary" >&2; \
+			echo "Build and validate the release before running make install." >&2; \
+			exit 1; \
+		fi; \
+	done
+	install -d -m 0755 "$(DESTDIR)$(LIBEXECDIR)"
+	@set -e; \
+	for binary in $(PRODUCTION_BINARIES); do \
+		install -m 0755 "$$binary" "$(DESTDIR)$(LIBEXECDIR)/"; \
+	done
+	install -d -m 0755 "$(DESTDIR)$(DATADIR)"
+	install -m 0644 "$(CONFIG_SOURCE)" "$(DESTDIR)$(CONFIG_EXAMPLE)"
+	install -d -m 0755 "$(DESTDIR)$(SYSCONFDIR)"
+	@if [ ! -e "$(DESTDIR)$(CONFIG_FILE)" ]; then \
+		install -m 0644 "$(CONFIG_SOURCE)" "$(DESTDIR)$(CONFIG_FILE)"; \
+		echo "Installed initial configuration: $(CONFIG_FILE)"; \
+	else \
+		echo "Preserving existing configuration: $(CONFIG_FILE)"; \
+	fi
 
 uninstall:
-	rm -f $(DESTDIR)$(INSTALLDIR)/$(TARGET)
+	@set -e; \
+	for binary in $(PRODUCTION_BINARIES); do \
+		rm -f "$(DESTDIR)$(LIBEXECDIR)/$$(basename "$$binary")"; \
+	done
+	rm -f "$(DESTDIR)$(CONFIG_EXAMPLE)"
+	-rmdir "$(DESTDIR)$(LIBEXECDIR)" 2>/dev/null
+	-rmdir "$(DESTDIR)$(DATADIR)" 2>/dev/null
+	@echo "Preserved configuration: $(CONFIG_FILE)"
+
+purge:
+	@if [ "$(CONFIRM_PURGE)" != "YES" ]; then \
+		echo "Refusing to remove Glennergy configuration and data." >&2; \
+		echo "Run with CONFIRM_PURGE=YES only after backing up required data." >&2; \
+		exit 2; \
+	fi
+	@set -e; \
+	for path in "$(SYSCONFDIR)" "$(STATEDIR)" "$(CACHEDIR)"; do \
+		case "$$path" in \
+			""|/) echo "Refusing unsafe purge path: '$$path'" >&2; exit 2 ;; \
+		esac; \
+	done
+	$(MAKE) uninstall
+	rm -rf -- "$(DESTDIR)$(SYSCONFDIR)"
+	rm -rf -- "$(DESTDIR)$(STATEDIR)"
+	rm -rf -- "$(DESTDIR)$(CACHEDIR)"
+	@echo "Removed Glennergy configuration, persistent state, and cache."
 
 clean:
 	@echo "Cleaning build files..."
@@ -86,4 +148,4 @@ clean:
 	done
 	@echo "Clean complete"
 
-.PHONY: all production-components clean debug install uninstall
+.PHONY: all production-components clean debug install uninstall purge

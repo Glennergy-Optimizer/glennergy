@@ -21,10 +21,6 @@ C_OBJS   =
 
 TARGET   = Glennergy-Meteo
 
-PREFIX     ?= /usr/local/bin
-INSTALLDIR  = $(PREFIX)
-CONFIGDIR   = /etc
-
 all: $(TARGET)
 
 $(TARGET): $(CXX_OBJS) $(C_OBJS)
@@ -34,14 +30,9 @@ $(TARGET): $(CXX_OBJS) $(C_OBJS)
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-install:
-	install -d $(DESTDIR)$(INSTALLDIR)
-	install -m 644 ../Glennergy-Fastigheter.json $(DESTDIR)$(CONFIGDIR)
-	install -m 755 $(TARGET) $(DESTDIR)$(INSTALLDIR)
-
-uninstall:
-	rm -rf $(DESTDIR)$(INSTALLDIR)/$(TARGET)
-	rm -f $(DESTDIR)$(CONFIGDIR)/Glennergy-Fastigheter.json
+install uninstall:
+	@echo "Component installation is managed by the top-level Makefile." >&2
+	@exit 2
 
 clean:
 	rm -f $(TARGET) *.o
