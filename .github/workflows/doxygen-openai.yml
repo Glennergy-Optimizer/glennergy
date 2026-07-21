@@ -34,7 +34,9 @@ permissions:
 
 jobs:
   update-doxygen:
-    if: github.actor != 'github-actions[bot]'
+    if: >
+      github.actor != 'github-actions[bot]' &&
+      (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip-doxygen]'))
     runs-on: ubuntu-latest
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -57,11 +59,11 @@ jobs:
               SAFE_LABEL="test-${GITHUB_RUN_ID}"
             fi
             echo "PR_BRANCH=docs/doxygen-ai-${SAFE_LABEL}" >> "$GITHUB_ENV"
-            echo "PR_TITLE=docs: AI Doxygen updates [${TEST_LABEL}]" >> "$GITHUB_ENV"
+            echo "PR_TITLE=[skip-doxygen] docs: AI Doxygen updates [${TEST_LABEL}]" >> "$GITHUB_ENV"
             echo "PR_KEY=${SAFE_LABEL}" >> "$GITHUB_ENV"
           else
             echo "PR_BRANCH=docs/doxygen-ai" >> "$GITHUB_ENV"
-            echo "PR_TITLE=docs: AI Doxygen updates" >> "$GITHUB_ENV"
+            echo "PR_TITLE=[skip-doxygen] docs: AI Doxygen updates" >> "$GITHUB_ENV"
             echo "PR_KEY=default" >> "$GITHUB_ENV"
           fi
 
@@ -184,7 +186,7 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "docs: update doxygen comments"
+          commit-message: "[skip-doxygen] docs: update doxygen comments"
           branch: ${{ env.PR_BRANCH }}
           delete-branch: true
           title: ${{ env.PR_TITLE }}
