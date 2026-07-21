@@ -125,8 +125,12 @@ def changed_files(base: str, head: str) -> list[Path]:
         rel = Path(name)
         if rel.suffix.lower() not in ALLOWED_SUFFIXES:
             continue
-        abs_path = REPO_ROOT / rel
-        if abs_path.exists():
+        abs_path = (REPO_ROOT / rel).resolve()
+        try:
+            abs_path.relative_to(REPO_ROOT.resolve())
+        except ValueError:
+            continue
+        if abs_path.is_file():
             files.append(abs_path)
     return files
 
@@ -605,8 +609,14 @@ def load_remaining_files_from_manifest(manifest_path: Path) -> list[Path]:
 
         rel = Path(str(entry.get("path") or "")).as_posix()
         abs_path = (REPO_ROOT / rel).resolve()
-        if not abs_path.exists():
+        try:
+            abs_path.relative_to(REPO_ROOT.resolve())
+        except ValueError as exc:
+            raise RuntimeError(f"Manifest file path is outside the repository: {rel}") from exc
+        if not abs_path.is_file():
             continue
+        if abs_path.suffix.lower() not in ALLOWED_SUFFIXES:
+            raise RuntimeError(f"Manifest file path has unsupported extension: {rel}")
         if abs_path not in seen:
             seen.add(abs_path)
             files.append(abs_path)
@@ -832,6 +842,10 @@ def main() -> int:
     args = parser.parse_args()
     os.environ["DOXYGEN_AI_TEST_LABEL"] = args.test_label.strip()
     manifest_path = Path(args.manifest).resolve()
+    try:
+        manifest_path.relative_to(REPO_ROOT.resolve())
+    except ValueError as exc:
+        raise RuntimeError(f"Manifest path is outside the repository: {manifest_path}") from exc
 
     if args.remaining_only:
         files = load_remaining_files_from_manifest(manifest_path)
