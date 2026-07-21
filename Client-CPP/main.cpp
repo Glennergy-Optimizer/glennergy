@@ -1,3 +1,15 @@
+/**
+ * @file main.cpp
+ * @brief Test entry point for the Client-CPP application.
+ *
+ * @ingroup Client-CPP
+ *
+ * Runs the client polling loop, sends requests to the local server, and parses
+ * the returned response.
+ *
+ * @note This program runs an infinite loop until interrupted by the user.
+ */
+
 #include <iostream>
 #include <chrono>
 #include <ctime>
@@ -7,6 +19,16 @@
 #include "HTTP.hpp"
 #include "Response.hpp"
 
+/**
+ * @brief Runs the client request loop.
+ *
+ * Builds the request URL, polls the local server periodically, and processes
+ * the received response.
+ *
+ * @return Always returns 0 if the loop exits normally.
+ *
+ * @note The main loop is intended to run indefinitely.
+ */
 int main()
 {
     HTTPClient http;

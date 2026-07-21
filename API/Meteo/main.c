@@ -25,15 +25,18 @@
 #define FIFO_METEO_WRITE GLENNERGY_METEO_FIFO_PATH
 
 /**
- * @brief Main entry point for Meteo service.
+ * @brief Runs the Meteo service main flow.
  *
- * @return 0 on success, negative value on failure
+ * Opens the FIFO, loads configuration, fetches weather data, and writes the
+ * resulting structure to downstream consumers.
  *
- * @pre System has access to FIFO path and configuration file
- * @post Weather data is written to FIFO
+ * @return 0 on success, negative value on failure.
  *
- * @warning Blocking operations (FIFO + network)
- * @note Uses global curl initialization
+ * @pre System has access to the FIFO path and configuration file.
+ * @post Weather data is written to the FIFO on success.
+ *
+ * @note Uses global curl initialization.
+ * @warning Performs blocking FIFO and network operations.
  */
 int main()
 {

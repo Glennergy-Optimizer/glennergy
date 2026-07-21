@@ -1,6 +1,8 @@
 /**
  * @file SignalHandler.c
  * @brief Implementation of signal handling utilities.
+ *
+ * @ingroup SignalHandler
  */
 
 #include <signal.h>
@@ -27,9 +29,9 @@ void SignalHandler_Handle(int sig)
 }
 
 /**
- * @brief Initializes signal handlers.
+ * @brief Implementation of SignalHandler_Initialize.
  *
- * Registers handlers for SIGINT and SIGTERM, and ignores SIGPIPE and SIGCHLD.
+ * See header for full contract documentation.
  */
 void SignalHandler_Initialize()
 {

@@ -17,10 +17,10 @@
 
 /**
  * @struct LogMessage
- * @brief Structure representing a log message sent through the pipe.
+ * @brief Message payload written by the logger.
  *
- * @note All fields are copied into the struct before sending.
- * @note Fixed-size buffers are used; messages may be truncated.
+ * @note All fields are copied before output.
+ * @note Fixed-size buffers may truncate long values.
  */
 typedef struct {
     time_t timestamp;          /**< Timestamp of log entry */
@@ -37,30 +37,29 @@ static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 /* Internal functions */
 
 /**
- * @brief Main loop for logger process.
+ * @brief Returns the syslog-style priority for a log level.
  *
- * Reads log messages from pipe and writes them to file.
- *
- * @param read_fd Pipe read file descriptor.
- *
- * @pre Called only in child process.
- * @post Log file is flushed and closed on exit.
- *
- * @warning Blocking loop until pipe is closed.
+ * @param level Log level.
+ * @return Priority value used when formatting the output line.
  */
 static int log_JournalPriority(LogLevel level);
 
 /**
- * @brief Writes a log message to file.
+ * @brief Writes a log message to the selected output stream.
  *
  * @param log_msg Pointer to log message.
+ * @param level Log level.
  *
- * @pre log_file must be open.
- *
- * @note Formats timestamp and writes a single log line.
+ * @note Writes a single formatted line and flushes the stream.
  */
 static void log_ToJournal(const LogMessage* log_msg, LogLevel level);
 
+/**
+ * @brief Returns the string representation of a log level.
+ *
+ * @param level Log level.
+ * @return String representation of the level.
+ */
 const char* log_GetLevelString(LogLevel level);
 
 /**

@@ -1,10 +1,13 @@
 /**
  * @file main.cpp
- * @brief Entry point for Meteo C++ service.
+ * @brief Entry point for the Meteo C++ service.
  *
  * @ingroup MeteoCppModule
+ *
+ * Writes fetched Meteo data to the configured FIFO for the cache/consumer path.
+ *
+ * @note Uses blocking FIFO I/O.
  */
-
 #include "Meteo.hpp"
 #include "../../Libs/GlennergyPaths.h"
 #include <iostream>
@@ -15,14 +18,12 @@
 constexpr const char* FIFO_METEO_WRITE = GLENNERGY_METEO_FIFO_PATH;
 
 /**
- * @brief Main entry point.
+ * @brief Runs the Meteo service entry flow.
  *
- * @return 0 on success, negative on failure
+ * Opens the FIFO, loads configuration, fetches meteo data, and writes the
+ * resulting structure to the pipe.
  *
- * @pre FIFO must exist or be created externally
- * @post Meteo data written to FIFO
- *
- * @warning Blocking I/O operations
+ * @return 0 on success, negative on failure.
  */
 int main()
 {

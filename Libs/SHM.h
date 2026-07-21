@@ -7,8 +7,10 @@
 
 /**
  * @file SHM.h
- * @brief Shared Memory Wrapper (SMW) for managing shared memory and semaphores.
+ * @brief Shared memory and semaphore helpers.
+ *
  * @defgroup SMW Shared Memory Wrapper
+ * @brief Shared memory and semaphore helpers.
  * @{
  */
 
@@ -21,7 +23,6 @@
  *
  * @param shared Double pointer to shared memory structure.
  * @param name Name of the shared memory object.
- * @param shm_fd File descriptor for shared memory (input/output).
  *
  * @return
  * - 0 on success
@@ -29,12 +30,8 @@
  * - -2 if ftruncate fails
  * - -3 if mmap fails
  *
- * @pre `shared` must be a valid pointer.
- * @pre `name` must be a valid null-terminated string.
- * @post Shared memory is created and mapped.
- * @post `*shared` points to mapped region.
+ * @post `*shared` points to the mapped region on success.
  * @warning Overwrites existing shared memory if it already exists.
- * @note Caller is responsible for synchronization (e.g., semaphores).
  */
 int SHM_InitializeWriter(AlgoritmShared **shared, const char *name);
 
@@ -45,16 +42,14 @@ int SHM_InitializeWriter(AlgoritmShared **shared, const char *name);
  *
  * @param shared Double pointer to shared memory structure.
  * @param name Name of the shared memory object.
- * @param shm_fd File descriptor for shared memory (input/output).
  *
  * @return
  * - 0 on success
  * - -1 if shm_open fails
  * - -3 if mmap fails
  *
- * @pre Shared memory must already exist.
- * @post `*shared` points to mapped read-only region.
- * @warning No validation is performed on the size or structure of shared memory.
+ * @post `*shared` points to the mapped read-only region on success.
+ * @warning The mapped size is assumed to match `AlgoritmShared`.
  */
 int SHM_InitializeReader(AlgoritmShared **shared, const char *name);
 
@@ -69,7 +64,6 @@ int SHM_InitializeReader(AlgoritmShared **shared, const char *name);
  * - -1 on failure
  *
  * @post Semaphore is created with initial value 1.
- * @note Uses POSIX named semaphores.
  */
 int SHM_CreateSemaphore(sem_t **sem, const char *name);
 
@@ -82,8 +76,6 @@ int SHM_CreateSemaphore(sem_t **sem, const char *name);
  * @return
  * - 0 on success
  * - -1 on failure
- *
- * @pre Semaphore must already exist.
  */
 int SHM_OpenSemaphore(sem_t **sem, const char *name);
 
@@ -91,9 +83,6 @@ int SHM_OpenSemaphore(sem_t **sem, const char *name);
  * @brief Closes a semaphore.
  *
  * @param sem Double pointer to semaphore.
- *
- * @post Semaphore is closed but not unlinked.
- * @note Does not set pointer to NULL.
  */
 void SHM_CloseSemaphore(sem_t **sem);
 
@@ -102,8 +91,6 @@ void SHM_CloseSemaphore(sem_t **sem);
  *
  * @param sem Double pointer to semaphore.
  * @param name Name of the semaphore.
- *
- * @post Semaphore is closed and removed from system.
  */
 void SHM_DestroySemaphore(sem_t **sem, const char *name);
 
@@ -111,11 +98,6 @@ void SHM_DestroySemaphore(sem_t **sem, const char *name);
  * @brief Releases resources for shared memory reader.
  *
  * @param shared Double pointer to shared memory.
- * @param name Name of shared memory (unused).
- * @param shm_fd File descriptor.
- *
- * @post Memory unmapped and file descriptor closed.
- * @note Does not unlink shared memory.
  */
 void SHM_DisposeReader(AlgoritmShared **shared);
 
@@ -123,11 +105,6 @@ void SHM_DisposeReader(AlgoritmShared **shared);
  * @brief Releases resources for shared memory writer.
  *
  * @param shared Double pointer to shared memory.
- * @param name Name of shared memory (unused).
- * @param shm_fd File descriptor.
- *
- * @post Memory unmapped and file descriptor closed.
- * @note Does not unlink shared memory.
  */
 void SHM_DisposeWriter(AlgoritmShared **shared);
 
@@ -135,9 +112,6 @@ void SHM_DisposeWriter(AlgoritmShared **shared);
  * @brief Removes shared memory object from the system.
  *
  * @param name Name of shared memory object.
- *
- * @post Shared memory is unlinked.
- * @warning Should only be called by owner process.
  */
 void SHM_Destroy(const char *name);
 

@@ -1,14 +1,11 @@
 /**
  * @file main.c
- * @brief Entry point for the Algorithm module. Reads cached data and computes recommendations.
- * @defgroup Algorithm Algorithm Module
+ * @brief Entry point for the Algorithm module.
  *
- * This file runs the main loop for the Algorithm module:
- * - Connects to the cache
- * - Reads meteo and spot price data
- * - Computes recommendations and writes to shared memory
+ * @ingroup Algorithm
  *
- * @note Original comments and logging preserved.
+ * Reads cached data, computes recommendations, and publishes the result to
+ * shared memory.
  */
 
 #define MODULE_NAME "ALGORITM"
@@ -33,13 +30,14 @@
 /**
  * @brief Sends a request to the cache and receives the expected data.
  *
- * @param cmd Cache command to send
- * @param data_out Pointer to memory where data will be stored
- * @param expected_size Expected size of the output data
- * @return 0 on success, -1 on error
+ * @param cmd Cache command to send.
+ * @param data_out Pointer to memory where data is stored.
+ * @param expected_size Expected size of the output data.
  *
- * @warning Must ensure data_out is valid and allocated.
- * @note Logs errors using LOG_ERROR; closes socket on failure.
+ * @return 0 on success, -1 on error.
+ *
+ * @warning `data_out` must point to valid, writable memory.
+ * @note Logs errors using `LOG_ERROR` and closes the socket on failure.
  */
 // gcc -Wall -Wextra -std=c11 -g testreader.c ../Sockets.c ../../Server/Log/Logger.c -I../../ -o testreader
 
@@ -74,7 +72,15 @@ static ssize_t recv_all(int fd, void *buf, size_t size)
     return (ssize_t)total;
 }
 
-
+/**
+ * @brief Sends a cache request and reads the response payload.
+ *
+ * @param cmd Cache command to send.
+ * @param data_out Destination buffer for the payload.
+ * @param expected_size Expected payload size in bytes.
+ *
+ * @return 0 on success, -1 on error.
+ */
 int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
 {
     if (!data_out || expected_size == 0)

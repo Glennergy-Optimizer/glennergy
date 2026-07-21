@@ -1,12 +1,8 @@
 /**
  * @file Sockets.c
  * @brief Implementation of UNIX domain socket wrapper functions.
- * 
- * Provides simplified APIs for socket creation, binding, listening,
- * accepting, connecting, and placeholders for socket options.
- * 
- * @author YourName
- * @date 2026-03-19
+ *
+ * @ingroup Sockets
  */
 
 #include "Sockets.h"
@@ -18,7 +14,7 @@
 #include <fcntl.h>
 
 /**
- * @brief Create a UNIX domain socket.
+ * @brief Creates a UNIX domain socket.
  *
  * @return Socket file descriptor on success, -1 on failure.
  */
@@ -53,7 +49,7 @@ int socket_SetSocketOptions(int socket_fd)
 */
 
 /**
- * @brief Bind a socket to a specific file system path.
+ * @brief Binds a socket to a specific file system path.
  *
  * @param socket_fd Socket file descriptor to bind.
  * @param socket_path Path to bind the socket to.
@@ -99,7 +95,7 @@ int socket_Bind(int socket_fd, const char *socket_path)
 }
 
 /**
- * @brief Listen for incoming connections on a socket.
+ * @brief Listens for incoming connections on a socket.
  *
  * @param socket_fd Socket file descriptor to listen on.
  * @param backlog Maximum length of the queue of pending connections.
@@ -115,7 +111,7 @@ int socket_Listen(int socket_fd, int backlog)
 }
 
 /**
- * @brief Accept an incoming client connection.
+ * @brief Accepts an incoming client connection.
  *
  * @param socket_fd Socket file descriptor to accept from.
  * @return Client socket file descriptor on success, -1 on failure.
@@ -131,7 +127,7 @@ int socket_Accept(int socket_fd)
 }
 
 /**
- * @brief Connect to a UNIX domain socket at a specified path.
+ * @brief Connects to a UNIX domain socket at a specified path.
  *
  * @param socket_path Path of the socket to connect to.
  * @return Socket file descriptor on success, -1 on failure.

@@ -1,7 +1,19 @@
+/**
+ * @file Response.cpp
+ * @brief Implementation of the Response module.
+ *
+ * @ingroup ClientCPP
+ */
+
 #include <iostream>
 #include "Response.hpp"
 #include "json.hpp"
 
+/**
+ * @brief Implementation of Response::Parse.
+ *
+ * See header for full contract documentation.
+ */
 int Response::Parse()
 {
     nlohmann::json arr = nlohmann::json::parse(this->raw_response);
@@ -25,6 +37,13 @@ int Response::Parse()
     return 0;
 }
 
+/**
+ * @brief Implementation of Response::FormatResponse.
+ *
+ * See header for full contract documentation.
+ *
+ * @note Clears the terminal before printing the formatted response.
+ */
 int Response::FormatResponse()
 {
     system("clear");

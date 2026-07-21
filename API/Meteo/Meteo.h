@@ -1,17 +1,13 @@
 /**
  * @file Meteo.h
- * @brief Meteo module for fetching and storing weather forecast data.
+ * @brief Public API for the Meteo module.
  *
- * @defgroup MeteoModule Meteo Module
+ * @defgroup MeteoModule MeteoModule
+ * @brief Weather data fetching and storage.
  *
- * @details
- * This module is responsible for:
- * - Loading property metadata (locations)
- * - Fetching weather data from Open-Meteo API
- * - Storing parsed forecast data (15-min resolution)
- *
- * The module operates on a fixed-size data model and is designed
- * for deterministic, local system execution (no dynamic allocation).
+ * Loads property metadata, fetches Open-Meteo forecasts, and stores parsed
+ * samples in fixed-size structures with no dynamic allocation.
+ * @{
  */
 
 #ifndef METEO_H
@@ -35,127 +31,87 @@
 #define PROPERTIES_MAX 5
 
 /**
- * @brief Weather sample for a single 15-minute interval.
+ * @brief Weather sample for one 15-minute interval.
  *
- * @note Memory ownership: Fully owned by parent PropertyInfo structure.
- * @note Arrays:
- * - time_start: Null-terminated string, max 31 characters + '\0'
+ * @note Owned by the enclosing PropertyInfo structure.
  */
 typedef struct
 {
-    char time_start[32];        /**< ISO8601 timestamp */
-    float temp;                /**< Temperature in Celsius */              /**< Direct Normal Irradiance (W/m²) */
-    float diffuse_radiation;   /**< Diffuse radiation (W/m²) */
-    float cloud_cover;         /**< Cloud cover (0–100%) */
-    int is_day;                /**< Daylight flag (1 = day, 0 = night) */
-    int weather_code;
-    int uv_index;
-    bool valid;                /**< Valid sample (typically same as is_day) */
+    char time_start[32];        /**< ISO8601 timestamp. */
+    float temp;                 /**< Temperature in Celsius. */
+    float diffuse_radiation;    /**< Diffuse radiation (W/m²). */
+    float cloud_cover;          /**< Cloud cover (0–100%). */
+    int is_day;                /**< Daylight flag (1 = day, 0 = night). */
+    int weather_code;          /**< Weather code. */
+    int uv_index;              /**< UV index. */
+    bool valid;                /**< Valid sample flag. */
 } Samples;
 
 /**
- * @brief Weather and metadata for a single property/location.
+ * @brief Weather and metadata for one property or location.
  *
- * @note Memory ownership:
- * - All buffers are statically allocated and owned by this struct.
- * - No dynamic allocation is used.
- *
- * @note Arrays:
- * - property_name: max length NAME_MAX
- * - sample: fixed size KVARTAR_TOTALT
- * - raw_json_data: max size RAW_DATA_MAX
- * - electricity_area: max 4 chars + null terminator
+ * All buffers are fixed size and owned by this structure.
  */
 typedef struct
 {
-    int id;                                    /**< Unique property ID */
-    char property_name[NAME_MAX];               /**< Name of property */
-    double lat;                                /**< Latitude */
-    double lon;                                /**< Longitude */
-    Samples sample[KVARTAR_TOTALT];             /**< Forecast samples */
-    char raw_json_data[RAW_DATA_MAX];           /**< Raw API response */
-    char electricity_area[5];                   /**< Electricity price area (e.g. SE1–SE4) */
+    int id;                                     /**< Unique property ID. */
+    char property_name[NAME_MAX];               /**< Property name. */
+    double lat;                                 /**< Latitude. */
+    double lon;                                 /**< Longitude. */
+    Samples sample[KVARTAR_TOTALT];             /**< Forecast samples. */
+    char raw_json_data[RAW_DATA_MAX];           /**< Raw API response. */
+    char electricity_area[5];                   /**< Electricity price area. */
 } PropertyInfo;
 
 /**
- * @brief Container for all properties and their weather data.
+ * @brief Container for all configured properties and their weather data.
  *
- * @note Memory ownership:
- * - Fully self-contained structure
- * - No external allocations
- *
- * @note Arrays:
- * - pInfo: fixed size PROPERTIES_MAX
- * - Only first pCount elements are valid
+ * Only the first pCount entries in pInfo are valid.
  */
 typedef struct
 {
-    PropertyInfo pInfo[PROPERTIES_MAX]; /**< Property data array */
-    size_t pCount;                      /**< Number of active properties */
+    PropertyInfo pInfo[PROPERTIES_MAX]; /**< Property data array. */
+    size_t pCount;                      /**< Number of active properties. */
 } MeteoData;
 
 /**
- * @brief Initialize MeteoData structure.
+ * @brief Initializes a MeteoData structure.
  *
- * @param[out] _MeteoData Pointer to MeteoData
+ * @param[out] _MeteoData Pointer to the structure to initialize.
  *
- * @return 0 on success, -1 if input is NULL
- *
- * @pre _MeteoData != NULL
- * @post Structure is initialized with default values
- *
- * @warning Does not clear entire memory via memset, only selected fields
- * @note Safe for repeated calls
+ * @return 0 on success, -1 if _MeteoData is NULL.
  */
 int Meteo_Initialize(MeteoData *_MeteoData);
 
 /**
- * @brief Load property metadata from configuration file.
+ * @brief Loads property metadata from the configuration file.
  *
- * @param[out] _MeteoData Pointer to MeteoData
+ * @param[out] _MeteoData Pointer to the destination structure.
  *
- * @return 0 on success, -1 on failure
- *
- * @pre _MeteoData != NULL
- * @post pCount is updated and property data populated
- *
- * @warning Truncates properties if exceeding PROPERTIES_MAX
- * @note Reads from: /etc/Glennergy-Fastigheter.json
+ * @return 0 on success, -1 on failure.
  */
 int Meteo_LoadGlennergy(MeteoData *_MeteoData);
 
 /**
- * @brief Fetch and parse weather data for all properties.
+ * @brief Fetches and parses weather data for all configured properties.
  *
- * @param[in,out] _MeteoData Pointer to MeteoData
+ * @param[out] _MeteoData Pointer to the destination structure.
  *
  * @return
  * - 0 on success
- * - -1 Curl initialization failure
- * - -2 HTTP fetch failure
- * - -3 JSON parsing failure
- *
- * @pre _MeteoData != NULL
- * @pre pCount > 0
- *
- * @post sample[] arrays are populated for each property
- *
- * @warning Network-dependent operation (blocking)
- * @note Uses Fetcher module (Curl wrapper)
+ * - -1 on Curl initialization failure
+ * - -2 on HTTP fetch failure
+ * - -3 on JSON parsing failure
  */
 int meteo_Fetch(MeteoData *_MeteoData);
 
 /**
- * @brief Reset and clear MeteoData structure.
+ * @brief Resets a MeteoData structure.
  *
- * @param[in,out] _MeteoData Pointer to MeteoData
- *
- * @pre _MeteoData may be NULL
- * @post Structure is zeroed
- *
- * @warning Invalidates all previously stored data
- * @note Uses memset for full reset
+ * @param[in,out] _MeteoData Pointer to the structure to clear.
  */
 void Meteo_Dispose(MeteoData *_MeteoData);
+
+/** @} */
 
 #endif // METEO_H

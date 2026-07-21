@@ -1,8 +1,12 @@
 /**
  * @file Meteo.hpp
- * @brief High-level Meteo C++ interface.
+ * @brief Public C++ interface for the Meteo module.
  *
  * @defgroup MeteoCppModule MeteoCpp Module
+ * @brief C++ weather-fetching interface used by Glennergy.
+ *
+ * Provides configuration loading and weather-data fetch operations for the
+ * Open-Meteo backend.
  */
 
 #ifndef METEO_HPP
@@ -28,60 +32,47 @@ constexpr std::string_view METEO_LINK =
 /**
  * @brief Meteo service class.
  *
- * @note Memory ownership:
- * - Owns MeteoData internally
- * - No dynamic allocation exposed
+ * Owns the loaded configuration and fetched weather data.
  */
 class meteo {
 public:
     /**
      * @brief Constructor.
-     *
-     * @post Internal data zero-initialized
      */
     meteo();
 
     /**
-     * @brief Load configuration file.
+     * @brief Loads the configuration file.
      *
-     * @param[in] configPath Path to JSON config
-     * @return true on success, false on failure
+     * @param[in] configPath Path to the JSON configuration file.
      *
-     * @pre File must exist and be valid JSON
-     * @post Internal data populated
+     * @return true on success, false on failure.
      */
     bool load(std::string_view configPath = GLENNERGY_CONFIG_PATH);
 
     /**
-     * @brief Fetch weather data for all properties.
+     * @brief Fetches weather data for all configured properties.
      *
-     * @return true on success, false on failure
-     *
-     * @pre load() must have been called
-     * @post sample arrays populated
-     *
-     * @warning Network-dependent operation
+     * @return true on success, false on failure.
      */
     bool fetchAll();
 
     /**
-     * @brief Access internal data.
+     * @brief Returns the internal data object.
      *
-     * @return Const reference to MeteoData
-     *
-     * @note No ownership transfer
+     * @return Const reference to the stored MeteoData.
      */
     const MeteoData& data() const { return m_data; }
 
     /**
-     * @brief Get number of properties.
+     * @brief Returns the number of loaded properties.
      *
-     * @return Number of loaded properties
+     * @return Number of loaded properties.
      */
     size_t propertyCount() const  { return m_data.pCount; }
 
 private:
-    MeteoData m_data; /**< Internal data storage */
+    MeteoData m_data; /**< Internal data storage. */
 };
 
 } // namespace meteocpp

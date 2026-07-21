@@ -1,23 +1,12 @@
 /**
  * @file InputCache.h
- * @brief Central cache module for Meteo and Spotpris data.
+ * @brief Public API for the InputCache module.
  *
- * @details
- * This module:
- * - Receives data from upstream producers (Meteo, Spotpris) via FIFO
- * - Stores latest state in memory
- * - Persists data to disk
- * - Serves data to clients via UNIX domain socket
- *
- * Acts as a central aggregation and distribution layer.
+ * Provides cache types and functions for Meteo and Spotpris data.
  *
  * @defgroup INPUTCACHE Input Cache
  * @ingroup CACHE
  * @{
- *
- * @note All data structures are stored in memory and ABI-sensitive
- * @note FIFO paths and UNIX socket paths are fixed and must match producer/consumer
- * @warning Access to shared data must be synchronized if accessed concurrently
  */
 
 #ifndef INPUTCACHE_H
@@ -49,7 +38,7 @@
 /**
  * @brief Electricity price areas.
  *
- * @note Used for indexing spot price data arrays.
+ * Used for indexing spot price data arrays.
  */
 typedef enum {
     AREA_SE1 = 0,
@@ -60,131 +49,110 @@ typedef enum {
 } SpotprisArea;
 
 /**
- * @brief Simplified Meteo data used by cache.
+ * @brief Simplified Meteo data used by the cache.
  *
- * @note Contains static array of weather samples.
- * @note All string fields are null-terminated.
+ * Contains the fixed-size weather data copied from the upstream Meteo input.
  */
 typedef struct {
-    int id;                             /**< Property ID */
-    char city[NAME_MAX];                /**< Property name */
-    double lat;                         /**< Latitude */
-    double lon;                         /**< Longitude */
-    char electricity_area[5];           /**< Electricity area */
-    Samples sample[KVARTAR_TOTALT];     /**< Weather samples */
+    int id;                             /**< Property ID. */
+    char city[NAME_MAX];                /**< Property name. */
+    double lat;                         /**< Latitude. */
+    double lon;                         /**< Longitude. */
+    char electricity_area[5];           /**< Electricity area. */
+    Samples sample[KVARTAR_TOTALT];     /**< Weather samples. */
 } Meteo_t;
 
 /**
  * @brief Single spot price entry.
- *
- * @note All string fields are null-terminated.
  */
 typedef struct {
-    char time_start[32];        /**< Timestamp */
-    double sek_per_kwh;         /**< Price in SEK */
+    char time_start[32];        /**< Timestamp. */
+    double sek_per_kwh;         /**< Price in SEK. */
 } SpotEntry_t;
 
 /**
  * @brief Spot price container for all areas.
  *
- * @note 192 entries per area (48h * 4 quarters per hour)
+ * Stores one fixed-size array per area together with the number of valid
+ * entries in each array.
  */
 typedef struct {
-    SpotEntry_t data[AREA_COUNT][192]; /**< 192 = 48h * 4 */
-    size_t count[AREA_COUNT];          /**< Entries per area */
+    SpotEntry_t data[AREA_COUNT][192]; /**< 192 = 48h * 4. */
+    size_t count[AREA_COUNT];          /**< Entries per area. */
 } Spot_t;
 
 /**
  * @brief Main cache container.
  *
- * @note Holds Meteo, Spotpris, and Homesystem data.
- * @note `is_old` indicates stale data.
+ * Holds homesystem, Meteo, and Spotpris data for serving clients.
  */
 typedef struct {
-    Homesystem_t home[MAX_HOMES]; /**< Home configurations */
-    size_t home_count;            /**< Number of homes */
+    Homesystem_t home[MAX_HOMES]; /**< Home configurations. */
+    size_t home_count;            /**< Number of homes. */
 
-    Meteo_t meteo[MAX_METEO];     /**< Meteo data */
-    size_t meteo_count;           /**< Number of meteo entries */
+    Meteo_t meteo[MAX_METEO];     /**< Meteo data. */
+    size_t meteo_count;           /**< Number of Meteo entries. */
 
-    Spot_t spotpris;              /**< Spot price data */
+    Spot_t spotpris;              /**< Spot price data. */
 
-    bool is_old;                  /**< Indicates stale data */
+    bool is_old;                  /**< Indicates stale data. */
 } InputCache_t;
 
 /**
- * @brief Initialize cache and load home configuration.
+ * @brief Initializes the cache and loads home configuration.
  *
- * @param[out] cache Cache instance
- * @param[in] file_path Path to homesystem config
+ * @param[out] cache Cache instance.
+ * @param[in] file_path Path to the homesystem configuration file.
  *
- * @return 0 on success, -1 on failure
- *
- * @pre cache != NULL
- * @pre file_path != NULL
- * @post Cache initialized and home data loaded
+ * @return 0 on success, -1 on failure.
  */
 int inputcache_Init(InputCache_t *cache, const char* file_path);
 
 /**
- * @brief Create and initialize UNIX socket server.
+ * @brief Creates and initializes the UNIX socket server.
  *
- * @return Socket file descriptor, or -1 on failure
- *
- * @post Socket bound and listening
+ * @return Socket file descriptor, or -1 on failure.
  */
 int inputcache_CreateSocket(void);
 
 /**
- * @brief Open FIFO channels for Meteo and Spotpris.
+ * @brief Opens FIFO channels for Meteo and Spotpris.
  *
- * @param[out] meteo_fd File descriptor for Meteo FIFO
- * @param[out] spotpris_fd File descriptor for Spotpris FIFO
+ * @param[out] meteo_fd File descriptor for the Meteo FIFO.
+ * @param[out] spotpris_fd File descriptor for the Spotpris FIFO.
  *
- * @return 0 on success, -1 on failure
- *
- * @pre meteo_fd != NULL
- * @pre spotpris_fd != NULL
- * @post FIFOs opened for reading
+ * @return 0 on success, -1 on failure.
  */
 int inputcache_OpenFIFOs(int *meteo_fd, int *spotpris_fd);
 
 /**
- * @brief Handle incoming client request over socket.
+ * @brief Handles an incoming client request over the socket.
  *
- * @param[in,out] cache Cache instance
- * @param[in] client_fd Connected client socket
- *
- * @post Client connection closed after handling
+ * @param[in,out] cache Cache instance.
+ * @param[in] client_fd Connected client socket.
  */
 void inputcache_HandleRequest(InputCache_t *cache, int client_fd);
 
 /**
- * @brief Handle incoming Meteo data from FIFO.
+ * @brief Handles incoming Meteo data from FIFO.
  *
- * @param[in,out] cache Cache instance
- * @param[in] meteo_fd FIFO descriptor
- *
- * @post Cache Meteo data updated
+ * @param[in,out] cache Cache instance.
+ * @param[in] meteo_fd FIFO descriptor.
  */
 void inputcache_HandleMeteoData(InputCache_t *cache, int meteo_fd);
 
 /**
- * @brief Handle incoming Spotpris data from FIFO.
+ * @brief Handles incoming Spotpris data from FIFO.
  *
- * @param[in,out] cache Cache instance
- * @param[in] spotpris_fd FIFO descriptor
- *
- * @post Cache Spotpris data updated
+ * @param[in,out] cache Cache instance.
+ * @param[in] spotpris_fd FIFO descriptor.
  */
 void inputcache_HandleSpotprisData(InputCache_t *cache, int spotpris_fd);
 
 /**
- * @brief Cleanup cache resources.
+ * @brief Cleans up cache resources.
  *
- * @param[in,out] cache Cache instance
- *
- * @post All allocated memory freed
+ * @param[in,out] cache Cache instance.
  */
 void inputcache_Cleanup(InputCache_t *cache);
 

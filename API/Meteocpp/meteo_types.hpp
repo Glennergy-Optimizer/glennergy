@@ -1,8 +1,11 @@
 /**
  * @file meteo_types.hpp
- * @brief Shared C-compatible data structures for Meteo module.
+ * @brief Shared C-compatible data structures for the Meteo module.
  *
  * @defgroup MeteoCppModule MeteoCpp Module
+ * @brief Shared types used by the Meteo C++ implementation.
+ *
+ * @{
  */
 
 #ifndef METEO_TYPES_HPP
@@ -23,12 +26,6 @@ extern "C"
 
     /**
      * @brief Weather sample for a single 15-minute interval.
-     *
-     * @note Memory ownership:
-     * - Owned by PropertyInfo
-     *
-     * @note Arrays:
-     * - time_start: max 31 chars + null terminator
      */
     typedef struct
     {
@@ -43,15 +40,9 @@ extern "C"
     } Samples;
 
     /**
-     * @brief Weather data for a property.
+     * @brief Weather data for a single property.
      *
-     * @note Memory ownership:
-     * - Fully owned struct, no dynamic allocation
-     *
-     * @note Arrays:
-     * - property_name: METEO_NAME_MAX
-     * - sample: KVARTAR_TOTALT
-     * - raw_json_data: RAW_DATA_MAX
+     * Owns only fixed-size storage; no dynamic allocation is used.
      */
     typedef struct
     {
@@ -67,12 +58,7 @@ extern "C"
     /**
      * @brief Container for all properties.
      *
-     * @note Memory ownership:
-     * - Fully self-contained
-     *
-     * @note Arrays:
-     * - pInfo: PROPERTIES_MAX
-     * - Only first pCount elements valid
+     * Only the first `pCount` entries in `pInfo` are valid.
      */
     typedef struct
     {
@@ -83,5 +69,7 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
+
+/** @} */
 
 #endif // METEO_TYPES_HPP

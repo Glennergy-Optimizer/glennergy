@@ -4,11 +4,13 @@
 /**
  * @file utils.h
  * @brief Utility functions for time handling and filesystem operations.
+ *
  * @defgroup utils Utility Functions
+ * @brief Utility helpers for time and filesystem operations.
  * @{
  */
 
-// System makron som denna ska komma före headers
+// System makron som denna ska före headers
 // Vi säter alltid posic manuellt med GC Flags vid kompilering
 //#define _POSIX_C_SOURCE 200809L 
 

@@ -1,6 +1,7 @@
 /**
  * @file SHM.c
  * @brief Implementation of shared memory and semaphore utilities.
+ *
  * @ingroup SMW
  */
 
@@ -14,16 +15,9 @@
 #include <string.h>
 
 /**
- * @brief Initializes shared memory for writing.
+ * @brief Implementation of SHM_InitializeWriter.
  *
- * @param shared Double pointer to shared memory structure.
- * @param name Name of shared memory object.
- * @param shm_fd File descriptor (input/output).
- * @return 0 on success, negative on failure.
- *
- * @pre shared and name must be valid.
- * @post Shared memory is created and mapped.
- * @warning Overwrites existing shared memory if exists.
+ * See header for full contract documentation.
  */
 int SHM_InitializeWriter(AlgoritmShared **shared, const char *name)
 {
@@ -60,15 +54,9 @@ int SHM_InitializeWriter(AlgoritmShared **shared, const char *name)
 }
 
 /**
- * @brief Initializes shared memory for reading.
+ * @brief Implementation of SHM_InitializeReader.
  *
- * @param shared Double pointer to shared memory structure.
- * @param name Name of shared memory object.
- * @param shm_fd File descriptor (input/output).
- * @return 0 on success, negative on failure.
- *
- * @pre Shared memory must exist.
- * @post *shared points to mapped read-only memory.
+ * See header for full contract documentation.
  */
 //int SHM_InitializeReader(AlgoritmShared **shared, const char *name, int shm_fd)
 int SHM_InitializeReader(AlgoritmShared **shared, const char *name)
@@ -167,7 +155,6 @@ void SHM_DestroySemaphore(sem_t **sem, const char *name)
 /**
  * @brief Disposes shared memory reader resources.
  */
-//void SHM_DisposeReader(AlgoritmShared **shared, const char *name, int shm_fd)
 void SHM_DisposeReader(AlgoritmShared **shared)
 {
     //(void)name; // Unused parameter, can be used for logging if needed
