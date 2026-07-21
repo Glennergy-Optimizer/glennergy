@@ -662,6 +662,17 @@ def process_files(
         paired_file = find_paired_file(path)
         paired_file_context = "No paired header/source file was found."
 
+        if not original.strip():
+            print(f"No changes for {rel}: file is empty or whitespace-only")
+            file_results.append(
+                FileResult(
+                    path=rel,
+                    status="no_change",
+                    details="Empty or whitespace-only file; no documentation required",
+                )
+            )
+            continue
+
         if len(original) > max_chars:
             print(f"Skipping {rel}: file exceeds MAX_CHARS_PER_FILE ({len(original)} > {max_chars})")
             file_results.append(FileResult(path=rel, status="skipped", details="File exceeds MAX_CHARS_PER_FILE"))
