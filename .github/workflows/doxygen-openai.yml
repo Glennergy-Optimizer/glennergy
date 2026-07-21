@@ -108,8 +108,21 @@ jobs:
           import json
           import os
           import pathlib
+          import urllib.parse
           import urllib.request
           import zipfile
+
+          class StripAuthOnCrossHostRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, request, file_pointer, code, message, headers, new_url):
+                  redirected = super().redirect_request(
+                      request, file_pointer, code, message, headers, new_url
+                  )
+                  if redirected is not None:
+                      old_host = urllib.parse.urlsplit(request.full_url).netloc.lower()
+                      new_host = urllib.parse.urlsplit(new_url).netloc.lower()
+                      if old_host != new_host:
+                          redirected.remove_header("Authorization")
+                  return redirected
 
           token = os.environ["GH_TOKEN"]
           repository = os.environ["REPOSITORY"]
@@ -149,7 +162,8 @@ jobs:
           zip_path = manifest_path.parent / "manifest_artifact.zip"
           manifest_path.parent.mkdir(parents=True, exist_ok=True)
 
-          with urllib.request.urlopen(download_request, timeout=60) as response:
+          download_opener = urllib.request.build_opener(StripAuthOnCrossHostRedirect())
+          with download_opener.open(download_request, timeout=60) as response:
               zip_path.write_bytes(response.read())
 
           destination = manifest_path.parent.resolve()
