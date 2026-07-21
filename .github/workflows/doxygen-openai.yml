@@ -211,7 +211,11 @@ jobs:
         if: always() && steps.update_docs.outcome != 'skipped'
         shell: bash
         run: |
-          git add -A -- '*.c' '*.h' '*.cpp' '*.hpp' '*.cc' '*.hh'
+          for pattern in '*.c' '*.h' '*.cpp' '*.hpp' '*.cc' '*.hh'; do
+            if [ -n "$(git ls-files --cached --others --exclude-standard -- "${pattern}")" ]; then
+              git add -A -- "${pattern}"
+            fi
+          done
 
           if ! git diff --cached --quiet; then
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
