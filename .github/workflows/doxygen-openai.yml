@@ -3,17 +3,16 @@ name: Doxygen AI
 on:
   push:
     branches:
-      - ny-dev
+      - dev
   workflow_dispatch:
     inputs:
       target_ref:
         description: "Branch or ref to check out for the run"
         required: true
         type: choice
-        default: "systemd-refactor"
+        default: "dev"
         options:
-          - systemd-refactor
-          - ny-dev
+          - dev
       model:
         description: "OpenAI model to use for this run"
         required: false
@@ -58,13 +57,13 @@ jobs:
       TEST_LABEL: ${{ github.event.inputs.test_label }}
       MANUAL_FILE_PATHS: ${{ github.event.inputs.file_paths }}
       MANIFEST_PATH: tools/doxygen_ai/state/run_manifest.json
-      BASE_REF: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target_ref || 'ny-dev' }}
+      BASE_REF: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target_ref || 'dev' }}
     steps:
       - name: Validate target ref
         if: github.event_name == 'workflow_dispatch'
         run: |
           case "${TARGET_REF}" in
-            systemd-refactor|ny-dev) ;;
+            dev) ;;
             *)
               echo "Target ref is not approved: ${TARGET_REF}" >&2
               exit 1
