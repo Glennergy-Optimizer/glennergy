@@ -1,6 +1,7 @@
 /**
  * @file TCPServer.c
  * @brief Implementation of TCP server functionality.
+ *
  * @ingroup TCPServer
  */
 
@@ -24,13 +25,14 @@
  *
  * @param _Context Pointer to TCPServer instance.
  * @param monTime Monotonic time (unused).
- *
- * @pre _Context must not be NULL.
- * @post Accepts connections if available.
- * @warning Runs repeatedly in a non-blocking task; does not block.
  */
 void TCPServer_Work(void *_Context, uint64_t monTime);
 
+/**
+ * @brief Implementation of TCPServer_Initialize.
+ *
+ * See header for full contract documentation.
+ */
 int TCPServer_Initialize(TCPServer **_TCPServer, int port, int backlog, TCPServer_OnConnection callback, void *context)
 {
     TCPServer *tcp_server = (TCPServer *)malloc(sizeof(TCPServer));
@@ -50,6 +52,11 @@ int TCPServer_Initialize(TCPServer **_TCPServer, int port, int backlog, TCPServe
     return 0;
 }
 
+/**
+ * @brief Implementation of TCPServer_Listen.
+ *
+ * See header for full contract documentation.
+ */
 int TCPServer_Listen(TCPServer *_TCPServer)
 {
     struct addrinfo hints;
@@ -113,6 +120,11 @@ int TCPServer_Listen(TCPServer *_TCPServer)
     return 0;
 }
 
+/**
+ * @brief Implementation of TCPServer_Accept.
+ *
+ * See header for full contract documentation.
+ */
 int TCPServer_Accept(TCPServer *_TCPServer)
 {
     int sock = accept(_TCPServer->server_socket, NULL, NULL);
@@ -139,6 +151,9 @@ int TCPServer_Accept(TCPServer *_TCPServer)
     return 0;
 }
 
+/**
+ * @brief Internal worker function for polling and accepting incoming connections.
+ */
 void TCPServer_Work(void *_Context, uint64_t monTime)
 {
     TCPServer* tcp_server = (TCPServer *)_Context;
@@ -151,6 +166,9 @@ void TCPServer_Work(void *_Context, uint64_t monTime)
     // Suggestion: Use monTime for periodic logic or timeout handling if needed
 }
 
+/**
+ * @brief Disconnects a client socket.
+ */
 void TCPServer_Disconnect(int socket)
 {
     close(socket);
@@ -158,6 +176,11 @@ void TCPServer_Disconnect(int socket)
     // Suggestion: Setting socket = -1 does not affect caller
 }
 
+/**
+ * @brief Implementation of TCPServer_Dispose.
+ *
+ * See header for full contract documentation.
+ */
 void TCPServer_Dispose(TCPServer** _TCPServer)
 {
     if (_TCPServer == NULL || *_TCPServer == NULL)

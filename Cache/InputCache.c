@@ -1,13 +1,6 @@
 /**
  * @file InputCache.c
- * @brief Implementation of InputCache module.
- *
- * @details
- * Implements cache for Meteo and Spotpris data.
- * Handles:
- * - FIFO input from upstream producers
- * - UNIX socket client requests
- * - Persisting cache data to disk
+ * @brief Implementation of the InputCache module.
  *
  * @ingroup INPUTCACHE
  */
@@ -30,16 +23,7 @@
 const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"};
 
 /**
- * @brief Initialize cache and load home configuration.
- *
- * @param[out] cache Cache instance
- * @param[in] file_path Path to homesystem JSON file
- *
- * @return 0 on success, -1 on error
- *
- * @pre cache != NULL
- * @pre file_path != NULL
- * @post Cache initialized, home entries loaded
+ * @brief Initializes cache and loads home configuration.
  */
 int inputcache_Init(InputCache_t *cache, const char *file_path)
 {
@@ -61,11 +45,7 @@ int inputcache_Init(InputCache_t *cache, const char *file_path)
 }
 
 /**
- * @brief Create and bind UNIX domain socket for cache service.
- *
- * @return Socket file descriptor, or -1 on failure
- *
- * @post Socket bound, listening, and ready to accept clients
+ * @brief Creates and binds the UNIX domain socket for cache service.
  */
 int inputcache_CreateSocket(void)
 {
@@ -99,14 +79,7 @@ int inputcache_CreateSocket(void)
 }
 
 /**
- * @brief Open FIFO channels for Meteo and Spotpris input.
- *
- * @param[out] meteo_fd File descriptor for Meteo FIFO
- * @param[out] spotpris_fd File descriptor for Spotpris FIFO
- *
- * @return 0 on success, -1 on error
- *
- * @post FIFOs ready for reading
+ * @brief Opens FIFO channels for Meteo and Spotpris input.
  */
 int inputcache_OpenFIFOs(int *meteo_fd, int *spotpris_fd)
 {
@@ -173,12 +146,7 @@ ssize_t send_all(int fd, const void *buf, size_t size)
 }
 
 /**
- * @brief Handle incoming client request over socket.
- *
- * @param[in,out] cache Cache instance
- * @param[in] client_fd Connected client socket
- *
- * @post Client connection closed after response
+ * @brief Handles an incoming client request over the socket.
  */
 void inputcache_HandleRequest(InputCache_t *cache, int client_fd)
 {
@@ -249,13 +217,7 @@ void inputcache_HandleRequest(InputCache_t *cache, int client_fd)
 }
 
 /**
- * @brief Internal helper: Save Meteo data to disk.
- *
- * @param[in] _Data Meteo data
- *
- * @return 0 on success, negative on error
- *
- * @note Writes JSON files to /var/cache/glennergy/meteo
+ * @brief Saves Meteo data to disk.
  */
 static int inputcache_SaveMeteo(const MeteoData *_Data)
 {
@@ -301,12 +263,7 @@ static int inputcache_SaveMeteo(const MeteoData *_Data)
 }
 
 /**
- * @brief Handle incoming Meteo data from FIFO.
- *
- * @param[in,out] cache Cache instance
- * @param[in] meteo_fd FIFO descriptor
- *
- * @post Cache Meteo data updated and persisted
+ * @brief Handles incoming Meteo data from FIFO.
  */
 void inputcache_HandleMeteoData(InputCache_t *cache, int meteo_fd)
 {
@@ -339,13 +296,7 @@ void inputcache_HandleMeteoData(InputCache_t *cache, int meteo_fd)
 }
 
 /**
- * @brief Internal helper: Save Spotpris data to disk.
- *
- * @param[in] spotpris Spot price data
- *
- * @return 0 on success, negative on error
- *
- * @note Writes JSON files to /var/cache/glennergy/spotpris
+ * @brief Saves Spotpris data to disk.
  */
 // TODO - Kolla static på interna funktioner i denna och andra moduler
 int inputcache_SaveSpotpris(const AllaSpotpriser *spotpris)
@@ -400,12 +351,7 @@ int inputcache_SaveSpotpris(const AllaSpotpriser *spotpris)
 }
 
 /**
- * @brief Handle incoming Spotpris data from FIFO.
- *
- * @param[in,out] cache Cache instance
- * @param[in] spotpris_fd FIFO descriptor
- *
- * @post Cache Spotpris data updated and persisted
+ * @brief Handles incoming Spotpris data from FIFO.
  */
 void inputcache_HandleSpotprisData(InputCache_t *cache, int spotpris_fd)
 {
@@ -442,11 +388,7 @@ void inputcache_HandleSpotprisData(InputCache_t *cache, int spotpris_fd)
 }
 
 /**
- * @brief Cleanup cache resources.
- *
- * @param[in,out] cache Cache instance
- *
- * @post Memory freed
+ * @brief Cleans up cache resources.
  */
 void inputcache_Cleanup(InputCache_t *cache)
 {

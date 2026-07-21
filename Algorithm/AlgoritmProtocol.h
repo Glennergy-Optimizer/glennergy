@@ -1,12 +1,15 @@
 /**
  * @file AlgoritmProtocol.h
- * @brief Shared memory structures and protocol definitions for Algorithm module.
+ * @brief Shared memory structures and protocol definitions for the Algorithm module.
+ *
+ * Defines the shared memory layout and basic protocol types used by the Algorithm
+ * module.
+ *
  * @defgroup Algorithm Algorithm Module
  * @ingroup Algorithm
+ * @brief Shared memory structures and protocol definitions for the Algorithm module.
+ * @{
  *
- * This file defines the shared memory layout and communication protocol for
- * the Algorithm module.
- * 
  * @note Original comments preserved.
  */
 
@@ -20,15 +23,16 @@
 #include "../API/Meteo/Meteo.h"
 
 /**
- * @brief Placeholder function for testing reader
+ * @brief Placeholder function for testing reader.
  *
- * @return 0 on success, -1 on error
+ * @return 0 on success, -1 on error.
  */
 int test_reader();
 
 /**
- * @brief Time representation for a sample
- * @note Memory owned by parent structure; array size 32.
+ * @brief Time representation for a sample.
+ *
+ * Memory owned by the parent structure; `time` stores up to 32 characters.
  */
 typedef struct
 {
@@ -42,8 +46,9 @@ typedef struct{
 }Weather;
 
 /**
- * @brief Result per ID in Algorithm module
- * @note `recommendation` array stores values for 96 quarters
+ * @brief Result per ID in the Algorithm module.
+ *
+ * `recommendation` stores values for 96 quarter-hour intervals.
  */
 typedef struct
 {
@@ -54,15 +59,16 @@ typedef struct
     time_start time[96];           /**< Corresponding timestamps */
 } AlgoritmResult;
 
-
-
 /**
- * @brief Shared memory structure for Algorithm module
- * @note Memory ownership managed by writer/reader; array size MAX_ID
+ * @brief Shared memory structure for the Algorithm module.
+ *
+ * Memory ownership is managed by the writer and reader processes.
  */
 typedef struct
 {
     AlgoritmResult result[MAX_ID]; /**< Array of results */
 } AlgoritmShared;
+
+/** @} */
 
 #endif

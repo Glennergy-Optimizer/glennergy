@@ -1,3 +1,10 @@
+/**
+ * @file Pipes.c
+ * @brief Implementation of the Pipes module.
+ *
+ * @ingroup PIPES
+ */
+
 #include "Pipes.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,6 +13,18 @@
 #include <errno.h>
 // Todo - nothing =(
 
+/**
+ * @brief Reads binary data from a file descriptor.
+ *
+ * Continues until the requested byte count is reached, EOF is encountered,
+ * or a non-blocking read returns `EAGAIN`.
+ *
+ * @param _Fd File descriptor to read from.
+ * @param _Buf Buffer that receives the data.
+ * @param _Size Number of bytes to read.
+ *
+ * @return Number of bytes read so far.
+ */
 ssize_t Pipes_ReadBinary(int _Fd, void *_Buf, size_t _Size)
 {
     size_t total = 0;
@@ -40,6 +59,18 @@ ssize_t Pipes_ReadBinary(int _Fd, void *_Buf, size_t _Size)
     return total;
 }
 
+/**
+ * @brief Writes binary data to a file descriptor.
+ *
+ * Continues until the requested byte count is written or a non-blocking write
+ * returns `EAGAIN`.
+ *
+ * @param _Fd File descriptor to write to.
+ * @param _Buf Buffer containing the data to write.
+ * @param _Size Number of bytes to write.
+ *
+ * @return Number of bytes written so far.
+ */
 ssize_t Pipes_WriteBinary(int _Fd, void *_Buf, size_t _Size)
 {
     ssize_t bytesWritten = 0;

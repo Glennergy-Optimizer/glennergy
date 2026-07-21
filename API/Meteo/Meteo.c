@@ -1,6 +1,6 @@
 /**
  * @file meteo.c
- * @brief Implementation of Meteo module.
+ * @brief Implementation of the Meteo module.
  *
  * @ingroup MeteoModule
  */
@@ -20,7 +20,7 @@
 #define METEO_LINK "https://api.open-meteo.com/v1/forecast?latitude=%2.f&longitude=%2f&minutely_15=temperature_2m,shortwave_radiation,direct_normal_irradiance,diffuse_radiation,cloud_cover,is_day,weather_code,uv_index&forecast_days=3&forecast_minutely_15=128&timezone=Europe/Stockholm"
 
 /**
- * @brief Initialize MeteoData structure.
+ * @brief Initializes a MeteoData structure.
  */
 int Meteo_Initialize(MeteoData *_MeteoData)
 {
@@ -44,7 +44,7 @@ int Meteo_Initialize(MeteoData *_MeteoData)
 }
 
 /**
- * @brief Load property metadata from JSON file.
+ * @brief Loads property metadata from the JSON configuration file.
  */
 int Meteo_LoadGlennergy(MeteoData *_MeteoData)
 {
@@ -104,10 +104,10 @@ int Meteo_LoadGlennergy(MeteoData *_MeteoData)
 }
 
 /**
- * @brief Parse raw JSON weather data into PropertyInfo structure.
+ * @brief Parses raw JSON weather data into a PropertyInfo structure.
  *
- * @param[out] _PropertyInfo Target property structure
- * @param[in] _JsonRaw Raw JSON string from API
+ * @param[out] _PropertyInfo Target property structure.
+ * @param[in] _JsonRaw Raw JSON string from the API.
  *
  * @return
  * - 0 on success
@@ -118,8 +118,8 @@ int Meteo_LoadGlennergy(MeteoData *_MeteoData)
  * @pre _JsonRaw != NULL
  * @post sample[] is populated
  *
- * @warning Assumes JSON arrays are aligned in size
- * @note Internal function, not part of public API
+ * @warning Assumes JSON arrays are aligned in size.
+ * @note Internal function, not part of public API.
  */
 int Meteo_Parse(PropertyInfo *_PropertyInfo, const char *_JsonRaw)
 {
@@ -184,7 +184,7 @@ int Meteo_Parse(PropertyInfo *_PropertyInfo, const char *_JsonRaw)
 }
 
 /**
- * @brief Fetch weather data for all properties.
+ * @brief Fetches weather data for all properties.
  */
 int meteo_Fetch(MeteoData *_MeteoData)
 {
@@ -231,7 +231,7 @@ int meteo_Fetch(MeteoData *_MeteoData)
 }
 
 /**
- * @brief Reset MeteoData structure.
+ * @brief Resets a MeteoData structure.
  */
 void Meteo_Dispose(MeteoData *_MeteoData)
 {

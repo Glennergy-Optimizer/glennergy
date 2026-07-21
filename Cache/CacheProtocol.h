@@ -2,15 +2,18 @@
  * @file CacheProtocol.h
  * @brief IPC protocol definitions for cache communication.
  *
- * @details
- * Defines request/response structures used over UNIX socket
+ * Defines request and response structures used over the UNIX socket
  * between clients and the cache service.
  *
  * @defgroup CACHEPROTOCOL Cache Protocol
+ * @brief IPC protocol shared by cache clients and the cache service.
+ *
+ * Packed structures in this file are ABI-sensitive and must match on both
+ * sides of the connection.
+ *
  * @ingroup IPC
  * @{
  *
- * @note All structures are packed and ABI-sensitive.
  * @note Communication occurs via UNIX socket at CACHE_SOCKET_PATH.
  * @warning Clients and server must use identical struct layout.
  */

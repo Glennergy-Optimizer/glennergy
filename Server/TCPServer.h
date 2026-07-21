@@ -5,8 +5,15 @@
 
 /**
  * @file TCPServer.h
- * @brief TCP server interface for handling incoming connections.
- * @defgroup TCPServer TCP Server Module
+ * @brief Public API for the TCP server module.
+ */
+
+/**
+ * @defgroup TCPServer TCPServer
+ * @brief TCP server interface for accepting incoming connections.
+ *
+ * The module creates a listening socket, accepts clients, and dispatches each
+ * accepted socket to the configured callback.
  * @{
  */
 
@@ -15,84 +22,74 @@
  *
  * @param context User-defined context passed during initialization.
  * @param socket Accepted client socket descriptor.
- * @return int Returns 0 on success, negative value on failure.
+ *
+ * @return 0 on success, negative value on failure.
  */
 typedef int (*TCPServer_OnConnection)(void* context, int socket);
 
 /**
- * @brief TCP server structure.
+ * @brief TCP server state.
  *
- * @note Memory ownership: allocated by TCPServer_Initialize(), must be freed with TCPServer_Dispose().
- * @note `server_socket` is opened during TCPServer_Listen() and closed in TCPServer_Dispose().
+ * @note Allocated by TCPServer_Initialize() and released by TCPServer_Dispose().
+ * @note `server_socket` is opened by TCPServer_Listen() and closed during dispose.
  */
 typedef struct {
-    smw_task *task;                  /**< Task handling server work loop */
-    TCPServer_OnConnection onConnect;/**< Callback invoked on new connection */
-    void* context;                   /**< User-defined context pointer */
-    int server_socket;               /**< Server socket descriptor */
-    int backlog;                     /**< Listen backlog size */
-    int port;                        /**< Listening port */
+    smw_task *task;                  /**< Task handling the server work loop. */
+    TCPServer_OnConnection onConnect;/**< Callback invoked on new connection. */
+    void* context;                   /**< User-defined context pointer. */
+    int server_socket;               /**< Listening socket descriptor. */
+    int backlog;                     /**< Listen backlog size. */
+    int port;                        /**< Listening port. */
 } TCPServer;
 
 /**
  * @brief Allocates and initializes a TCPServer instance.
  *
- * @param _TCPServer Output pointer to allocated server instance.
+ * @param _TCPServer Output pointer for the allocated server instance.
  * @param port Port number to listen on.
  * @param backlog Maximum pending connections in the listen queue.
- * @param callback Function invoked on new connection.
- * @param context User-defined pointer passed to callback.
- * @return int 0 on success, negative value on allocation failure.
+ * @param callback Function invoked for each accepted connection.
+ * @param context User-defined pointer passed to the callback.
  *
- * @pre _TCPServer must not be NULL.
- * @post *_TCPServer points to a valid allocated TCPServer instance.
- * @warning Caller must call TCPServer_Dispose() to free allocated memory.
+ * @return 0 on success, negative value on allocation failure.
+ *
+ * @warning Caller must release the instance with TCPServer_Dispose().
  */
 int TCPServer_Initialize(TCPServer **_TCPServer, int port, int backlog, TCPServer_OnConnection callback, void *context);
 
 /**
  * @brief Starts listening for incoming TCP connections.
  *
- * @param _TCPServer Pointer to initialized TCPServer instance.
- * @return int 0 on success, negative on error.
+ * @param _TCPServer Pointer to an initialized TCPServer instance.
  *
- * @pre _TCPServer != NULL and properly initialized.
- * @post TCPServer's `server_socket` is open and non-blocking.
- * @warning Listening task is started internally using smw_create_task.
+ * @return 0 on success, negative value on error.
+ *
+ * @warning Creates the internal server task with smw_create_task().
  */
 int TCPServer_Listen(TCPServer *_TCPServer);
 
 /**
  * @brief Accepts a single incoming connection.
  *
- * @param _TCPServer Pointer to initialized TCPServer instance.
- * @return int 0 on success, negative value on error, -1 if no connection available.
+ * @param _TCPServer Pointer to an initialized TCPServer instance.
  *
- * @pre _TCPServer != NULL.
- * @post Calls user callback on successful accept.
- * @warning Non-blocking; returns immediately if no connection.
+ * @return 0 on success, negative value on error or when no connection is available.
  */
 int TCPServer_Accept(TCPServer *_TCPServer);
 
 /**
- * @brief Disconnects a client socket.
+ * @brief Closes a client socket.
  *
  * @param socket Socket descriptor to close.
- *
- * @pre socket >= 0
- * @post The socket is closed.
- * @warning After this call, socket value in caller is unchanged (caller should set to -1 if needed).
  */
 void TCPServer_Disconnect(int socket);
 
 /**
- * @brief Frees all resources associated with a TCPServer instance.
+ * @brief Releases all resources associated with a TCPServer instance.
  *
- * @param _TCPServer Pointer to TCPServer pointer.
+ * @param _TCPServer Pointer to a TCPServer pointer.
  *
- * @pre _TCPServer != NULL and *_TCPServer points to a valid TCPServer.
- * @post *_TCPServer is set to NULL and all resources are released.
- * @warning All active tasks and sockets are terminated/closed.
+ * @warning Closes the listening socket and destroys the internal task.
  */
 void TCPServer_Dispose(TCPServer** _TCPServer);
 

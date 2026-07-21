@@ -1,11 +1,11 @@
 /**
  * @file average.c
- * @brief Statistical calculations for Algorithm module.
+ * @brief Statistical calculations for the Algorithm module.
+ *
  * @ingroup Algorithm
  *
- * Contains functions for computing statistics on spot prices,
- * detecting low-price windows, and generating BUY/HOLD/SELL recommendations.
- * Original logging and printing preserved.
+ * Implements statistics, low-price window detection, and recommendation
+ * helpers for spot price data.
  */
 // #define MODULE_NAME "ALGOINFLUENCER"
 // #include "algoinfluencer.h"
@@ -18,17 +18,16 @@
 #include "../Cache/InputCache.h"
 
 /**
- * @brief Area names used for indexing statistics
- * @note Used for printing and logging; array size defined by AREA_COUNT
+ * @brief Area names used for indexing statistics.
  */
 const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"}; // usch
 
 /**
- * @brief Compare two doubles for qsort
- * @param a Pointer to first double
- * @param b Pointer to second double
- * @return -1 if *a < *b, 1 if *a > *b, 0 if equal
- * @note Used internally by average_SpotprisStats
+ * @brief Compare two doubles for qsort.
+ *
+ * @param a Pointer to first double.
+ * @param b Pointer to second double.
+ * @return -1 if *a < *b, 1 if *a > *b, 0 if equal.
  */
 int compare_double(const void *a, const void *b)
 {
@@ -41,13 +40,9 @@ int compare_double(const void *a, const void *b)
 }
 
 /**
- * @brief Compute statistics for spot prices from InputCache
- * @param spot Pointer to SpotStats_t to store results
- * @param cache Pointer to InputCache_t containing input data
- * @return 0 on success, -1 on invalid parameters
- * @pre `spot` and `cache` must be valid pointers
- * @post `spot` contains min, max, average, median, q25, q75 for each area
- * @warning Logs errors to stderr if data missing
+ * @brief Computes spot price statistics from InputCache.
+ *
+ * See header for full contract documentation.
  */
 int average_SpotprisStats(SpotStats_t *spot, InputCache_t *cache)
 {
@@ -134,12 +129,9 @@ double average_WindowLow_percent(SpotEntry_t *entry, double min, double max)
 
 
 /**
- * @brief Detect low-price windows in cache
- * @param cache Pointer to InputCache_t
- * @param q25_threshold Threshold for 25th percentile
- * @return 0 on success, -1 if cache invalid
- * @warning Prints detected low-price windows to stdout
- * @note Only uses the first area (SE1) for detection
+ * @brief Detects low-price windows in cache.
+ *
+ * See header for full contract documentation.
  */
 int average_WindowLow(InputCache_t *cache, double q25_threshold)
 {
@@ -190,13 +182,9 @@ int average_WindowLow(InputCache_t *cache, double q25_threshold)
 }
 
 /**
- * @brief Determine BUY/HOLD/SELL recommendation based on thresholds
- * @param entry Pointer to SpotEntry_t to evaluate
- * @param q25_threshold Lower threshold
- * @param q75_threshold Upper threshold
- * @return 1 = BUY, 2 = HOLD, 3 = SELL, 0 = invalid, -1 = error
- * @pre `entry` must not be NULL
- * @warning Prints evaluation details to stdout
+ * @brief Determines BUY/HOLD/SELL recommendation based on thresholds.
+ *
+ * See header for full contract documentation.
  */
 int average_WindowLow_test(SpotEntry_t *entry, double q25_threshold, double q75_threshold)
 {
@@ -232,12 +220,9 @@ int average_WindowLow_test(SpotEntry_t *entry, double q25_threshold, double q75_
 }
 
 /**
- * @brief Test function computing spot statistics from Spot_t structure
- * @param spot Pointer to SpotStats_t to store results
- * @param entry Pointer to Spot_t input
- * @return 0 on success, -1 on invalid parameters
- * @pre `spot` and `entry` must not be NULL
- * @post `spot` contains computed statistics
+ * @brief Computes spot price statistics from a Spot_t structure.
+ *
+ * See header for full contract documentation.
  */
 int average_SpotprisStats_test(SpotStats_t *spot, Spot_t *entry)
 {

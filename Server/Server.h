@@ -8,9 +8,14 @@
 #include "ServerConfig.h"
 
 /**
+ * @file Server.h
+ * @brief Public API for the Server module.
+ *
+ * Manages TCP server lifecycle, connection handling, and configuration.
+ *
  * @defgroup Server Server
  * @brief Manages TCP connections and server lifecycle.
- * @ingroup Server
+ * @{
  */
 
 typedef struct
@@ -21,30 +26,40 @@ typedef struct
 } Server;
 
 /**
- * @brief Initialize the server with command-line arguments.
- * @param _Server Pointer to pointer to allocate and initialize Server
- * @param _Argv Command-line arguments array
- * @param _Argc Number of command-line arguments
- * @return 0 on success, negative value on error
- * @pre _Server must not be NULL
- * @post Server instance is allocated and configured
+ * @brief Initializes the server from command-line arguments.
+ *
+ * @param _Server Pointer to receive the allocated Server instance.
+ * @param _Argv Command-line arguments array.
+ * @param _Argc Number of command-line arguments.
+ *
+ * @return 0 on success, negative value on error.
+ *
+ * @pre _Server must not be NULL.
+ * @post Server instance is allocated and configured.
  */
 int Server_Initialize(Server** _Server, char** _Argv, int _Argc);
 
 /**
- * @brief Run the server and start all threads/processes.
- * @param _Server Pointer to initialized Server
- * @return 0 on success, negative value on error
- * @pre _Server must be initialized
- * @post All subprocesses are started, blocking until termination
+ * @brief Runs the server and starts all threads/processes.
+ *
+ * @param _Server Pointer to initialized Server.
+ *
+ * @return 0 on success, negative value on error.
+ *
+ * @pre _Server must be initialized.
+ * @post All subprocesses are started, blocking until termination.
  */
 int Server_Run(Server* _Server);
 
 /**
- * @brief Dispose the server and free resources.
- * @param _Server Pointer to pointer to Server to dispose
- * @post Frees all resources, closes connections and memory
+ * @brief Disposes the server and frees resources.
+ *
+ * @param _Server Pointer to pointer to Server to dispose.
+ *
+ * @post Frees all resources, closes connections and memory.
  */
 void Server_Dispose(Server** _Server);
+
+/** @} */
 
 #endif

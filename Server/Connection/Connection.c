@@ -1,9 +1,10 @@
 /**
  * @file Connection.c
  * @brief Implementation of TCP client connection management.
+ *
  * @ingroup Connection
  *
- * Handles initialization, reading HTTP requests, sending JSON responses,
+ * Handles initialization, HTTP request processing, JSON response generation,
  * and resource cleanup for Connection structures.
  */
 
@@ -38,6 +39,9 @@ void Connection_Work(void *_Context, uint64_t monTime);
 
 void Connection_Dispose(Connection **_Connection);
 
+/**
+ * @brief Allocates and initializes a Connection instance.
+ */
 int Connection_Initialize(Connection **_Connection, int _Socket)
 {
     Connection *connection = (Connection *)malloc(sizeof(Connection));
@@ -53,6 +57,9 @@ int Connection_Initialize(Connection **_Connection, int _Socket)
     return 0;
 }
 
+/**
+ * @brief Handles an incoming client connection and sends a response.
+ */
 int Connection_Handle(Connection *_Connection)
 {
     LOG_INFO("Handling incoming connection");
@@ -216,7 +223,7 @@ int Connection_Handle(Connection *_Connection)
                 // if (strstr(memory->result[i].time[j].time, "23:45") != NULL)
                 //{
                 //     break;
-                // }
+                //}
             }
         }
         else if (strncmp(request_data.command, "weather", 8) == 0)
@@ -237,7 +244,7 @@ int Connection_Handle(Connection *_Connection)
                 // if (strstr(memory->result[i].time[j].time, "23:45") != NULL)
                 //{
                 //     break;
-                // }
+                //}
             }
         }
         else if (strncmp(request_data.command, "price", 6) == 0)
@@ -256,7 +263,7 @@ int Connection_Handle(Connection *_Connection)
                 // if (strstr(memory->result[i].time[j].time, "23:45") != NULL)
                 //{
                 //     break;
-                // }
+                //}
             }
         }
     }
@@ -312,6 +319,9 @@ int Connection_Handle(Connection *_Connection)
     return status;
 }
 
+/**
+ * @brief Releases a Connection and its socket.
+ */
 void Connection_Dispose(Connection **_Connection)
 {
     if (_Connection == NULL || *_Connection == NULL)

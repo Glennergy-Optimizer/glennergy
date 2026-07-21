@@ -1,6 +1,6 @@
 /**
  * @file Meteo.cpp
- * @brief Implementation of Meteo C++ module.
+ * @brief Implementation of the Meteo C++ module.
  *
  * @ingroup MeteoCppModule
  */
@@ -22,11 +22,12 @@ namespace meteocpp {
 using json = nlohmann::json;
 
 /**
- * @brief Build Open-Meteo API URL.
+ * @brief Builds an Open-Meteo API URL.
  *
- * @param[in] lats Comma-separated latitudes
- * @param[in] lons Comma-separated longitudes
- * @return Formatted URL string
+ * @param[in] lats Comma-separated latitudes.
+ * @param[in] lons Comma-separated longitudes.
+ *
+ * @return Formatted URL string.
  */
 static auto buildUrl(const std::string& lats, const std::string& lons) -> std::string
 {
@@ -34,13 +35,14 @@ static auto buildUrl(const std::string& lats, const std::string& lons) -> std::s
 }
 
 /**
- * @brief Fetch JSON data from API.
+ * @brief Fetches JSON data from the API.
  *
- * @param[in] lats Latitude string
- * @param[in] lons Longitude string
- * @return Optional JSON string
+ * @param[in] lats Latitude string.
+ * @param[in] lons Longitude string.
  *
- * @note Internal helper
+ * @return Optional JSON string.
+ *
+ * @note Internal helper.
  */
 std::optional<std::string> fetchJson(const std::string& lats, const std::string& lons)
 {
@@ -59,7 +61,7 @@ std::optional<std::string> fetchJson(const std::string& lats, const std::string&
 }
 
 /**
- * @brief Load configuration from file.
+ * @brief Loads Glennergy property configuration from file.
  */
 static bool loadGlennergy(MeteoData& data, std::string_view path)
 {
@@ -115,7 +117,7 @@ static bool loadGlennergy(MeteoData& data, std::string_view path)
 }
 
 /**
- * @brief Parse weather samples from JSON.
+ * @brief Parses weather samples from JSON.
  */
 static bool parseSamplesDirect(PropertyInfo& prop, const json& root)
 {
@@ -173,7 +175,9 @@ meteo::meteo()
 }
 
 /**
- * @brief Load configuration.
+ * @brief Loads configuration.
+ *
+ * See header for full contract documentation.
  */
 bool meteo::load(std::string_view configPath)
 {
@@ -181,7 +185,9 @@ bool meteo::load(std::string_view configPath)
 }
 
 /**
- * @brief Fetch all weather data.
+ * @brief Fetches all weather data.
+ *
+ * See header for full contract documentation.
  */
 bool meteo::fetchAll()
 {

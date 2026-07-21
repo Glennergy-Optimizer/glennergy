@@ -3,15 +3,8 @@
 /**
  * @file Server.c
  * @brief Implementation of the Server module.
+ *
  * @ingroup Server
- *
- * Handles initialization, running, and disposal of server, including:
- * - Starting TCP connections via ConnectionHandler
- * - Forking subprocesses for cache and algorithm modules
- * - Managing Crontab entries for scheduled tasks
- * - Signal handling
- *
- * @note Uses ServerConfig for configuration and ConnectionHandler for TCP connections.
  */
 
 #include "Server.h"
@@ -24,14 +17,9 @@
 #include <unistd.h>
 
 /**
- * @brief Initialize the Server structure with command-line arguments.
+ * @brief Implementation of Server_Initialize.
  *
- * @param _Server Pointer to pointer of Server to initialize
- * @param _Argv Command-line arguments array
- * @param _Argc Number of command-line arguments
- * @return 0 on success, negative value on error
- * @pre _Server must not be NULL
- * @post Server is allocated and configured based on argv or defaults
+ * See header for full contract documentation.
  */
 int Server_Initialize(Server **_Server, char **_Argv, int _Argc)
 {
@@ -50,7 +38,8 @@ int Server_Initialize(Server **_Server, char **_Argv, int _Argc)
 
 /**
  * @brief Add Crontab entry using a shell script.
- * @note Forks a child process to execute "./crontab_inst.sh add"
+ *
+ * @note Forks a child process to execute "./crontab_inst.sh add".
  * @post Waits for child to complete.
  */
 void Crontab_Add()
@@ -59,7 +48,8 @@ void Crontab_Add()
 
 /**
  * @brief Remove Crontab entry using a shell script.
- * @note Forks a child process to execute "./crontab_inst.sh remove"
+ *
+ * @note Forks a child process to execute "./crontab_inst.sh remove".
  * @post Waits for child to complete.
  */
 void Crontab_Remove()
@@ -67,13 +57,9 @@ void Crontab_Remove()
 }
 
 /**
- * @brief Run the server, starting ConnectionHandler and subprocesses.
+ * @brief Implementation of Server_Run.
  *
- * @param _Server Pointer to initialized Server
- * @return 0 on success, negative on error
- * @pre _Server must be initialized
- * @post Starts all child processes, TCP listening, and blocks until termination
- * @note Starts Threads, smw subsystem, ConnectionHandler, input cache, and algorithm subprocesses.
+ * See header for full contract documentation.
  */
 int Server_Run(Server *_Server)
 {
@@ -112,10 +98,9 @@ int Server_Run(Server *_Server)
 }
 
 /**
- * @brief Dispose a Server instance and free resources.
+ * @brief Implementation of Server_Dispose.
  *
- * @param _Server Pointer to pointer of Server to dispose
- * @post Closes memory and marks pointer as NULL
+ * See header for full contract documentation.
  */
 void Server_Dispose(Server **_Server)
 {

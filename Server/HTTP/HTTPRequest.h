@@ -2,8 +2,8 @@
  * @file HTTPRequest.h
  * @brief Public API for the HTTPRequest module.
  *
- * Provides structures and functions to perform non-blocking HTTP header reads,
- * parse headers, and manage HTTP request memory.
+ * Provides structures and functions to read, parse, and dispose HTTP request
+ * data.
  */
 
 #ifndef HTTP_REQUEST_H
@@ -20,12 +20,12 @@
 
 /**
  * @defgroup HTTPREQUEST HTTPRequest
- * @brief Handling of HTTP requests and headers.
+ * @brief HTTP request and header handling.
  * @{
  */
 
 /**
- * @brief Enum for the result of reading from a connection.
+ * @brief Result values returned by connection read helpers.
  */
 typedef enum{
   Connection_ReadResult_Success, /**< Read completed successfully. */
@@ -34,6 +34,9 @@ typedef enum{
 } Connection_ReadResult;
 
 
+/**
+ * @brief Request data extracted from a parsed target path.
+ */
 typedef struct{
   int id;
   char command[32];
@@ -94,6 +97,14 @@ int HTTPRequest_ReadHeaders(int socket, HTTPRequest *http_request, int* bytesRea
  */
 int HTTPRequest_ParseHeader(HTTPRequest* http_request);
 
+/**
+ * @brief Parses a request target into an identifier and command.
+ *
+ * @param path Request target string.
+ * @param data Output structure to populate.
+ *
+ * @return 0 on success, -1 on failure.
+ */
 int parse_request(const char *path, HTTPRequestData *data);
 
 /**

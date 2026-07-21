@@ -1,6 +1,23 @@
+/**
+ * @file HTTP.cpp
+ * @brief Implementation of the HTTP client helper.
+ *
+ * @ingroup Client-CPP
+ */
+
 #include "HTTP.hpp"
 #include <curl/curl.h>
 
+/**
+ * @brief Appends received response data to the output string.
+ *
+ * @param contents Pointer to the received buffer.
+ * @param size Size of one element in the buffer.
+ * @param nmemb Number of elements in the buffer.
+ * @param userp Pointer to the destination std::string.
+ *
+ * @return Number of bytes consumed from the callback input.
+ */
 size_t HTTPClient::HTTPClient_WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
     std::string* data = static_cast<std::string*>(userp);
@@ -9,6 +26,11 @@ size_t HTTPClient::HTTPClient_WriteCallback(void *contents, size_t size, size_t 
     return size * nmemb;
 }
 
+/**
+ * @brief Implementation of HTTPClient::HTTPClient_GET.
+ *
+ * See header for full contract documentation.
+ */
 std::string HTTPClient::HTTPClient_GET(const std::string& request)
 {
     CURL *curl;

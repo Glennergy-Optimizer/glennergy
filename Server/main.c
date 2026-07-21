@@ -1,10 +1,11 @@
 /**
  * @file main.c
  * @brief Entry point for the server application.
+ *
  * @ingroup Server
  *
- * Initializes logging, starts the server, runs the main loop, 
- * and disposes of server resources upon termination.
+ * Initializes logging, starts the server, runs the main loop, and disposes of
+ * server resources on exit.
  */
 
 #include <stdio.h>
@@ -14,6 +15,16 @@
 #include <sys/wait.h>
 #include "Server.h"
 
+/**
+ * @brief Starts the server application.
+ *
+ * Initializes logging, creates the server instance, runs the main loop, and
+ * cleans up resources before exiting.
+ *
+ * @return
+ * - EXIT_SUCCESS on successful shutdown
+ * - EXIT_FAILURE on initialization failure or server error
+ */
 int main(int argc, char* argv[]) {
     log_Init(NULL);
 

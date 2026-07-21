@@ -1,6 +1,6 @@
 /**
  * @file HTTPRequest.c
- * @brief Implementation of HTTPRequest module.
+ * @brief Implementation of the HTTPRequest module.
  *
  * @ingroup HTTPREQUEST
  */
@@ -15,13 +15,9 @@
 #include <limits.h>
 
 /**
- * @brief Initializes an HTTPRequest structure.
+ * @brief Implementation of HTTPRequest_Initialize.
  *
- * @param http_request Pointer to structure to initialize.
- * @return 0 on success, -1 if http_request is NULL.
- *
- * @pre http_request must not be NULL.
- * @post All fields are zeroed or set to NULL.
+ * See header for full contract documentation.
  */
 int HTTPRequest_Initialize(HTTPRequest *http_request)
 {
@@ -53,16 +49,9 @@ int HTTPConnection_Read(int socket, uint8_t *buffer, size_t length)
 }
 
 /**
- * @brief Reads HTTP headers into the request buffer.
+ * @brief Implementation of HTTPRequest_ReadHeaders.
  *
- * @param socket Socket descriptor.
- * @param http_request Pointer to HTTPRequest struct.
- * @param bytesReadOut Output parameter for number of bytes read.
- * @return Connection_ReadResult indicating success, pending, or error.
- *
- * @pre http_request must be initialized.
- * @post recv_buffer is updated with new data.
- * @warning Non-blocking; may return pending if no data available.
+ * See header for full contract documentation.
  */
 int HTTPRequest_ReadHeaders(int socket, HTTPRequest *http_request, int *bytesReadOut)
 {
@@ -93,14 +82,9 @@ int HTTPRequest_ReadHeaders(int socket, HTTPRequest *http_request, int *bytesRea
 }
 
 /**
- * @brief Parses HTTP headers from the buffer and extracts the URL.
+ * @brief Implementation of HTTPRequest_ParseHeader.
  *
- * @param http_request Pointer to HTTPRequest struct.
- * @return 0 on success, -1 on failure, 1 if headers incomplete.
- *
- * @pre recv_buffer must contain header data.
- * @post http_request->url is allocated on success.
- * @warning Caller must free url using HTTPRequest_Dispose.
+ * See header for full contract documentation.
  */
 int HTTPRequest_ParseHeader(HTTPRequest *http_request)
 {
@@ -167,6 +151,11 @@ int HTTPRequest_ParseHeader(HTTPRequest *http_request)
     return 0;
 }
 
+/**
+ * @brief Implementation of parse_request.
+ *
+ * See header for full contract documentation.
+ */
 int parse_request(const char* path, HTTPRequestData *data) {
     if (path == NULL || data == NULL)
     {

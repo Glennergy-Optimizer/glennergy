@@ -1,14 +1,12 @@
 /**
  * @file main.c
- * @brief Entry point for InputCache service.
+ * @brief Entry point for the InputCache service.
  *
- * @details
- * Event-driven service that:
- * - Listens to Meteo and Spotpris FIFOs
- * - Accepts client connections via UNIX socket
- * - Dispatches requests and updates cache state
+ * @ingroup MAIN
  *
- * Uses select() for multiplexing IPC channels.
+ * Runs the cache process, which listens for Meteo and Spotpris updates,
+ * accepts client requests over a UNIX socket, and multiplexes all inputs with
+ * select().
  *
  * @note This is the main executable for the InputCache module.
  * @warning Blocking I/O may occur in select() and accept().
@@ -36,23 +34,13 @@
 /**
  * @brief Program entry point for InputCache.
  *
- * Execution flow:
- * - Initializes logging
- * - Sets up signal handling
- * - Allocates and initializes cache
- * - Opens FIFOs for Meteo and Spotpris data
- * - Creates a UNIX socket for client requests
- * - Enters an event loop multiplexing IPC and client sockets
- * - Handles incoming data and client requests
- * - Cleans up resources on termination
+ * Initializes logging and signal handling, sets up the cache, opens the IPC
+ * inputs, creates the client socket, and runs the event loop until shutdown.
  *
  * @return
  * - 0 on normal exit
  * - Negative value on failure
  *
- * @pre Configuration file path must be valid.
- * @pre FIFOs must exist for reading.
- * @post All resources (memory, FIFOs, sockets) are released.
  * @warning Event loop may block on select().
  */
 int main()
