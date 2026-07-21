@@ -209,7 +209,7 @@ jobs:
 
       - name: Create draft pull request with documentation updates
         if: always()
-        uses: peter-evans/create-pull-request@18a8d7fa2df0281b0a4555b6e1268765a91751ce # v7.0.8
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "[skip-doxygen] docs: update doxygen comments"
