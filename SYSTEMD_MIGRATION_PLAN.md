@@ -174,9 +174,9 @@ TimeoutStartSec=45s
 
 A named systemd oneshot service is not launched again while its current activation remains active. This replaces the main overlap-prevention role currently served by `flock`. The timeout bounds a job that hangs on external I/O or IPC.
 
-### Initial reliability scope
+### Current reliability scope
 
-The first migration will use the minimal approach:
+The current deployment uses the minimal approach:
 
 - Explicit systemd dependencies and ordering.
 - A 45-second outer service timeout.
@@ -187,7 +187,7 @@ The following improvement is an explicit follow-up TODO:
 
 > After the minimal systemd migration is stable, consider replacing blocking IPC operations with bounded non-blocking connection/write retries and adding application-level curl connect/total timeouts. Preserve the 45-second systemd timeout as the final outer safety net.
 
-The reliable version would provide more precise errors and faster failure when InputCache is unavailable, but it is not required for the initial cutover.
+The reliable version would provide more precise errors and faster failure when InputCache is unavailable. It should also restore endpoint data promptly after an InputCache or Algorithm restart instead of waiting for the next scheduled Meteo and Spotpris fetches.
 
 ### Runtime IPC
 
@@ -322,8 +322,6 @@ The new deployment will not maintain permanent compatibility with:
 - tmux supervision.
 - Starting the complete stack through `Glennergy-Main 8080`.
 
-The legacy installation will be cleaned up manually once, using the production cutover checklist below. The operator will preserve the existing configuration and record enough old state to permit a controlled rollback. This is cutover safety, not an ongoing compatibility layer or repository script.
-
 ### Network exposure
 
 Glennergy will listen only on:
@@ -456,42 +454,6 @@ Meteo and Spotpris should use `Type=oneshot` with:
 - Add health checks after deployment.
 - Document operator commands and troubleshooting.
 
-### Phase 7: production cutover
-
-This phase is a one-time manual operator procedure. It will not be implemented as a permanent cutover script in the repository.
-
-The detailed operator procedure is recorded in `Docs/VPS_CUTOVER_CHECKLIST.md`.
-
-- Capture current process, cron, configuration, Nginx, and installed-file state.
-- Build and validate the selected release.
-- Stop the tmux-managed stack.
-- Remove every Glennergy cron entry, including older untagged entries.
-- Verify no old Glennergy process remains.
-- Remove stale Glennergy IPC objects under `/tmp`.
-- Back up `/etc/Glennergy-Fastigheter.json`, then install it as `/etc/glennergy/fastigheter.json` without overwriting an existing new-layout configuration.
-- Install and enable the systemd deployment.
-- Verify unit status, timers, journald, IPC, HTTP through Nginx, and reboot behavior.
-
-## Cutover and rollback expectations
-
-Permanent legacy compatibility is not required, but cutover must be reversible during initial validation.
-
-Before cutover:
-
-- Back up the production JSON configuration.
-- Record the currently installed executable versions/checksums if practical.
-- Record current cron and Nginx state.
-- Keep the prior build or release available temporarily.
-
-A rollback should explicitly:
-
-1. Stop/disable the new target and timers.
-2. Restore the prior binaries/configuration as necessary.
-3. Restore the prior scheduler/runtime method only if an emergency rollback truly requires it.
-4. Verify process and HTTP health.
-
-Checking out an older Git commit alone is not considered a complete deployment rollback because it does not restore installed artifacts, host configuration, permissions, services, or runtime state.
-
 ## Operational end state
 
 Expected routine commands include:
@@ -526,7 +488,11 @@ The following items are valuable but deliberately deferred:
 
 - Bounded non-blocking IPC open/connect/write retries.
 - Curl connect and total-operation timeouts with precise error reporting.
+- Persist the latest valid Meteo and Spotpris payloads, or trigger bounded refreshes after InputCache restarts, so endpoint data recovers without waiting for the next normal timer activation.
+- Define and test recovery behavior for Algorithm restarts and POSIX shared-memory recreation.
+- Add bounded retry scheduling after transient Meteo or Spotpris failures while retaining the 45-second outer timeout.
 - Explicit service readiness using `Type=notify` or another readiness mechanism.
+- Add a read-only operational summary command showing unit state, restart counts, last exit reasons, timer history, recent warnings, port binding, and HTTP health.
 - Replacing FIFOs with a Unix socket protocol or socket activation.
 - Native structured journald calls through `sd_journal_send()`.
 - Versioned release directories and atomic symlink-based rollback.

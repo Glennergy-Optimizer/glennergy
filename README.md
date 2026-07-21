@@ -34,33 +34,6 @@ sudo ./glennergy_install.sh
 
 The deployment first verifies that every required binary, unit, and configuration source exists, that the binaries can resolve their shared-library dependencies, and that the selected production configuration contains valid JSON. These checks happen before it stops an installed release. It then creates the non-login `glennergy` service account, installs the artifacts, validates the units, starts the stack, and performs health checks. It preserves the existing production configuration and retains a deployment backup under `/var/backups/glennergy`.
 
-## One-time migration from tmux and cron
-
-The legacy cleanup is deliberately a manual operator procedure and is not part of the reusable installation script.
-
-Use the detailed [`Docs/VPS_CUTOVER_CHECKLIST.md`](Docs/VPS_CUTOVER_CHECKLIST.md) during the production migration. The summary below is not a substitute for its stop/go gates and rollback preparation.
-
-Before changing the running VPS:
-
-1. Back up `/etc/Glennergy-Fastigheter.json`, the current crontabs, and the Nginx configuration.
-2. Record the running Glennergy processes and keep the previous release available.
-3. Build and validate the new release before stopping production.
-4. Stop the tmux-managed Glennergy processes gracefully.
-5. Remove the old Glennergy Meteo and Spotpris cron entries from both the deployment user's and root's crontabs.
-6. Run the legacy uninstaller and verify that no old Glennergy process remains.
-7. Remove only confirmed stale Glennergy IPC objects left under `/tmp` or `/dev/shm`.
-8. Copy the backed-up production JSON to `/etc/glennergy/fastigheter.json` before running the new installer.
-
-The new configuration can be prepared without depending on the service account:
-
-```bash
-sudo install -d -m 0750 /etc/glennergy
-sudo install -m 0600 /path/to/fastigheter.backup.json /etc/glennergy/fastigheter.json
-sudo ./glennergy_install.sh
-```
-
-The deployment script assigns the final `root:glennergy` ownership and `0640` permissions.
-
 ## Updating production
 
 Create and validate a complete build first, then deploy it:
@@ -172,4 +145,4 @@ Open the generated `html/index.html` file. The project documentation standard is
 /var/backups/glennergy/             Deployment backups
 ```
 
-See `SYSTEMD_MIGRATION_PLAN.md` for the architecture decisions, migration rationale, deferred reliability improvements, and acceptance criteria.
+See `SYSTEMD_MIGRATION_PLAN.md` for the architecture decisions, deferred reliability improvements, and acceptance criteria.
