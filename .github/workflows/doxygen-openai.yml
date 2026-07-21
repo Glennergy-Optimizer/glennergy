@@ -211,9 +211,11 @@ jobs:
         if: always() && steps.update_docs.outcome != 'skipped'
         shell: bash
         run: |
-          if [ -n "$(git status --porcelain -- '*.c' '*.h' '*.cpp' '*.hpp' '*.cc' '*.hh')" ]; then
+          git add -A -- '*.c' '*.h' '*.cpp' '*.hpp' '*.cc' '*.hh'
+
+          if ! git diff --cached --quiet; then
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
-            echo "Eligible C/C++ documentation changes are present"
+            echo "Eligible C/C++ documentation changes were staged"
           else
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
             echo "No eligible C/C++ documentation changes are present"
