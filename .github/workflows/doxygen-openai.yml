@@ -108,8 +108,21 @@ jobs:
           import json
           import os
           import pathlib
+          import urllib.parse
           import urllib.request
           import zipfile
+
+          class StripAuthOnCrossHostRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, request, file_pointer, code, message, headers, new_url):
+                  redirected = super().redirect_request(
+                      request, file_pointer, code, message, headers, new_url
+                  )
+                  if redirected is not None:
+                      old_host = urllib.parse.urlsplit(request.full_url).netloc.lower()
+                      new_host = urllib.parse.urlsplit(new_url).netloc.lower()
+                      if old_host != new_host:
+                          redirected.remove_header("Authorization")
+                  return redirected
 
           token = os.environ["GH_TOKEN"]
           repository = os.environ["REPOSITORY"]
@@ -149,7 +162,8 @@ jobs:
           zip_path = manifest_path.parent / "manifest_artifact.zip"
           manifest_path.parent.mkdir(parents=True, exist_ok=True)
 
-          with urllib.request.urlopen(download_request, timeout=60) as response:
+          download_opener = urllib.request.build_opener(StripAuthOnCrossHostRedirect())
+          with download_opener.open(download_request, timeout=60) as response:
               zip_path.write_bytes(response.read())
 
           destination = manifest_path.parent.resolve()
@@ -166,8 +180,8 @@ jobs:
           print(f"Downloaded manifest artifact to {manifest_path}")
           PY
 
-      - name: Restore successful files from existing PR branch
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.rerun_mode == 'remaining_only'
+      - name: Restore existing campaign changes from PR branch
+        if: github.event_name == 'workflow_dispatch'
         run: |
           if git ls-remote --exit-code --heads origin "${PR_BRANCH}" >/dev/null 2>&1; then
             git fetch origin "${PR_BRANCH}"
@@ -184,11 +198,31 @@ jobs:
           fi
 
       - name: Update Doxygen comments for changed files
+        id: update_docs
         run: |
           if [ "${RERUN_MODE}" = "remaining_only" ]; then
             python tools/doxygen_ai/update_docs.py --remaining-only --manifest "${MANIFEST_PATH}" --model "${OPENAI_MODEL}" --test-label "${TEST_LABEL}"
           else
             python tools/doxygen_ai/update_docs.py --files "${MANUAL_FILE_PATHS}" --manifest "${MANIFEST_PATH}" --model "${OPENAI_MODEL}" --test-label "${TEST_LABEL}"
+          fi
+
+      - name: Detect eligible documentation changes
+        id: documentation_changes
+        if: always() && steps.update_docs.outcome != 'skipped'
+        shell: bash
+        run: |
+          for pattern in '*.c' '*.h' '*.cpp' '*.hpp' '*.cc' '*.hh'; do
+            if [ -n "$(git ls-files --cached --others --exclude-standard -- "${pattern}")" ]; then
+              git add -A -- "${pattern}"
+            fi
+          done
+
+          if ! git diff --cached --quiet; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "Eligible C/C++ documentation changes were staged"
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "No eligible C/C++ documentation changes are present"
           fi
 
       - name: Upload rejected outputs
@@ -208,13 +242,20 @@ jobs:
           if-no-files-found: ignore
 
       - name: Create draft pull request with documentation updates
-        if: always()
+        if: always() && steps.documentation_changes.outputs.has_changes == 'true'
         uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "[skip-doxygen] docs: update doxygen comments"
           branch: ${{ env.PR_BRANCH }}
-          delete-branch: true
+          delete-branch: false
+          add-paths: |
+            **/*.c
+            **/*.h
+            **/*.cpp
+            **/*.hpp
+            **/*.cc
+            **/*.hh
           title: ${{ env.PR_TITLE }}
           body: |
             This draft PR contains automated Doxygen documentation updates generated for changed files.
