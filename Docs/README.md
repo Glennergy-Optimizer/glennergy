@@ -66,7 +66,7 @@ substitute.
 | [Development](development.md) | Server developers; prerequisites, builds and safe static checks | A successful build is not deployment or runtime proof; there is no unified root test target |
 | [Operations](operations.md) | Operators; install/update, services, timers, logs, verification, backup, rollback, uninstall and purge | Read-only/routine actions versus production-sensitive or destructive actions |
 | [Security](security.md) | Developers and operators; loopback boundary, service permissions, systemd hardening and secret handling | Repository-proven behavior versus unverified reverse-proxy/TLS/firewall state; current unauthenticated reads versus requirements for future writes |
-| `Docs/troubleshooting.md` | Developers and operators; services, timers, IPC, freshness, API and deployment diagnosis | Read-only diagnosis first; destructive recovery is never a default step |
+| [Troubleshooting](troubleshooting.md) | Developers and operators; services, timers, IPC, freshness, API and deployment diagnosis | Read-only diagnosis first; destructive recovery is never a default step |
 
 ## API reference and Doxygen tooling
 
