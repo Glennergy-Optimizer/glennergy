@@ -10,6 +10,20 @@ This document separates controls implemented in Glennergy source and service
 files from host controls that this repository cannot verify. It is not a
 penetration test or a claim that a deployed system is secure.
 
+## Security at a glance
+
+| Boundary | Current state |
+| --- | --- |
+| Application listener | IPv4 loopback only |
+| Public edge | Expected reverse proxy, but its TLS/firewall/DNS configuration is outside this repository |
+| Read API | Unauthenticated and not property-authorized |
+| Registration/write API | Not implemented; future trust model unresolved |
+| Service isolation | Dedicated account, restricted permissions and systemd hardening |
+| Secrets | Must not appear in source, examples, logs or documentation |
+
+Read the detailed sections when changing exposure, permissions, registration,
+logging or production operations.
+
 ## Data and secret handling
 
 Never retrieve, print, commit, paste into documentation or include in diagrams:

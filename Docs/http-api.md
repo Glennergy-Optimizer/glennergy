@@ -1,13 +1,7 @@
 # Glennergy HTTP API reference
 
-| Metadata | Value |
-| --- | --- |
-| Status | Current implementation reference, with planned changes explicitly separated |
-| Audience | API consumers and Glennergy server developers and maintainers |
-| Canonical owner | Glennergy for server routes, methods, statuses, headers and response schemas |
-| Applies to | Authoritative `dev`; stable-production differences are noted below |
-| Last verified | 2026-07-26 |
-| Glennergy `dev` | `42798bee227fcd621cbcb0b37c2b5da771210086` |
+> **Quick answer:** Glennergy currently provides three unauthenticated read
+> endpoints—recommendation, weather and price—using a temporary route shape.
 
 This is the complete server-side reference for the HTTP API implemented by
 Glennergy. It describes the server's routes, methods, statuses, headers,
@@ -27,6 +21,16 @@ current API design is final.
 Clients perform read-only HTTP `GET` requests. Glennergy reads the requested
 property's latest algorithm snapshot from shared memory and returns one JSON
 array for recommendation, weather or price.
+
+| Need | Current request |
+| --- | --- |
+| Recommendation | `GET ${LEOP_BASE_URL}/id=2?recommendation` |
+| Weather | `GET ${LEOP_BASE_URL}/id=2?weather` |
+| Electricity price | `GET ${LEOP_BASE_URL}/id=2?price` |
+
+For a first read, continue through **Response status and error behavior**. The
+schema and limitation sections are the detailed reference for implementation
+and debugging.
 
 Use a deployment-specific placeholder for the server address:
 
@@ -61,14 +65,6 @@ The server accepts a request target only in this exact form:
 `<command>` must be exactly `recommendation`, `weather` or `price`, with no
 additional query parameters or trailing characters. The parsed ID must fit in a
 C `int`. The API is case-sensitive.
-
-Using example property ID `2`, the current requests are:
-
-| Data | Method and current request |
-| --- | --- |
-| Recommendation | `GET ${LEOP_BASE_URL}/id=2?recommendation` |
-| Weather | `GET ${LEOP_BASE_URL}/id=2?weather` |
-| Electricity price | `GET ${LEOP_BASE_URL}/id=2?price` |
 
 The server header parser recognizes `GET` and `OPTIONS`, but there is no general
 OPTIONS handler: `/` and `/favicon.ico` return `204`, while other OPTIONS
@@ -259,6 +255,10 @@ For each such change:
    including their SHAs, compatibility tables and planned/current labels.
 
 ## Verification evidence
+
+This edition describes Glennergy `dev` source snapshot
+`42798bee227fcd621cbcb0b37c2b5da771210086` and was last reviewed on
+2026-07-26. Stable-production differences are described above.
 
 Primary producer evidence in Glennergy:
 

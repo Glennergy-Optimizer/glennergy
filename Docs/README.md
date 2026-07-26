@@ -21,6 +21,19 @@ differ substantially. A page must explicitly say when its instructions also
 apply to stable production; do not infer production behavior from an unmarked
 `dev` guide.
 
+## Choose your path
+
+| You are looking forâ€¦ | Start with | Then continue to |
+| --- | --- | --- |
+| A quick project introduction | [Project README](../README.md) | [Server architecture](architecture.md) |
+| HTTP routes and response formats | [HTTP API reference](http-api.md) | [Property configuration](property-configuration.md) and [security](security.md) |
+| A local development workflow | [Development guide](development.md) | [Architecture](architecture.md) and [property configuration](property-configuration.md) |
+| Deployment or incident guidance | [Operations](operations.md) | [Troubleshooting](troubleshooting.md) and [security](security.md) |
+| Source-level API documentation | [Doxygen workflow guide](Doxygen_Workflow_Guide.md) | Generated reference output described there |
+
+You do not need to read every guide in order. Start with the row matching your
+task, then use the detailed sections only when you need implementation depth.
+
 ## Start here
 
 | If you want to… | Read | Classification |

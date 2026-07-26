@@ -16,6 +16,20 @@ For server-visible identity and request behavior, see the
 see the synchronized
 [Glennergy-ESP interface contract](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/interface-contract.md).
 
+## At a glance
+
+| Question | Current answer |
+| --- | --- |
+| Where is production configuration? | `/etc/glennergy/fastigheter.json` |
+| Is registration implemented? | No; the file is read locally and not written through HTTP |
+| What is the current ID type? | Unauthenticated JSON integer |
+| How many properties are supported? | Five as a temporary end-to-end test limit |
+| Is the checked-in seed fully valid? | No; later entries conflict with the implemented schema |
+
+Most operators need **Files and deployment behavior** and **Current JSON
+shape**. Parser differences and seed contradictions are detailed maintenance
+reference.
+
 ## Files and deployment behavior
 
 | Purpose | Path | Behavior |
