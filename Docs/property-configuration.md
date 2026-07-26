@@ -11,8 +11,10 @@ not currently register ESP32-S3 units, accept property writes over HTTP, or
 authenticate a device identity. The five-property capacity is a temporary test
 limit rather than a final product limit.
 
-For the wider device/server boundary, see the canonical cross-project
-[interface contract in Glennergy-ESP](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/interface-contract.md).
+For server-visible identity and request behavior, see the
+[HTTP API reference](http-api.md). For firmware consumption and compatibility,
+see the synchronized
+[Glennergy-ESP interface contract](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/interface-contract.md).
 
 ## Files and deployment behavior
 
@@ -178,8 +180,8 @@ Before changing the schema, property limit, or identity model:
 2. Review the fixed-size types and raw IPC layouts shared by Meteo, InputCache,
    Algorithm, and the HTTP server.
 3. Define validation and error behavior for every field.
-4. Update the canonical cross-project interface contract and current
-   limitations in Glennergy-ESP.
+4. Update the Glennergy HTTP API reference, the Glennergy-ESP consumer
+   interface contract, and current limitations.
 5. Preserve an existing installed configuration during deployment and provide
    an explicit migration when its format changes.
 6. Keep real production addresses and all credentials out of examples and

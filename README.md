@@ -26,9 +26,10 @@ before building a client around unfinished behavior.
   implemented. Current properties come from a server-side JSON file.
 
 The shared [system context](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/system-context.md)
-and [interface contract](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/interface-contract.md)
-are maintained in Glennergy-ESP so both repositories use one description of
-their boundary. These links are repository documentation, not live endpoints.
+is maintained in Glennergy-ESP. Glennergy owns the complete
+[server HTTP API reference](Docs/http-api.md), while Glennergy-ESP maintains a
+synchronized [consumer-facing interface contract](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/interface-contract.md).
+These links are repository documentation, not live endpoints.
 
 ## Runtime components
 
@@ -55,7 +56,7 @@ Doxygen is optional.
 Build as a normal user:
 
 ```bash
-git clone https://github.com/keseboleliasteliacom/glennergy.git
+git clone https://github.com/Glennergy-Optimizer/glennergy.git
 cd glennergy
 make
 make check-install-inputs
@@ -114,8 +115,10 @@ Weather and price commands also exist. Reads are currently unauthenticated,
 and the server does not implement property registration or configuration
 writes. Do not infer a settled business meaning from the numeric
 `recommendation[].type` field. The exact implemented schemas, error behavior
-and planned canonical route belong to the shared
-[interface contract](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/interface-contract.md).
+and planned canonical route are documented in the local
+[HTTP API reference](Docs/http-api.md). The
+[ESP interface contract](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/interface-contract.md)
+adds firmware parser, cache, retry and compatibility details.
 
 No real hostname, VPS address, credential or private key is published here.
 
@@ -125,6 +128,7 @@ No real hostname, VPS address, credential or private key is published here.
 |---|---|
 | Find the right document | [Documentation index](Docs/README.md) |
 | Understand processes and data flow | [Server architecture](Docs/architecture.md) |
+| Use or implement the HTTP API | [HTTP API reference](Docs/http-api.md) |
 | Build and validate locally | [Development](Docs/development.md) |
 | Configure current properties | [Property configuration](Docs/property-configuration.md) |
 | Deploy, verify or operate a host | [Operations](Docs/operations.md) |

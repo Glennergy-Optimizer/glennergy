@@ -170,7 +170,8 @@ slots, emit large zero-filled output, and exceed the fixed response buffer.
 Do not use ID `0` as a not-found test.
 
 Check the canonical
-[Glennergy–ESP interface contract](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/interface-contract.md)
+[Glennergy HTTP API reference](http-api.md) and the synchronized
+[Glennergy-ESP interface contract](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/interface-contract.md)
 before changing a client or server. The desired command-first route is planned,
 not current behavior.
 

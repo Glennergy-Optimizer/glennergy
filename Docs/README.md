@@ -9,9 +9,11 @@
 > **Last reviewed:** 2026-07-26
 
 This is the canonical index for server-specific Glennergy documentation.
-Glennergy-ESP owns the shared system context, terminology, interface contract
-and cross-project limitations. Glennergy owns the server implementation,
-configuration, development, operations, security and troubleshooting guides.
+Glennergy-ESP owns the shared system context, terminology and cross-project
+limitations. Glennergy owns the complete server HTTP API reference as well as
+the server implementation, configuration, development, operations, security
+and troubleshooting guides. Glennergy-ESP maintains a synchronized
+consumer-facing HTTP contract for firmware-relevant behavior.
 
 The documentation campaign describes `dev`, the authoritative implementation
 branch. `main` represents stable production, but the two branches currently
@@ -26,7 +28,8 @@ apply to stable production; do not infer production behavior from an unmarked
 | Understand what the server does and get started | [Project README](../README.md) | Current approachable entry point |
 | Understand server processes, ownership, IPC and refresh timing | [Server architecture](architecture.md) | Current canonical server architecture for `dev` |
 | Understand how Glennergy and Glennergy-ESP fit together | [System context](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/system-context.md) | Canonical cross-project overview, owned by Glennergy-ESP |
-| Implement or debug the current HTTP exchange | [Interface contract](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/interface-contract.md) | Canonical cross-project contract, owned by Glennergy-ESP |
+| Implement or debug the server HTTP API | [HTTP API reference](http-api.md) | Complete server-side API authority |
+| Implement or debug ESP consumption of the API | [ESP interface contract](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/interface-contract.md) | Synchronized consumer-facing contract |
 | Check incomplete, temporary or planned behavior | [Current limitations](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/current-limitations.md) | Canonical cross-project status, owned by Glennergy-ESP |
 
 The public GitHub links above are repository-document links, not deployment
@@ -51,7 +54,7 @@ The [root README](../README.md) remains the approachable entry point for new
 developers and operators. Its role is to explain purpose, prerequisites, safe
 build and deliberate deployment, routine operation, troubleshooting entry
 points and links into detailed documentation. It should summarize rather than
-duplicate the interface contract or server architecture.
+duplicate the detailed HTTP API reference or server architecture.
 
 ## Server guides
 
@@ -61,18 +64,19 @@ them.
 
 | Guide | Audience and scope | Required distinction |
 |---|---|---|
+| [HTTP API reference](http-api.md) | API consumers and both project teams; routes, methods, statuses, headers, schemas, edge cases and compatibility | Current server behavior versus planned endpoint, identity and registration work |
 | [Property configuration](property-configuration.md) | Maintainers configuring properties; schema, paths, parser behavior and examples | Current integer property IDs and temporary capacity versus planned UUID-like device identity and registration |
 | [Development](development.md) | Server developers; prerequisites, builds and safe static checks | A successful build is not deployment or runtime proof; there is no unified root test target |
 | [Operations](operations.md) | Operators; install/update, services, timers, logs, verification, backup, rollback, uninstall and purge | Read-only/routine actions versus production-sensitive or destructive actions |
 | [Security](security.md) | Developers and operators; loopback boundary, service permissions, systemd hardening and secret handling | Repository-proven behavior versus unverified reverse-proxy/TLS/firewall state; current unauthenticated reads versus requirements for future writes |
 | [Troubleshooting](troubleshooting.md) | Developers and operators; services, timers, IPC, freshness, API and deployment diagnosis | Read-only diagnosis first; destructive recovery is never a default step |
 
-## API reference and Doxygen tooling
+## Source API reference and Doxygen tooling
 
 Function-, type- and module-level reference is generated from source comments
-with [Doxygen configuration](../Doxyfile). Generated pages describe code APIs;
-they do not replace the system architecture, interface contract or operational
-guides.
+with [Doxygen configuration](../Doxyfile). Generated pages describe C/C++ code
+APIs; they do not replace the HTTP API reference, system architecture,
+consumer contract or operational guides.
 
 | Document or output | Classification | Use |
 |---|---|---|
@@ -107,10 +111,11 @@ here. Cleanup requires a separate, evidence-backed change.
 |---|---|
 | Add, remove or reorder a server process | This index, server architecture and root README |
 | Change an internal struct, IPC path or semaphore | Server architecture, Doxygen reference and deployment compatibility notes |
-| Change a route, response schema, status or ESP parser | Glennergy-ESP interface contract and affected server/firmware docs |
-| Change property schema or current identity rules | Property-configuration guide, interface contract when externally visible, and limitations |
+| Change a route, method, response schema, status, header or error behavior | Glennergy HTTP API reference, Glennergy-ESP interface contract and affected implementation guides |
+| Change ESP parsing, cache, retry or health behavior | Glennergy-ESP interface contract and connectivity docs; Glennergy HTTP API reference when compatibility guidance changes |
+| Change property schema or current identity rules | Property-configuration guide, both HTTP contract documents when externally visible, and limitations |
 | Change a service, timer, install path or operational script | Operations guide, server architecture when topology changes, and root README |
-| Change authentication, network exposure or secret handling | Security guide, interface contract and limitations |
+| Change authentication, network exposure or secret handling | Security guide, both HTTP contract documents and limitations |
 | Resolve a known temporary or planned behavior | Glennergy-ESP limitations plus every affected repository-specific guide |
 
 Documentation claims should identify whether they are implemented, partial,

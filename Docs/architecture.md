@@ -13,7 +13,8 @@ server-internal companion to the canonical cross-project documents maintained
 by Glennergy-ESP:
 
 - [Glennergy system context](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/system-context.md)
-- [Glennergy–ESP interface contract](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/interface-contract.md)
+- [Glennergy HTTP API reference](http-api.md)
+- [Glennergy-ESP consumer interface contract](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/interface-contract.md)
 - [Current limitations and planned work](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/current-limitations.md)
 
 These are intended cross-repository GitHub links. They resolve after the
@@ -127,9 +128,10 @@ The repository does not contain the external reverse-proxy configuration. It
 therefore proves neither the public hostname nor TLS, firewall, DNS or proxy
 behavior. Production endpoint addresses are intentionally omitted.
 
-The request/response syntax belongs in the canonical
-[interface contract](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/interface-contract.md),
-not in this process document.
+The request/response syntax belongs in the canonical server
+[HTTP API reference](http-api.md), not in this process document. Firmware-side
+parsing and cache consequences remain in the synchronized
+[Glennergy-ESP interface contract](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/interface-contract.md).
 
 ## IPC contracts and ABI sensitivity
 
