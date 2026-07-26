@@ -53,7 +53,7 @@ build and deliberate deployment, routine operation, troubleshooting entry
 points and links into detailed documentation. It should summarize rather than
 duplicate the interface contract or server architecture.
 
-## Planned canonical server guides
+## Server guides
 
 The following artifacts are approved but not yet present. Until they are
 written and reviewed, source code, systemd units and scripts remain the
@@ -62,10 +62,10 @@ substitute.
 
 | Planned path | Audience and scope | Required distinction |
 |---|---|---|
-| `Docs/property-configuration.md` | Maintainers configuring properties; schema, paths, parser behavior and examples | Current integer property IDs and temporary capacity versus planned UUID-like device identity and registration |
-| `Docs/development.md` | Server developers; prerequisites, builds and safe static checks | A successful build is not deployment or runtime proof; there is no unified root test target |
-| `Docs/operations.md` | Operators; install/update, services, timers, logs, verification, backup, rollback, uninstall and purge | Read-only/routine actions versus production-sensitive or destructive actions |
-| `Docs/security.md` | Developers and operators; loopback boundary, service permissions, systemd hardening and secret handling | Repository-proven behavior versus unverified reverse-proxy/TLS/firewall state; current unauthenticated reads versus requirements for future writes |
+| [Property configuration](property-configuration.md) | Maintainers configuring properties; schema, paths, parser behavior and examples | Current integer property IDs and temporary capacity versus planned UUID-like device identity and registration |
+| [Development](development.md) | Server developers; prerequisites, builds and safe static checks | A successful build is not deployment or runtime proof; there is no unified root test target |
+| [Operations](operations.md) | Operators; install/update, services, timers, logs, verification, backup, rollback, uninstall and purge | Read-only/routine actions versus production-sensitive or destructive actions |
+| [Security](security.md) | Developers and operators; loopback boundary, service permissions, systemd hardening and secret handling | Repository-proven behavior versus unverified reverse-proxy/TLS/firewall state; current unauthenticated reads versus requirements for future writes |
 | `Docs/troubleshooting.md` | Developers and operators; services, timers, IPC, freshness, API and deployment diagnosis | Read-only diagnosis first; destructive recovery is never a default step |
 
 ## API reference and Doxygen tooling
