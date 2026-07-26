@@ -5,6 +5,7 @@
 > **Authoritative snapshot:** `dev` at `42798bee227fcd621cbcb0b37c2b5da771210086`
 >
 > **Stable-production comparison:** `origin/main` at `61761b5eda30bee417a0b6e33e10fb061e18db26`
+>
 > **Last evidence review:** 2026-07-26
 
 This document describes the Linux server stack implemented on `dev`. It is a
@@ -36,26 +37,26 @@ Algorithm snapshot to clients.
 
 ```mermaid
 flowchart LR
-    OM[Open-Meteo API] -->|HTTPS forecast fetch| M[Glennergy-Meteo\noneshot]
-    EP[elprisetjustnu.se API] -->|HTTPS price fetch| P[Glennergy-Spotpris\noneshot]
+    OM["Open-Meteo API"] -->|HTTPS forecast fetch| M["Glennergy-Meteo<br/>oneshot"]
+    EP["elprisetjustnu.se API"] -->|HTTPS price fetch| P["Glennergy-Spotpris<br/>oneshot"]
 
-    M -->|raw MeteoData struct\n/run/glennergy/meteo.fifo| C[Glennergy-InputCache\nlong-running]
-    P -->|raw AllaSpotpriser struct\n/run/glennergy/spotpris.fifo| C
+    M -->|raw MeteoData struct<br/>/run/glennergy/meteo.fifo| C["Glennergy-InputCache<br/>long-running"]
+    P -->|raw AllaSpotpriser struct<br/>/run/glennergy/spotpris.fifo| C
 
-    CFG[/etc/glennergy/fastigheter.json] --> M
+    CFG["/etc/glennergy/fastigheter.json"] --> M
     CFG --> C
 
-    A[Glennergy-Algoritm\nlong-running] -->|CacheRequest: CMD_GET_ALL\nover /run/glennergy/cache.sock| C
-    C -->|CacheResponse + raw InputCache_t\nover /run/glennergy/cache.sock| A
+    A["Glennergy-Algoritm<br/>long-running"] -->|CacheRequest: CMD_GET_ALL<br/>over /run/glennergy/cache.sock| C
+    C -->|CacheResponse + raw InputCache_t<br/>over /run/glennergy/cache.sock| A
 
-    A -->|AlgoritmShared snapshot| SHM[POSIX shared memory\n/algoritm_shm]
-    SEM[Named semaphore\n/algoritm_mutex] --- A
-    SEM --- H[Glennergy-Main\nloopback HTTP server]
+    A -->|AlgoritmShared snapshot| SHM["POSIX shared memory<br/>/algoritm_shm"]
+    SEM["Named semaphore<br/>/algoritm_mutex"] --- A
+    SEM --- H["Glennergy-Main<br/>loopback HTTP server"]
     SHM --> H
-    H -->|HTTP JSON response| CLIENT[Glennergy-ESP or another client]
+    H -->|HTTP JSON response| CLIENT["Glennergy-ESP or another client"]
 
-    C --> MC[/var/cache/glennergy/meteo/]
-    C --> PC[/var/cache/glennergy/spotpris/]
+    C --> MC["/var/cache/glennergy/meteo/"]
+    C --> PC["/var/cache/glennergy/spotpris/"]
 ```
 
 ## Process responsibilities and ownership

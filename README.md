@@ -83,7 +83,9 @@ checked-in example.
 ## Deploy deliberately
 
 Deployment is a separate, privileged and service-disrupting operation. After a
-complete build and review, an authorized operator can run:
+complete build and review, first confirm the exact intended host and your
+authorization, the revision and complete artifacts, backup needs, and
+acceptable downtime. Then an authorized operator can run:
 
 ```bash
 sudo ./glennergy_install.sh

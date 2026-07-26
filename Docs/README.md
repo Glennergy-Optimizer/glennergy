@@ -23,7 +23,7 @@ apply to stable production; do not infer production behavior from an unmarked
 
 | If you want to… | Read | Classification |
 |---|---|---|
-| Understand what the server does and get started | [Project README](../README.md) | Current entry point; being revised during this campaign |
+| Understand what the server does and get started | [Project README](../README.md) | Current approachable entry point |
 | Understand server processes, ownership, IPC and refresh timing | [Server architecture](architecture.md) | Current canonical server architecture for `dev` |
 | Understand how Glennergy and Glennergy-ESP fit together | [System context](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/system-context.md) | Canonical cross-project overview, owned by Glennergy-ESP |
 | Implement or debug the current HTTP exchange | [Interface contract](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/interface-contract.md) | Canonical cross-project contract, owned by Glennergy-ESP |
@@ -55,12 +55,11 @@ duplicate the interface contract or server architecture.
 
 ## Server guides
 
-The following artifacts are approved but not yet present. Until they are
-written and reviewed, source code, systemd units and scripts remain the
-implementation evidence; older prose must not be treated as a canonical
-substitute.
+These are the current canonical server guides. Source code, systemd units and
+scripts remain the implementation authority; older prose must not override
+them.
 
-| Planned path | Audience and scope | Required distinction |
+| Guide | Audience and scope | Required distinction |
 |---|---|---|
 | [Property configuration](property-configuration.md) | Maintainers configuring properties; schema, paths, parser behavior and examples | Current integer property IDs and temporary capacity versus planned UUID-like device identity and registration |
 | [Development](development.md) | Server developers; prerequisites, builds and safe static checks | A successful build is not deployment or runtime proof; there is no unified root test target |
