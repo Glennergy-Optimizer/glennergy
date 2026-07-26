@@ -1,10 +1,7 @@
 # Property configuration
 
-> **Status:** Current implementation plus explicitly separated planned work
->
-> **Authoritative snapshot:** `dev` at `42798bee227fcd621cbcb0b37c2b5da771210086`
->
-> **Last evidence review:** 2026-07-26
+> **In short:** Glennergy currently reads a local property JSON file; device
+> registration, UUID-like identity and authenticated writes are planned.
 
 Glennergy currently reads property information from a local JSON file. It does
 not currently register ESP32-S3 units, accept property writes over HTTP, or
@@ -202,6 +199,17 @@ Before changing the schema, property limit, or identity model:
    repository history.
 
 ## Implementation evidence
+
+<details>
+<summary>Verification metadata</summary>
+
+| Item | Value |
+| --- | --- |
+| Status | Current implementation plus explicitly separated planned work |
+| Authoritative snapshot | `dev` at `42798bee227fcd621cbcb0b37c2b5da771210086` |
+| Last evidence review | 2026-07-26 |
+
+</details>
 
 | Claim area | Authoritative source |
 |---|---|

@@ -1,10 +1,7 @@
 # Glennergy security boundaries
 
-> **Status:** Current repository evidence and known gaps
->
-> **Authoritative snapshot:** `dev` at `42798bee227fcd621cbcb0b37c2b5da771210086`
->
-> **Last evidence review:** 2026-07-26
+> **In short:** The application listens on loopback, but the current read API
+> has no authentication or property-level authorization.
 
 This document separates controls implemented in Glennergy source and service
 files from host controls that this repository cannot verify. It is not a
@@ -187,6 +184,18 @@ Purge permanently removes configuration, state and cache. Follow the
 approval.
 
 ## Security review checklist
+
+<details>
+<summary>Verification metadata</summary>
+
+| Item | Value |
+| --- | --- |
+| Status | Current repository evidence and known gaps |
+| Authoritative snapshot | `dev` at `42798bee227fcd621cbcb0b37c2b5da771210086` |
+| Last evidence review | 2026-07-26 |
+| Evidence boundary | Repository controls; not a penetration test or deployed-host assessment |
+
+</details>
 
 Before exposing a Glennergy deployment beyond the host:
 

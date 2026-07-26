@@ -1,10 +1,7 @@
 # Glennergy operations guide
 
-> **Status:** Repository-defined `dev` operations
->
-> **Authoritative snapshot:** `dev` at `42798bee227fcd621cbcb0b37c2b5da771210086`
->
-> **Last evidence review:** 2026-07-26
+> **In short:** Build, deploy and verify are separate stages; inspect before
+> changing service state, and treat purge or production edits as gated actions.
 
 This guide describes the lifecycle implemented by the checked-in Makefiles,
 deployment scripts and systemd units. It does not prove the current state of
@@ -208,6 +205,18 @@ and resolve the exact target host before approving it. The command cannot be
 undone from the repository alone.
 
 ## Host-dependent checks
+
+<details>
+<summary>Verification metadata</summary>
+
+| Item | Value |
+| --- | --- |
+| Status | Repository-defined `dev` operations |
+| Authoritative snapshot | `dev` at `42798bee227fcd621cbcb0b37c2b5da771210086` |
+| Last evidence review | 2026-07-26 |
+| Evidence boundary | Repository definitions; no claim about current external-host state |
+
+</details>
 
 The repository establishes the intended application-side boundary, but an
 operator must independently verify:

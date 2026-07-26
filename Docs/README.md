@@ -1,13 +1,5 @@
 # Glennergy documentation
 
-> **Status:** Documentation index for the current development architecture
->
-> **Authoritative snapshot:** `dev` at `42798bee227fcd621cbcb0b37c2b5da771210086`
->
-> **Stable-production reference:** `origin/main` at `61761b5eda30bee417a0b6e33e10fb061e18db26`
->
-> **Last reviewed:** 2026-07-26
-
 This is the canonical index for server-specific Glennergy documentation.
 Glennergy-ESP owns the shared system context, terminology and cross-project
 limitations. Glennergy owns the complete server HTTP API reference as well as
@@ -119,6 +111,18 @@ No historical file is approved for deletion merely because it is classified
 here. Cleanup requires a separate, evidence-backed change.
 
 ## Documentation ownership
+
+<details>
+<summary>Index verification metadata</summary>
+
+| Item | Value |
+| --- | --- |
+| Status | Documentation index for the current development architecture |
+| Authoritative snapshot | `dev` at `42798bee227fcd621cbcb0b37c2b5da771210086` |
+| Stable-production reference | `origin/main` at `61761b5eda30bee417a0b6e33e10fb061e18db26` |
+| Last reviewed | 2026-07-26 |
+
+</details>
 
 | Change | Update at minimum |
 |---|---|

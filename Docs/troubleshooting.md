@@ -1,10 +1,7 @@
 # Glennergy troubleshooting
 
-> **Status:** Read-only-first diagnosis for the current `dev` architecture
->
-> **Authoritative snapshot:** `dev` at `42798bee227fcd621cbcb0b37c2b5da771210086`
->
-> **Last evidence review:** 2026-07-26
+> **In short:** Observe the whole stack and preserve evidence before restarting,
+> redeploying, editing production configuration or removing IPC files.
 
 Start by observing the whole stack and preserving evidence. Do not restart,
 redeploy, edit production configuration or remove IPC files until the failure
@@ -268,6 +265,17 @@ port exposure. These actions destroy useful evidence or create competing
 owners without addressing the underlying dependency.
 
 ## Escalation report template
+
+<details>
+<summary>Verification metadata</summary>
+
+| Item | Value |
+| --- | --- |
+| Status | Read-only-first diagnosis for the current `dev` architecture |
+| Authoritative snapshot | `dev` at `42798bee227fcd621cbcb0b37c2b5da771210086` |
+| Last evidence review | 2026-07-26 |
+
+</details>
 
 ```text
 Observed symptom:

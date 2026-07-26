@@ -12,12 +12,6 @@ recommendation value remains unresolved. See the
 [current limitations](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/current-limitations.md)
 before building a client around unfinished behavior.
 
-> Documentation describes the authoritative `dev` implementation at
-> `42798bee227fcd621cbcb0b37c2b5da771210086`. `main` represents the stable
-> production line, but currently predates parts of the documented `dev`
-> deployment. Do not assume a `dev` operational detail is installed in
-> production without verifying the host and revision.
-
 ## How the projects fit together
 
 - **Glennergy** runs the server-side fetch, cache, calculation and HTTP stack.
@@ -139,3 +133,14 @@ No real hostname, VPS address, credential or private key is published here.
 Start troubleshooting with inspection, not recovery commands. Do not use
 manual process spawning, broad `pkill`, `kill -9`, purge, or production config
 edits as default diagnostics.
+
+<details>
+<summary>Documentation version and production scope</summary>
+
+Documentation describes the authoritative `dev` implementation at
+`42798bee227fcd621cbcb0b37c2b5da771210086`. `main` represents the stable
+production line, but currently predates parts of the documented `dev`
+deployment. Do not assume a `dev` operational detail is installed in
+production without verifying the host and revision.
+
+</details>

@@ -1,10 +1,7 @@
 # Glennergy development guide
 
-> **Status:** Current development workflow
->
-> **Authoritative snapshot:** `dev` at `42798bee227fcd621cbcb0b37c2b5da771210086`
->
-> **Last evidence review:** 2026-07-26
+> **In short:** Build and validate locally as a normal user; deployment and
+> service control belong to the operations workflow.
 
 This guide covers local source work and validation. Building, deploying and
 verifying an installed host are separate operations. For process and IPC
@@ -136,6 +133,17 @@ Before submitting documentation changes:
 5. remove trailing whitespace and accidental secret or host-specific values.
 
 ## Development boundaries
+
+<details>
+<summary>Verification metadata</summary>
+
+| Item | Value |
+| --- | --- |
+| Status | Current development workflow |
+| Authoritative snapshot | `dev` at `42798bee227fcd621cbcb0b37c2b5da771210086` |
+| Last evidence review | 2026-07-26 |
+
+</details>
 
 The following are local or read-only activities when run in a development
 checkout:

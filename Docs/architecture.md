@@ -1,12 +1,7 @@
 # Glennergy server architecture
 
-> **Status:** Current development architecture
->
-> **Authoritative snapshot:** `dev` at `42798bee227fcd621cbcb0b37c2b5da771210086`
->
-> **Stable-production comparison:** `origin/main` at `61761b5eda30bee417a0b6e33e10fb061e18db26`
->
-> **Last evidence review:** 2026-07-26
+> **In short:** Five executables exchange property, weather, price and result
+> snapshots through shared memory, semaphores, a FIFO and a Unix socket.
 
 This document describes the Linux server stack implemented on `dev`. It is a
 server-internal companion to the canonical cross-project documents maintained
@@ -254,6 +249,18 @@ unresolved recommendation semantics, use the canonical
 [limitations document](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/current-limitations.md).
 
 ## Source map
+
+<details>
+<summary>Verification metadata</summary>
+
+| Item | Value |
+| --- | --- |
+| Status | Current development architecture |
+| Authoritative snapshot | `dev` at `42798bee227fcd621cbcb0b37c2b5da771210086` |
+| Stable-production comparison | `origin/main` at `61761b5eda30bee417a0b6e33e10fb061e18db26` |
+| Last evidence review | 2026-07-26 |
+
+</details>
 
 | Concern | Primary evidence |
 |---|---|

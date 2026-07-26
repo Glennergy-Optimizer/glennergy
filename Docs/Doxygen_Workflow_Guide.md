@@ -4,11 +4,11 @@ This document explains the current GitHub setup and where to look for the active
 
 ## Main Files
 
-- GitHub Actions workflow: [`.github/workflows/doxygen-openai.yml`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/.github/workflows/doxygen-openai.yml)
-- Update script: [`tools/doxygen_ai/update_docs.py`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/tools/doxygen_ai/update_docs.py)
-- Workflow usage guide: [`tools/doxygen_ai/README.md`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/tools/doxygen_ai/README.md)
-- Active documentation standard: [`Docs/Doxygen_Standard.md`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/Docs/Doxygen_Standard.md)
-- Future follow-ups and open questions: [`Docs/Doxygen_TODO.md`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/Docs/Doxygen_TODO.md)
+- GitHub Actions workflow: [`.github/workflows/doxygen-openai.yml`](../.github/workflows/doxygen-openai.yml)
+- Update script: [`tools/doxygen_ai/update_docs.py`](../tools/doxygen_ai/update_docs.py)
+- Workflow usage guide: [`tools/doxygen_ai/README.md`](../tools/doxygen_ai/README.md)
+- Active documentation standard: [`Docs/Doxygen_Standard.md`](Doxygen_Standard.md)
+- Future follow-ups and open questions: [`Docs/Doxygen_TODO.md`](Doxygen_TODO.md)
 
 ## First-Time Setup
 
@@ -72,9 +72,9 @@ Do not use GitHub's built-in `Re-run failed jobs` button for this purpose. That 
 
 ## Recommended Usage
 
-- use [`tools/doxygen_ai/README.md`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/tools/doxygen_ai/README.md) for day-to-day workflow usage
-- use [`Docs/Doxygen_Standard.md`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/Docs/Doxygen_Standard.md) as the source of truth for documentation style
-- use [`Docs/Doxygen_TODO.md`](/c:/Users/Axel/Documents/Skola2025ChasAcademy/glennergy/Docs/Doxygen_TODO.md) for active concerns and future improvements
+- use [`tools/doxygen_ai/README.md`](../tools/doxygen_ai/README.md) for day-to-day workflow usage
+- use [`Docs/Doxygen_Standard.md`](Doxygen_Standard.md) as the source of truth for documentation style
+- use [`Docs/Doxygen_TODO.md`](Doxygen_TODO.md) for active concerns and future improvements
 
 ## Budget Notes
 
