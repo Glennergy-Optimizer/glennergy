@@ -36,6 +36,7 @@ task, then use the detailed sections only when you need implementation depth.
 | Implement or debug the server HTTP API | [HTTP API reference](http-api.md) | Complete server-side API authority |
 | Implement or debug ESP consumption of the API | [ESP interface contract](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/interface-contract.md) | Synchronized consumer-facing contract |
 | Check incomplete, temporary or planned behavior | [Current limitations](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/current-limitations.md) | Canonical cross-project status, owned by Glennergy-ESP |
+| Work through coding, design, testing and cleanup tasks | [Implementation backlog](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/implementation-backlog.md) | Consolidated cross-project worklist, owned by Glennergy-ESP |
 
 The public GitHub links above are repository-document links, not deployment
 endpoints. During branch review they may return 404 until the corresponding
