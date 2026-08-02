@@ -53,6 +53,21 @@ typedef struct {
 int average_SpotprisStats(SpotStats_t *spot, InputCache_t *cache);
 
 /**
+ * @brief Computes statistics for one forward-looking price window.
+ *
+ * @param stats Output statistics for the selected range.
+ * @param spot Spot-price cache containing the range.
+ * @param area_idx Electricity-area index.
+ * @param start_idx Inclusive first entry.
+ * @param end_idx Exclusive final entry.
+ *
+ * @return 0 on success, -1 when the arguments or range are invalid.
+ */
+int average_SpotprisStatsRange(Stats_t *stats, const Spot_t *spot,
+                               size_t area_idx, size_t start_idx,
+                               size_t end_idx);
+
+/**
  * @brief Detects low-price windows in the first price area.
  *
  * @param cache Pointer to the input cache.

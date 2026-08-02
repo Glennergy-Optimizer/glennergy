@@ -207,9 +207,6 @@ int main()
         AlgoritmShared next_shm;
         memset(&next_shm, 0, sizeof(next_shm));
 
-        SpotStats_t stats;
-        average_SpotprisStats(&stats, cache);
-
         for (size_t area_idx = 0; area_idx < 4; area_idx++)
         {
             size_t show_count = cache->spotpris.count[area_idx];
@@ -243,28 +240,28 @@ int main()
                 spot_iterator = cache->spotpris.count[area_idx];
             }
 
+            Stats_t window_stats;
+            if (average_SpotprisStatsRange(&window_stats, &cache->spotpris,
+                                           area_idx, spot_index,
+                                           spot_iterator) != 0)
+            {
+                LOG_ERROR("Invalid forward price window for area %s", area_names[area_idx]);
+                continue;
+            }
+
             for (size_t i = 0; i < cache->meteo_count; i++)
             {
-                printf("before shared: %s\n", cache->meteo[i].electricity_area);
-                printf("Comparing meteo area '%s' with spotpris area '%s'\n", cache->meteo[i].electricity_area, area_names[area_idx]);
                 if (strncmp(cache->meteo[i].electricity_area, area_names[area_idx], 3) == 0)
                 {
                     for (size_t entry = spot_index; entry < spot_iterator; entry++)
                     {
-                        printf("Area: %s, time: %s, price: %.2f SEK/kWh,\n",
-                               area_names[area_idx],
-                               cache->spotpris.data[area_idx][entry].time_start,
-                               cache->spotpris.data[area_idx][entry].sek_per_kwh);
-
                         for (size_t j = 0; j < 96; j++)
                         {
                             if (strncmp(cache->meteo[i].sample[j].time_start, cache->spotpris.data[area_idx][entry].time_start, 16) == 0)
                             {
                                 next_shm.result[i].id = cache->meteo[i].id;
-                                double score = average_WindowLow_percent(&cache->spotpris.data[area_idx][entry], stats.area[area_idx].min, stats.area[area_idx].max);
-                                int recommendation_type = average_WindowLow_test(&cache->spotpris.data[area_idx][entry], stats.area[area_idx].q25, stats.area[area_idx].q75);
-
-                                printf("SCORE: %.2f", score);
+                                double score = average_WindowLow_percent(&cache->spotpris.data[area_idx][entry], window_stats.min, window_stats.max);
+                                int recommendation_type = average_WindowLow_test(&cache->spotpris.data[area_idx][entry], window_stats.q25, window_stats.q75);
 
                                 next_shm.result[i].recommendation[j] = score;
                                 next_shm.result[i].recommendation_type[j] = recommendation_type;
@@ -275,11 +272,6 @@ int main()
 
                                 snprintf(next_shm.result[i].time[j].time, sizeof(next_shm.result[i].time[j].time), "%s", cache->spotpris.data[area_idx][entry].time_start);
 
-                                printf("  Matched time: %s, temp: %.2f °C, City: %s id: %d\n",
-                                       cache->meteo[i].sample[j].time_start,
-                                       cache->meteo[i].sample[j].temp,
-                                       cache->meteo[i].city,
-                                       cache->meteo[i].id);
                             }
                         }
                     }

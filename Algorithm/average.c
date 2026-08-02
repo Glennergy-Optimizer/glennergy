@@ -99,6 +99,42 @@ int average_SpotprisStats(SpotStats_t *spot, InputCache_t *cache)
     return 0;
 }
 
+int average_SpotprisStatsRange(Stats_t *stats, const Spot_t *spot,
+                               size_t area_idx, size_t start_idx,
+                               size_t end_idx)
+{
+    if (!stats || !spot || area_idx >= AREA_COUNT ||
+        start_idx >= end_idx || end_idx > spot->count[area_idx] ||
+        (end_idx - start_idx) > 96)
+    {
+        return -1;
+    }
+
+    const size_t count = end_idx - start_idx;
+    double sorted[96];
+    double sum = 0.0;
+
+    for (size_t i = 0; i < count; i++)
+    {
+        sorted[i] = spot->data[area_idx][start_idx + i].sek_per_kwh;
+        sum += sorted[i];
+    }
+
+    qsort(sorted, count, sizeof(double), compare_double);
+
+    const size_t mid = count / 2;
+    stats->min = sorted[0];
+    stats->max = sorted[count - 1];
+    stats->average = sum / count;
+    stats->median = (count % 2 == 0)
+                        ? (sorted[mid - 1] + sorted[mid]) / 2.0
+                        : sorted[mid];
+    stats->q25 = sorted[count / 4];
+    stats->q75 = sorted[(3 * count) / 4];
+
+    return 0;
+}
+
 
 double average_WindowLow_percent(SpotEntry_t *entry, double min, double max)
 {
@@ -120,9 +156,6 @@ double average_WindowLow_percent(SpotEntry_t *entry, double min, double max)
     // Clamp to [0.0, 1.0]
     if (percentage < 0.0) percentage = 0.0;
     if (percentage > 1.0) percentage = 1.0;
-
-    printf("%s (%.3f SEK/kWh) -> %.2f%%\n",
-           entry->time_start, price, percentage * 100);
 
     return percentage;
 }
@@ -194,25 +227,20 @@ int average_WindowLow_test(SpotEntry_t *entry, double q25_threshold, double q75_
         return -1;
     }
 
-    printf(" q25_threshold: %.3f\n", q25_threshold);
-
     double price = entry->sek_per_kwh;
 
     if (price < q25_threshold)
     {
-        printf("Price below q25: %s (%.3f SEK/kWh) [BUY]\n", entry->time_start, price);
         return 1;
     }
 
     if (price >= q25_threshold && price < q75_threshold)
     {
-        printf("Price between q25 and q75: %s (%.3f SEK/kWh) [HOLD]\n", entry->time_start, price);
         return 2;
     }
 
     if (price >= q75_threshold)
     {
-        printf("Price above q75: %s (%.3f SEK/kWh) [SELL]\n", entry->time_start, price);
         return 3;
     }
 

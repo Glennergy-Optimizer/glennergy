@@ -116,13 +116,18 @@ fixed to 96 quarter-hour slots.
 | Field | JSON type | Server source/meaning |
 | --- | --- | --- |
 | `id` | Integer | Property ID from the matching algorithm result |
-| `score` | Real | Price position normalized between the current window minimum (`0`) and maximum (`1`) |
-| `recommendation` | String | Quartile category: `buy` below Q25, `hold` from Q25 to Q75, or `sell` at/above Q75 |
+| `score` | Real | Price position normalized between the minimum (`0`) and maximum (`1`) of the published forward window |
+| `recommendation` | String | Category based on the published forward window: `buy` below Q25, `hold` from Q25 to Q75, or `sell` at/above Q75 |
 | `timestamp` | String | Timestamp copied from the matched spot-price sample |
 
 The continuous score supports chart height while the explicit recommendation
 controls categorical presentation. Weather temperature is available only from
 the weather endpoint and is not duplicated here.
+
+The normalization and Q25/Q75 thresholds use only the same forward-looking
+price range that is published: the current matched quarter-hour interval and
+up to the following 95 intervals. Earlier cached prices and prices beyond that
+published window do not affect either the score or recommendation category.
 
 ### Weather
 

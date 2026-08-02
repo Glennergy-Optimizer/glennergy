@@ -108,7 +108,10 @@ then copies the whole result to shared memory while holding
 
 Each recommendation entry publishes a continuous min/max-normalized `score`
 and a separate quartile category. The category is `buy` below Q25, `hold`
-between Q25 and Q75, and `sell` at or above Q75.
+between Q25 and Q75, and `sell` at or above Q75. Both the min/max normalization
+and quartile thresholds are calculated from the published forward window only:
+the current matched quarter-hour interval plus up to 95 future intervals.
+Earlier cached prices and later, unpublished cached prices are excluded.
 
 ### HTTP server
 
