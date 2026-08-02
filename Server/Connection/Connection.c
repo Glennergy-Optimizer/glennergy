@@ -302,7 +302,7 @@ int Connection_Handle(Connection *_Connection)
     status = 0;
     
     
-    printf("data %s\n", response);
+    //printf("data %s\n", response);
 
     send(_Connection->socket, response, actualLength, MSG_NOSIGNAL);
     
