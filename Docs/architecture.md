@@ -106,10 +106,9 @@ timestamp and electricity area, prepares a zero-initialized next snapshot,
 then copies the whole result to shared memory while holding
 `/algoritm_mutex`. It sleeps ten seconds between successful cycles.
 
-The current wire field named `recommendation[].type` is derived from
-`average_WindowLow_percent`. A separately calculated categorical
-recommendation is discarded. The intended meaning is unresolved and is
-documented as a likely defect, not as a settled business rule.
+Each recommendation entry publishes a continuous min/max-normalized `score`
+and a separate quartile category. The category is `buy` below Q25, `hold`
+between Q25 and Q75, and `sell` at or above Q75.
 
 ### HTTP server
 

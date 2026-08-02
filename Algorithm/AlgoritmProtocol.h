@@ -53,7 +53,8 @@ typedef struct{
 typedef struct
 {
     int id;                       /**< Unique identifier */
-    double recommendation[96];       /**< Recommendations per quarter-hour */
+    double recommendation[96];    /**< Continuous min/max-normalized score. */
+    int recommendation_type[96]; /**< 1=buy, 2=hold, 3=sell. */
     double price[96];
     Weather weather;
     time_start time[96];           /**< Corresponding timestamps */

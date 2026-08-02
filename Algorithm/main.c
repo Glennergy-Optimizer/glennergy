@@ -261,13 +261,13 @@ int main()
                             if (strncmp(cache->meteo[i].sample[j].time_start, cache->spotpris.data[area_idx][entry].time_start, 16) == 0)
                             {
                                 next_shm.result[i].id = cache->meteo[i].id;
-                                double temp = average_WindowLow_percent(&cache->spotpris.data[area_idx][entry], stats.area[area_idx].min, stats.area[area_idx].max);
+                                double score = average_WindowLow_percent(&cache->spotpris.data[area_idx][entry], stats.area[area_idx].min, stats.area[area_idx].max);
                                 int recommendation_type = average_WindowLow_test(&cache->spotpris.data[area_idx][entry], stats.area[area_idx].q25, stats.area[area_idx].q75);
-                                (void)recommendation_type;
 
-                                printf("TEMP: %.2f", temp);
+                                printf("SCORE: %.2f", score);
 
-                                next_shm.result[i].recommendation[j] = temp;
+                                next_shm.result[i].recommendation[j] = score;
+                                next_shm.result[i].recommendation_type[j] = recommendation_type;
                                 next_shm.result[i].weather.temp[j] = cache->meteo[i].sample[j].temp;
                                 next_shm.result[i].weather.weather_code[j] = cache->meteo[i].sample[j].weather_code;
                                 next_shm.result[i].weather.uv_index[j] = cache->meteo[i].sample[j].uv_index;
@@ -275,7 +275,7 @@ int main()
 
                                 snprintf(next_shm.result[i].time[j].time, sizeof(next_shm.result[i].time[j].time), "%s", cache->spotpris.data[area_idx][entry].time_start);
 
-                                printf("  Matched time: %s, temp: %.2f °C, GHI: %.2f W/m², City: %s id: %d\n",
+                                printf("  Matched time: %s, temp: %.2f °C, City: %s id: %d\n",
                                        cache->meteo[i].sample[j].time_start,
                                        cache->meteo[i].sample[j].temp,
                                        cache->meteo[i].city,

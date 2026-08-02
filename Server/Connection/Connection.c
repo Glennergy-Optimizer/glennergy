@@ -210,14 +210,25 @@ int Connection_Handle(Connection *_Connection)
 
                 // printf("Recommendation: %.f\n", memory->result[i].sample[j]);
                 double rec = memory->result[i].recommendation[j];
-
-                const char *type = NULL;
+                const char *recommendation = "unknown";
+                switch (memory->result[i].recommendation_type[j])
+                {
+                case 1:
+                    recommendation = "buy";
+                    break;
+                case 2:
+                    recommendation = "hold";
+                    break;
+                case 3:
+                    recommendation = "sell";
+                    break;
+                }
 
                 json_t *obj = json_object();
                 json_object_set_new(obj, "id", json_integer(memory->result[i].id));
-                json_object_set_new(obj, "type", json_real(rec));
+                json_object_set_new(obj, "score", json_real(rec));
+                json_object_set_new(obj, "recommendation", json_string(recommendation));
                 json_object_set_new(obj, "timestamp", json_string(memory->result[i].time[j].time));
-                json_object_set_new(obj, "temp", json_real(memory->result[i].weather.temp[j]));
                 json_array_append_new(arr, obj);
 
                 // if (strstr(memory->result[i].time[j].time, "23:45") != NULL)
@@ -257,7 +268,7 @@ int Connection_Handle(Connection *_Connection)
 
                 json_t *obj = json_object();
                 json_object_set_new(obj, "timestamp", json_string(memory->result[i].time[j].time));
-                json_object_set_new(obj, "price SEK", json_real(memory->result[i].price[j]));
+                json_object_set_new(obj, "price_sek_per_kwh", json_real(memory->result[i].price[j]));
                 json_array_append_new(arr, obj);
 
                 // if (strstr(memory->result[i].time[j].time, "23:45") != NULL)

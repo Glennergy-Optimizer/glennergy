@@ -196,9 +196,9 @@ Current freshness limitations:
 Inspect the journals in pipeline order: fetchers, InputCache, Algorithm, then
 HTTP server. Correlate timestamps rather than restarting every service at once.
 
-The numeric `recommendation[].type` field has unresolved semantics in the
-current implementation. Do not diagnose it against a presumed BUY/HOLD/SELL
-contract; consult the interface contract and current limitations.
+Recommendation entries contain both a continuous `score` and an explicit
+`buy`, `hold`, or `sell` category. Diagnose unexpected chart height against the
+score calculation and unexpected color against the Q25/Q75 category separately.
 
 ## IPC failures
 

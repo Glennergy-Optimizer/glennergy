@@ -106,9 +106,9 @@ fixed to 96 quarter-hour slots.
 [
   {
     "id": 2,
-    "type": 0.42,
-    "timestamp": "2026-01-01T12:00",
-    "temp": 18.5
+    "score": 0.42,
+    "recommendation": "hold",
+    "timestamp": "2026-01-01T12:00"
   }
 ]
 ```
@@ -116,15 +116,13 @@ fixed to 96 quarter-hour slots.
 | Field | JSON type | Server source/meaning |
 | --- | --- | --- |
 | `id` | Integer | Property ID from the matching algorithm result |
-| `type` | Real | Current numeric value from `AlgoritmResult.recommendation[]`; intended semantics unresolved |
+| `score` | Real | Price position normalized between the current window minimum (`0`) and maximum (`1`) |
+| `recommendation` | String | Quartile category: `buy` below Q25, `hold` from Q25 to Q75, or `sell` at/above Q75 |
 | `timestamp` | String | Timestamp copied from the matched spot-price sample |
-| `temp` | Real | Matched weather temperature in degrees Celsius |
 
-The intended meaning of `recommendation[].type` is **unresolved**. The algorithm
-calculates a categorical recommendation value but currently discards it; the
-published array is instead assigned the result of a price-position calculation.
-This document deliberately does not name `type` as buy, hold, sell, percentage
-or another final semantic.
+The continuous score supports chart height while the explicit recommendation
+controls categorical presentation. Weather temperature is available only from
+the weather endpoint and is not duplicated here.
 
 ### Weather
 
@@ -156,7 +154,7 @@ as a JSON real.
 [
   {
     "timestamp": "2026-01-01T12:00",
-    "price SEK": 0.73
+    "price_sek_per_kwh": 0.73
   }
 ]
 ```
@@ -164,10 +162,7 @@ as a JSON real.
 | Field | JSON type | Unit/meaning |
 | --- | --- | --- |
 | `timestamp` | String | Quarter-hour price interval start |
-| `price SEK` | Real | SEK per kWh |
-
-The space in `price SEK` is part of the current wire key and must be preserved
-for compatibility.
+| `price_sek_per_kwh` | Real | SEK per kWh |
 
 ### Timestamp format
 
@@ -180,7 +175,6 @@ format, offset policy and validation.
 
 | Area | Current server limitation or risk |
 | --- | --- |
-| Recommendation semantics | `type` has no approved final meaning; a calculated categorical value is discarded before publication. |
 | Timestamp format | No single normalized wire format or offset policy is declared. |
 | UV precision/type | Upstream UV data is converted to an integer and then emitted as a JSON real. |
 | Versioning | No API or schema version is negotiated or returned. |
