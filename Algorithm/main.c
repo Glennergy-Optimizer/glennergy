@@ -213,9 +213,6 @@ int main()
             // Now attempts to find the spotpris index of the first meteo timestamp
             size_t spot_index = 0;
             bool found_spot_index = false;
-            // if (show_count > 96)
-            // show_count = 96; // Show only first 10
-
             for (size_t entry = 0; entry < show_count; entry++)
             {
                 if (strncmp(cache->meteo[0].sample[0].time_start, cache->spotpris.data[area_idx][entry].time_start, 16) == 0)
@@ -233,7 +230,7 @@ int main()
                 continue;
             }
 
-            size_t spot_iterator = (spot_index + 96); // Add 96 quarters to get accurate matched price 24 hrs forward
+            size_t spot_iterator = spot_index + MAX_FORECAST_ENTRIES;
 
             if (spot_iterator > cache->spotpris.count[area_idx])
             {
@@ -255,7 +252,7 @@ int main()
                 {
                     for (size_t entry = spot_index; entry < spot_iterator; entry++)
                     {
-                        for (size_t j = 0; j < 96; j++)
+                        for (size_t j = 0; j < MAX_FORECAST_ENTRIES; j++)
                         {
                             if (strncmp(cache->meteo[i].sample[j].time_start, cache->spotpris.data[area_idx][entry].time_start, 16) == 0)
                             {
@@ -271,6 +268,8 @@ int main()
                                 next_shm.result[i].price[j] = cache->spotpris.data[area_idx][entry].sek_per_kwh;
 
                                 snprintf(next_shm.result[i].time[j].time, sizeof(next_shm.result[i].time[j].time), "%s", cache->spotpris.data[area_idx][entry].time_start);
+                                if (next_shm.result[i].count < j + 1)
+                                    next_shm.result[i].count = j + 1;
 
                             }
                         }

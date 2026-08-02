@@ -105,13 +105,13 @@ int average_SpotprisStatsRange(Stats_t *stats, const Spot_t *spot,
 {
     if (!stats || !spot || area_idx >= AREA_COUNT ||
         start_idx >= end_idx || end_idx > spot->count[area_idx] ||
-        (end_idx - start_idx) > 96)
+        (end_idx - start_idx) > KVARTAR_TOTALT)
     {
         return -1;
     }
 
     const size_t count = end_idx - start_idx;
-    double sorted[96];
+    double sorted[KVARTAR_TOTALT];
     double sum = 0.0;
 
     for (size_t i = 0; i < count; i++)
@@ -270,7 +270,7 @@ int average_SpotprisStats_test(SpotStats_t *spot, Spot_t *entry)
             continue;
         }
 
-        double sorted[96]; // Suggestion: Could dynamically allocate based on count
+        double sorted[192];
         double sum = 0.0;
 
         for (size_t samples = 0; samples < count; samples++)

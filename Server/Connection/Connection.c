@@ -205,7 +205,10 @@ int Connection_Handle(Connection *_Connection)
 
         if (strncmp(request_data.command, "recommendation", 15) == 0)
         {
-            for (int j = 0; j < 96; j++)
+            size_t result_count = memory->result[i].count;
+            if (result_count > MAX_FORECAST_ENTRIES)
+                result_count = MAX_FORECAST_ENTRIES;
+            for (size_t j = 0; j < result_count; j++)
             {
 
                 // printf("Recommendation: %.f\n", memory->result[i].sample[j]);
@@ -239,7 +242,10 @@ int Connection_Handle(Connection *_Connection)
         }
         else if (strncmp(request_data.command, "weather", 8) == 0)
         {
-            for (int j = 0; j < 96; j++)
+            size_t result_count = memory->result[i].count;
+            if (result_count > MAX_FORECAST_ENTRIES)
+                result_count = MAX_FORECAST_ENTRIES;
+            for (size_t j = 0; j < result_count; j++)
             {
 
                 // printf("Recommendation: %.f\n", memory->result[i].sample[j]);
@@ -260,7 +266,10 @@ int Connection_Handle(Connection *_Connection)
         }
         else if (strncmp(request_data.command, "price", 6) == 0)
         {
-            for (int j = 0; j < 96; j++)
+            size_t result_count = memory->result[i].count;
+            if (result_count > MAX_FORECAST_ENTRIES)
+                result_count = MAX_FORECAST_ENTRIES;
+            for (size_t j = 0; j < result_count; j++)
             {
 
                 // printf("Recommendation: %.f\n", memory->result[i].sample[j]);

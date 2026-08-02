@@ -75,7 +75,7 @@ preflight contract.
 
 | Condition | Observed server behavior |
 | --- | --- |
-| Valid route and matching property ID | `200 OK`, JSON array containing 96 objects |
+| Valid route and matching property ID | `200 OK`, JSON array containing up to 128 objects |
 | Valid route but no matching positive property ID | Normally `200 OK`, empty JSON array `[]` |
 | Invalid target, command, ID or supported-method parsing failure | `400 Bad Request`, empty body |
 | `/` or `/favicon.ico` | `204 No Content`, empty body |
@@ -96,9 +96,9 @@ zero/empty datasets instead of returning `[]`.
 
 ## Current JSON schemas
 
-All three successful responses are top-level JSON arrays. Glennergy emits
-exactly 96 entries for a matching property because its served result arrays are
-fixed to 96 quarter-hour slots.
+All three successful responses are top-level JSON arrays. Glennergy emits the
+available matched forward entries for a property, capped at 128 quarter-hour
+slots. The response length can grow after next-day prices become available.
 
 ### Recommendation
 
@@ -126,7 +126,7 @@ the weather endpoint and is not duplicated here.
 
 The normalization and Q25/Q75 thresholds use only the same forward-looking
 price range that is published: the current matched quarter-hour interval and
-up to the following 95 intervals. Earlier cached prices and prices beyond that
+up to the following 127 intervals. Earlier cached prices and prices beyond that
 published window do not affect either the score or recommendation category.
 
 ### Weather
@@ -186,7 +186,7 @@ format, offset policy and validation.
 | Error schema | Error responses are empty and do not provide a stable structured body. |
 | Unknown property | A missing positive property ID returns `200 []`, not `404`. |
 | Property ID zero | Parser accepts zero, which can match zero-initialized unused server result slots and produce misleading zero/empty datasets. |
-| Partial/zero-filled data | The server serializes all 96 slots, even if an algorithm slot was not populated with meaningful current data. |
+| Available horizon | Responses are capped at 128 matched forward intervals and can be shorter when fewer prices are available. |
 | Freshness | Responses contain no version, age, `ETag` or server-generated freshness metadata. |
 | Access control | Read routes are unauthenticated and authorize no property ownership. |
 
@@ -263,7 +263,7 @@ Primary producer evidence in Glennergy:
 
 - `Server/HTTP/HTTPRequest.c` — exact route and command parser
 - `Server/Connection/Connection.c` — statuses, response headers and JSON fields
-- `Algorithm/AlgoritmProtocol.h` — five-result/96-slot shared-memory limits
+- `Algorithm/AlgoritmProtocol.h` — five-result/128-slot shared-memory limits
 - `Algorithm/main.c` — recommendation assignment, field population and timestamp source
 - `API/Meteo/Meteo.h` and `API/Spotpris/Spotpris.h` — units and source types
 

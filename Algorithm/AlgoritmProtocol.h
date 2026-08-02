@@ -17,6 +17,7 @@
 #define TESTREADER_H
 
 #define MAX_ID 5                        /**< Maximum number of results in shared memory */
+#define MAX_FORECAST_ENTRIES 128        /**< Maximum forward quarter-hour entries */
 #define ALGORITM_SHARED "/algoritm_shm" /**< Shared memory name */
 #define ALGORITM_MUTEX "/algoritm_mutex" /**< Semaphore name for shared memory */
 
@@ -40,24 +41,25 @@ typedef struct
 } time_start;
 
 typedef struct{
-    float temp[128];
-    int weather_code[128];
-    int uv_index[128];
+    float temp[MAX_FORECAST_ENTRIES];
+    int weather_code[MAX_FORECAST_ENTRIES];
+    int uv_index[MAX_FORECAST_ENTRIES];
 }Weather;
 
 /**
  * @brief Result per ID in the Algorithm module.
  *
- * `recommendation` stores values for 96 quarter-hour intervals.
+ * Arrays contain `count` valid forward quarter-hour intervals.
  */
 typedef struct
 {
     int id;                       /**< Unique identifier */
-    double recommendation[96];    /**< Continuous min/max-normalized score. */
-    int recommendation_type[96]; /**< 1=buy, 2=hold, 3=sell. */
-    double price[96];
+    size_t count;                 /**< Number of valid entries in each array. */
+    double recommendation[MAX_FORECAST_ENTRIES];    /**< Continuous min/max-normalized score. */
+    int recommendation_type[MAX_FORECAST_ENTRIES]; /**< 1=buy, 2=hold, 3=sell. */
+    double price[MAX_FORECAST_ENTRIES];
     Weather weather;
-    time_start time[96];           /**< Corresponding timestamps */
+    time_start time[MAX_FORECAST_ENTRIES]; /**< Corresponding timestamps */
 } AlgoritmResult;
 
 /**
