@@ -1,16 +1,13 @@
 /**
  * @file AlgoritmProtocol.h
- * @brief Shared memory structures and protocol definitions for the Algorithm module.
+ * @brief Shared memory protocol for the Algorithm module.
  *
- * Defines the shared memory layout and basic protocol types used by the Algorithm
+ * Defines the shared memory layout and protocol types used by the Algorithm
  * module.
  *
  * @defgroup Algorithm Algorithm Module
- * @ingroup Algorithm
- * @brief Shared memory structures and protocol definitions for the Algorithm module.
+ * @brief Shared memory protocol for the Algorithm module.
  * @{
- *
- * @note Original comments preserved.
  */
 
 #ifndef TESTREADER_H
@@ -33,7 +30,7 @@ int test_reader();
 /**
  * @brief Time representation for a sample.
  *
- * Memory owned by the parent structure; `time` stores up to 32 characters.
+ * Stores up to 32 characters in `time`.
  */
 typedef struct
 {

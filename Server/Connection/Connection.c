@@ -3,9 +3,6 @@
  * @brief Implementation of TCP client connection management.
  *
  * @ingroup Connection
- *
- * Handles initialization, HTTP request processing, JSON response generation,
- * and resource cleanup for Connection structures.
  */
 
 #define MODULE_NAME "Connection"
@@ -59,6 +56,8 @@ int Connection_Initialize(Connection **_Connection, int _Socket)
 
 /**
  * @brief Handles an incoming client connection and sends a response.
+ *
+ * See header for full contract documentation.
  */
 int Connection_Handle(Connection *_Connection)
 {

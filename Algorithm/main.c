@@ -28,20 +28,14 @@
 #include "../Libs/Sockets.h"
 
 /**
- * @brief Sends a request to the cache and receives the expected data.
+ * @brief Receives the exact payload size from the cache socket.
  *
- * @param cmd Cache command to send.
- * @param data_out Pointer to memory where data is stored.
- * @param expected_size Expected size of the output data.
+ * @param fd Socket file descriptor.
+ * @param buf Destination buffer.
+ * @param size Number of bytes to read.
  *
- * @return 0 on success, -1 on error.
- *
- * @warning `data_out` must point to valid, writable memory.
- * @note Logs errors using `LOG_ERROR` and closes the socket on failure.
+ * @return Number of bytes read, or -1 on error.
  */
-// gcc -Wall -Wextra -std=c11 -g testreader.c ../Sockets.c ../../Server/Log/Logger.c -I../../ -o testreader
-
-
 static ssize_t recv_all(int fd, void *buf, size_t size)
 {
     size_t total = 0;
@@ -139,22 +133,16 @@ int cache_request(CacheCommand cmd, void *data_out, size_t expected_size)
     return 0;
 }
 
-
-
 /**
  * @brief Main loop for the Algorithm module.
  *
- * Initializes logging, shared memory, semaphores, and InputCache,
- * then enters a loop to:
- * - Fetch data from cache
- * - Compute spot price statistics
- * - Match meteo and spot prices
- * - Store recommendations in shared memory
+ * Initializes logging, shared memory, semaphores, and InputCache, then
+ * periodically fetches cached data and publishes updated recommendations.
  *
- * @return 0 on normal exit, -1/-2 on initialization errors
+ * @return 0 on normal exit, -1/-2 on initialization errors.
  *
- * @warning Runs an infinite loop with sleep(10); ensure proper termination in production.
  * @note Frees allocated InputCache memory and cleans up logging before exit.
+ * @warning Runs an infinite loop with sleep(10); ensure proper termination in production.
  */
 int main()
 {
