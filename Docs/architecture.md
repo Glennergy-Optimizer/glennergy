@@ -246,8 +246,8 @@ Important current limitations are:
 - Property registration, UUID-based device identity and authorization are
   planned and are not part of this architecture yet.
 
-For cross-project limitations, including the temporary endpoint shape and
-unresolved recommendation semantics, use the canonical
+For cross-project limitations, including the temporary endpoint shape and the
+non-final recommendation product policy, use the canonical
 [limitations document](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/current-limitations.md).
 
 ## Source map
@@ -258,9 +258,9 @@ unresolved recommendation semantics, use the canonical
 | Item | Value |
 | --- | --- |
 | Status | Current development architecture |
-| Authoritative snapshot | `dev` at `42798bee227fcd621cbcb0b37c2b5da771210086` |
+| Authoritative snapshot | `dev` at `63b1bad306d172e3d8cd337b314843f656715887` |
 | Stable-production comparison | `origin/main` at `61761b5eda30bee417a0b6e33e10fb061e18db26` |
-| Last evidence review | 2026-07-26 |
+| Last evidence review | 2026-08-03 |
 
 </details>
 
@@ -278,8 +278,9 @@ unresolved recommendation semantics, use the canonical
 
 ## Known uncertainty
 
-This document intentionally leaves the semantic contract of the numeric
-recommendation value unresolved. It also does not claim that the checked-in
+The current implementation defines a normalized score and quartile category,
+but does not establish those categories as the final product decision policy.
+This document also does not claim that the checked-in
 systemd topology has been observed on the production host: repository evidence
 establishes the intended `dev` deployment, while `origin/main` remains the
 stable-production code reference. Runtime deployment state must be verified

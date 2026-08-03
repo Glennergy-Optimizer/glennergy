@@ -119,9 +119,9 @@ here. Cleanup requires a separate, evidence-backed change.
 | Item | Value |
 | --- | --- |
 | Status | Documentation index for the current development architecture |
-| Authoritative snapshot | `dev` at `42798bee227fcd621cbcb0b37c2b5da771210086` |
+| Authoritative snapshot | `dev` at `63b1bad306d172e3d8cd337b314843f656715887` |
 | Stable-production reference | `origin/main` at `61761b5eda30bee417a0b6e33e10fb061e18db26` |
-| Last reviewed | 2026-07-26 |
+| Last reviewed | 2026-08-03 |
 
 </details>
 

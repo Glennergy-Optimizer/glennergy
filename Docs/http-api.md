@@ -256,8 +256,8 @@ For each such change:
 ## Verification evidence
 
 This edition describes Glennergy `dev` source snapshot
-`42798bee227fcd621cbcb0b37c2b5da771210086` and was last reviewed on
-2026-07-26. Stable-production differences are described above.
+`63b1bad306d172e3d8cd337b314843f656715887` and was last reviewed on
+2026-08-03. Stable-production differences are described above.
 
 Primary producer evidence in Glennergy:
 

@@ -7,8 +7,8 @@ HTTP.
 
 The project is close to feature-complete, but some behavior remains temporary
 or planned. In particular, property data is currently preconfigured, device
-registration is not implemented, and the exact meaning of the numeric
-recommendation value remains unresolved. See the
+registration is not implemented, and the current quartile-based recommendation
+categories are not yet a final product decision policy. See the
 [current limitations](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/current-limitations.md)
 before building a client around unfinished behavior.
 
@@ -107,9 +107,9 @@ The current read endpoint shape is temporary and backwards:
 
 Weather and price commands also exist. Reads are currently unauthenticated,
 and the server does not implement property registration or configuration
-writes. Do not infer a settled business meaning from the numeric
-`recommendation[].type` field. The exact implemented schemas, error behavior
-and planned canonical route are documented in the local
+writes. Recommendation objects now contain a normalized numeric `score` and a
+separate `buy`, `hold`, or `sell` category. The exact implemented schemas,
+error behavior and planned canonical route are documented in the local
 [HTTP API reference](Docs/http-api.md). The
 [ESP interface contract](https://github.com/Glennergy-Optimizer/Glennergy-ESP/blob/dev/docs/interface-contract.md)
 adds firmware parser, cache, retry and compatibility details.
@@ -138,7 +138,7 @@ edits as default diagnostics.
 <summary>Documentation version and production scope</summary>
 
 Documentation describes the authoritative `dev` implementation at
-`42798bee227fcd621cbcb0b37c2b5da771210086`. `main` represents the stable
+`63b1bad306d172e3d8cd337b314843f656715887`. `main` represents the stable
 production line, but currently predates parts of the documented `dev`
 deployment. Do not assume a `dev` operational detail is installed in
 production without verifying the host and revision.

@@ -191,7 +191,8 @@ Current freshness limitations:
   ten seconds.
 - The HTTP server returns the current shared-memory contents and does not test
   provider freshness.
-- Empty/uninitialized fixed-array slots can appear as zero values.
+- Responses contain the counted matched forward range and can legitimately be
+  shorter than 128 entries when the available price horizon is shorter.
 
 Inspect the journals in pipeline order: fetchers, InputCache, Algorithm, then
 HTTP server. Correlate timestamps rather than restarting every service at once.
@@ -272,8 +273,8 @@ owners without addressing the underlying dependency.
 | Item | Value |
 | --- | --- |
 | Status | Read-only-first diagnosis for the current `dev` architecture |
-| Authoritative snapshot | `dev` at `42798bee227fcd621cbcb0b37c2b5da771210086` |
-| Last evidence review | 2026-07-26 |
+| Authoritative snapshot | `dev` at `63b1bad306d172e3d8cd337b314843f656715887` |
+| Last evidence review | 2026-08-03 |
 
 </details>
 
