@@ -27,7 +27,11 @@ const char *area_names[AREA_COUNT] = {"SE1", "SE2", "SE3", "SE4"}; // usch
  *
  * @param a Pointer to first double.
  * @param b Pointer to second double.
- * @return -1 if *a < *b, 1 if *a > *b, 0 if equal.
+ *
+ * @return
+ * - -1 if `*a < *b`
+ * - 1 if `*a > *b`
+ * - 0 if equal
  */
 int compare_double(const void *a, const void *b)
 {
@@ -40,7 +44,7 @@ int compare_double(const void *a, const void *b)
 }
 
 /**
- * @brief Computes spot price statistics from InputCache.
+ * @brief Implementation of average_SpotprisStats.
  *
  * See header for full contract documentation.
  */
@@ -162,7 +166,7 @@ double average_WindowLow_percent(SpotEntry_t *entry, double min, double max)
 
 
 /**
- * @brief Detects low-price windows in cache.
+ * @brief Implementation of average_WindowLow.
  *
  * See header for full contract documentation.
  */
@@ -215,7 +219,7 @@ int average_WindowLow(InputCache_t *cache, double q25_threshold)
 }
 
 /**
- * @brief Determines BUY/HOLD/SELL recommendation based on thresholds.
+ * @brief Implementation of average_WindowLow_test.
  *
  * See header for full contract documentation.
  */
@@ -248,7 +252,7 @@ int average_WindowLow_test(SpotEntry_t *entry, double q25_threshold, double q75_
 }
 
 /**
- * @brief Computes spot price statistics from a Spot_t structure.
+ * @brief Implementation of average_SpotprisStats_test.
  *
  * See header for full contract documentation.
  */
